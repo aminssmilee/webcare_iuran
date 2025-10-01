@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { Button } from "@/components/ui/button"
 import { GripVerticalIcon } from "lucide-react"
 import { flexRender } from "@tanstack/react-table"
-import { TableCell, TableRow } from "@/components/data-table"
+import { TableCell, TableRow } from "@/components/ui/table"
 
 export function DragHandle({ id }) {
   const { attributes, listeners } = useSortable({ id })

@@ -5,8 +5,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -14,9 +12,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { SectionCards } from "@/components/section-cards"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
+import { CardHeader } from "@/components/ui/card"
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -29,10 +25,37 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { DataTable } from "@/components/data-table/DataTable"
-import { columns } from "@/components/data-table/coloums"
+import { columns } from "@/components/data-table/coloums"   // ✅ pastikan nama file sama persis (coloums.js / columns.js)
+
+// 🔥 Dummy data iuran
+const iuranData = [
+  {
+    id: 1,
+    header: "Iuran Budi",
+    type: "Bulanan",
+    status: "Lunas",
+    target: "50000",
+    reviewer: "Pak RT",
+  },
+  {
+    id: 2,
+    header: "Iuran Siti",
+    type: "Bulanan",
+    status: "Belum Lunas",
+    target: "50000",
+    reviewer: "Assign reviewer",
+  },
+  {
+    id: 3,
+    header: "Iuran Andi",
+    type: "Rapel",
+    status: "Lunas",
+    target: "100000",
+    reviewer: "Pak RW",
+  },
+]
 
 export default function Page() {
-  // 🔥 Tambahin state untuk toggle/select
   const [timeRange, setTimeRange] = useState("90d")
 
   return (
@@ -88,13 +111,8 @@ export default function Page() {
           </CardHeader>
 
           <div className="@container/main flex flex-1 flex-col gap-2">
-            {/* <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <SectionCards />
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
-              </div>
-            </div> */}
-            <DataTable  />
+            {/* ✅ Pass data dan columns ke DataTable */}
+            <DataTable data={iuranData} columns={columns} />
           </div>
         </div>
       </SidebarInset>
