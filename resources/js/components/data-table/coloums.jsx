@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CheckCircle2Icon, LoaderIcon, MoreVerticalIcon } from "lucide-react"
 import { toast } from "sonner"
-import { DragHandle } from "./DraggableRow"
-import { TableCellViewer } from "./TableCellViewer"
+import { DragHandle } from "./DragRow"
+import { TableCellViewer } from "./TableCell"
 
 export const columns = [
     {

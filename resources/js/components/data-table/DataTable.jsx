@@ -5,8 +5,8 @@ import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-ki
 import { useReactTable, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, getFacetedRowModel, getFacetedUniqueValues } from "@tanstack/react-table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { columns } from "./columns"
-import { DraggableRow } from "./DraggableRow"
+import { columns } from "./coloums"
+import { DraggableRow } from "./DragRow"
 
 export function DataTable({ data: initialData }) {
   const [data, setData] = React.useState(initialData)
