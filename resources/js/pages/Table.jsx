@@ -110,8 +110,7 @@ export default function Page() {
             </div>
           </CardHeader>
 
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            {/* ✅ Pass data dan columns ke DataTable */}
+          <div className="flex flex-1 flex-col gap-2 py-4 md:gap-6 md:py-6">
             <DataTable data={iuranData} columns={columns} />
           </div>
         </div>
