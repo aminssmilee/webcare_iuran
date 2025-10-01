@@ -23,3 +23,7 @@ use Inertia\Inertia;
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 });
+
+Route::get('/table', function () {
+    return Inertia::render('Table');
+});

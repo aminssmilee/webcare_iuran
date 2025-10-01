@@ -1,67 +1,100 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
+import { useState } from "react"
+import { AppSidebar } from "@/components/app-sidebar"
 import {
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuItem,
-  NavigationMenuLink,
-} from "@/components/ui/navigation-menu"
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { SectionCards } from "@/components/section-cards"
+import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/toggle-group"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 
-export default function Dashboard() {
+export default function Page() {
+  // 🔥 Tambahin state untuk toggle/select
+  const [timeRange, setTimeRange] = useState("90d")
+
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md p-4">
-        <h2 className="text-xl font-bold mb-6">MyApp</h2>
-        <nav className="space-y-4">
-          <Button variant="ghost" className="w-full justify-start">
-            Dashboard
-          </Button>
-          <Button variant="ghost" className="w-full justify-start">
-            Users
-          </Button>
-          <Button variant="ghost" className="w-full justify-start">
-            Settings
-          </Button>
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Navbar */}
-        <header className="bg-white shadow px-6 py-4 flex items-center justify-between">
-          <h1 className="text-lg font-semibold">Dashboard</h1>
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuLink className="px-3 py-2">Profile</NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink className="px-3 py-2">Logout</NavigationMenuLink>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        {/* Header */}
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="/dashboard">
+                    Dashboard
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
         </header>
 
-        {/* Content */}
-        <main className="p-6 space-y-6">
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold mb-4">Welcome!</h2>
-              <p className="mb-4">Halo dari Laravel + Inertia + React + shadcn</p>
-              <Button>Tambah Data</Button>
-            </CardContent>
-          </Card>
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col">
+          <CardHeader className="relative">
+            <div className="absolute right-4 top-4">
+              {/* Toggle group */}
+              <ToggleGroup
+                type="single"
+                value={timeRange}
+                onValueChange={setTimeRange}
+                variant="outline"
+                className="@[767px]/card:flex hidden"
+              >
+                <ToggleGroupItem value="90d" className="h-8 px-2.5">Last 3 months</ToggleGroupItem>
+                <ToggleGroupItem value="30d" className="h-8 px-2.5">Last 30 days</ToggleGroupItem>
+                <ToggleGroupItem value="7d" className="h-8 px-2.5">Last 7 days</ToggleGroupItem>
+              </ToggleGroup>
 
-          <Card>
-            <CardContent className="p-6 flex items-center justify-between">
-              <span>Aktifkan Fitur</span>
-              <Switch />
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-    </div>
+              {/* Select dropdown */}
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="@[767px]/card:hidden flex w-40" aria-label="Select a value">
+                  <SelectValue placeholder="Last 3 months" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="90d" className="rounded-lg">Last 3 months</SelectItem>
+                  <SelectItem value="30d" className="rounded-lg">Last 30 days</SelectItem>
+                  <SelectItem value="7d" className="rounded-lg">Last 7 days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <SectionCards />
+              <div className="px-4 lg:px-6">
+                <ChartAreaInteractive />
+              </div>
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
