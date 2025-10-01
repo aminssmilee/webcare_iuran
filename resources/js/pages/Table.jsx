@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -13,13 +14,24 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-// import { SectionCards } from "@/components/section-cards"
-// import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table/DataTable"
-import data from "@/data.json"
+import { SectionCards } from "@/components/section-cards"
+import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/toggle-group"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 
-
-export default function Table() {
+export default function Page() {
+  // 🔥 Tambahin state untuk toggle/select
+  const [timeRange, setTimeRange] = useState("90d")
 
   return (
     <SidebarProvider>
@@ -33,8 +45,8 @@ export default function Table() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Management Anggota
+                  <BreadcrumbLink href="/dashboard">
+                    Dashboard
                   </BreadcrumbLink>
                 </BreadcrumbItem>
               </BreadcrumbList>
@@ -44,20 +56,45 @@ export default function Table() {
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col">
+          <CardHeader className="relative">
+            <div className="absolute right-4 top-4">
+              {/* Toggle group */}
+              <ToggleGroup
+                type="single"
+                value={timeRange}
+                onValueChange={setTimeRange}
+                variant="outline"
+                className="@[767px]/card:flex hidden"
+              >
+                <ToggleGroupItem value="90d" className="h-8 px-2.5">Last 3 months</ToggleGroupItem>
+                <ToggleGroupItem value="30d" className="h-8 px-2.5">Last 30 days</ToggleGroupItem>
+                <ToggleGroupItem value="7d" className="h-8 px-2.5">Last 7 days</ToggleGroupItem>
+              </ToggleGroup>
+
+              {/* Select dropdown */}
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="@[767px]/card:hidden flex w-40" aria-label="Select a value">
+                  <SelectValue placeholder="Last 3 months" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="90d" className="rounded-lg">Last 3 months</SelectItem>
+                  <SelectItem value="30d" className="rounded-lg">Last 30 days</SelectItem>
+                  <SelectItem value="7d" className="rounded-lg">Last 7 days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+
           <div className="@container/main flex flex-1 flex-col gap-2">
-            
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <SectionCards />
               <div className="px-4 lg:px-6">
-                {/* <Card>
-                  <CardHeader>
-                    <CardTitle>Details</CardTitle>
-                  </CardHeader> */}
-                  <DataTable data={data} />
-                {/* </Card> */}
+                <ChartAreaInteractive />
               </div>
             </div>
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
   )
 }
-
