@@ -833,8 +833,7 @@
 
 
 <body class="antialiased">
-    @inertia
-
+    {{-- @inertia --}}
 </body>
 
 </html>

@@ -28,6 +28,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
+import { DataTable } from "@/components/data-table/DataTable"
+import { columns } from "@/components/data-table/coloums"
 
 export default function Page() {
   // 🔥 Tambahin state untuk toggle/select
@@ -86,12 +88,13 @@ export default function Page() {
           </CardHeader>
 
           <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+            {/* <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <SectionCards />
               <div className="px-4 lg:px-6">
                 <ChartAreaInteractive />
               </div>
-            </div>
+            </div> */}
+            <DataTable  />
           </div>
         </div>
       </SidebarInset>
