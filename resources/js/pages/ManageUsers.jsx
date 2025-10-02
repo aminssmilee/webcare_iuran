@@ -115,7 +115,7 @@ export default function ManageUsers() {
 
               {/* Filter waktu */}
               <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="@[767px]/card:hidden flex w-40" aria-label="Select a value">
+                <SelectTrigger className="  flex w-40" aria-label="Select a value">
                   <SelectValue placeholder="Last 3 months" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
