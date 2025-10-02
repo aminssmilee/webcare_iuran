@@ -146,7 +146,7 @@ const data = {
     },
     {
       name: "Management Anggota",
-      url: "/table",
+      url: "/data-anggota",
       icon: UsersRound,
     },
   ],

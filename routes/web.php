@@ -35,4 +35,3 @@ Route::get('/dashboard', function () {
 Route::get('/data-anggota', function () {
     return Inertia::render('DataAnggota');
 });
-

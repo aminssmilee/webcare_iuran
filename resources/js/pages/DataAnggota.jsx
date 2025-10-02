@@ -91,7 +91,7 @@ export default function DataAnggota() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/table">
+                  <BreadcrumbLink href="/data-anggota">
                     Management Anggota
                   </BreadcrumbLink>
                 </BreadcrumbItem>
