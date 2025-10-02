@@ -14,10 +14,6 @@ import {
 } from "@/components/ui/sidebar"
 import { CardHeader } from "@/components/ui/card"
 import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group"
-import {
   Select,
   SelectTrigger,
   SelectValue,
@@ -29,7 +25,6 @@ import { getUserColumns } from "@/components/data-table/table-colums"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
-
 
 // Dummy data anggota
 export const usersData = [
@@ -72,7 +67,7 @@ export const usersData = [
     education: "Master's",
     occupation: "Doctor",
   },
-];
+]
 
 export default function ManageUsers() {
   const [timeRange, setTimeRange] = useState("90d")
@@ -101,10 +96,10 @@ export default function ManageUsers() {
         {/* Main Content */}
         <div className="flex flex-1 flex-col">
           <CardHeader className="relative lg:px-6 w-full">
-            {/* Select dropdown */}
-            <div className="flex items-center gap-2 px-4">
+            {/* Search + Filter */}
+            <div className="flex flex-wrap items-center gap-2 justify-between w-full">
               {/* search */}
-              <div className="flex items-start justify-start gap-2 w-1/3">
+              <div className="flex items-start justify-start gap-2 w-full md:w-1/3">
                 <div className="relative w-full">
                   <Input
                     className="h-8 w-full pl-8 border border-foreground/20 bg-transparent shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
@@ -113,30 +108,29 @@ export default function ManageUsers() {
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
 
-                <Button variant="default" className="h-8 w-full lg:w-28">
+                <Button variant="default" className="h-8 w-28">
                   Search
                 </Button>
               </div>
 
-
-              <div className="absolute flex self-end gap-2 ">
-                <Select value={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="flex w-40" aria-label="Select a value">
-                    <SelectValue placeholder="Last 3 months" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="90d" className="rounded-lg">Last 3 months</SelectItem>
-                    <SelectItem value="30d" className="rounded-lg">Last 30 days</SelectItem>
-                    <SelectItem value="7d" className="rounded-lg">Last 7 days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Filter waktu */}
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="@[767px]/card:hidden flex w-40" aria-label="Select a value">
+                  <SelectValue placeholder="Last 3 months" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="90d" className="rounded-lg">Last 3 months</SelectItem>
+                  <SelectItem value="30d" className="rounded-lg">Last 30 days</SelectItem>
+                  <SelectItem value="7d" className="rounded-lg">Last 7 days</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
 
-          <div className="flex flex-col gap-4 lg:py-2 lg:px-4 p-2 md:gap-2 md:py-2 border border-foreground/10 rounded-lg mx-4">
+          {/* Table */}
+          <div className="flex flex-col gap-4 lg:py-2 lg:px-2 p-2 md:gap-2 md:py-4 border border-foreground/10 rounded-lg mx-6 overflow-x-hidden">
             <h1 className="text-xl font-semibold m-4">Members List</h1>
-            <div className="px-4 lg:px-6">
+            <div className="px-4 lg:px-2 w-full overflow-x-auto">
               <DataTable data={usersData} columns={getUserColumns()} />
             </div>
           </div>

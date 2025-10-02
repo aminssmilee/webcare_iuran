@@ -58,7 +58,7 @@ export default function Page() {
         {/* Main Content */}
         <div className="flex flex-1 flex-col">
           <CardHeader className="relative">
-            <div className="absolute right-4 top-4">
+            <div className="absolute right-6 top-4">
               {/* Toggle group */}
               <ToggleGroup
                 type="single"

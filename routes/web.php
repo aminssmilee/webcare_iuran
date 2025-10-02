@@ -36,8 +36,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/users', fn() => Inertia::render('ManageUsers'))->name('admin.users');
     Route::get('/payments', fn() => Inertia::render('ManagePayments'))->name('admin.payments');
     Route::get('/reports', fn() => Inertia::render('Reports'))->name('admin.reports');
+    Route::get('/payment-validation', fn() => Inertia::render('PaymentValidation'))->name('admin.payment.validation');
 });
 
-Route::get('/payment-validation', function () {
-    return Inertia::render('PaymentValidation');
-});
