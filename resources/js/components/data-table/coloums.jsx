@@ -1,15 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { CheckCircle2Icon, LoaderIcon, MoreVerticalIcon } from "lucide-react"
-import { toast } from "sonner"
+import { CheckCircle2Icon, CircleAlert, LoaderIcon, MoreVerticalIcon } from "lucide-react"
 import { DragHandle } from "./DragRow"
-import { TableCellViewer } from "./TableCell"
 
+// Columns table
 export const columns = [
   {
     id: "drag",
@@ -43,87 +39,38 @@ export const columns = [
     enableHiding: false,
   },
   {
-    accessorKey: "header",
-    header: "Header",
-    cell: ({ row }) => <TableCellViewer item={row.original} />,
+    accessorKey: "nama",
+    header: "Nama",
+    cell: ({ row }) => row.original.nama,
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: "Section Type",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="px-1.5 text-muted-foreground">
-        {row.original.type}
-      </Badge>
-    ),
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => row.original.email,
+    enableHiding: false,
   },
   {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => (
-      <Badge variant="outline" className="flex gap-1 px-1.5 text-muted-foreground [&_svg]:size-3">
-        {row.original.status === "Done" ? (
+      <Badge variant="outline" className="flex gap-1 px-auto text-muted-foreground [&_svg]:size-3">
+        {row.original.status === "Aktif" ? (
           <CheckCircle2Icon className="text-green-500 dark:text-green-400" />
         ) : (
-          <LoaderIcon />
+          <CircleAlert className="text-yellow-500 dark:text-yellow-400" />
         )}
         {row.original.status}
       </Badge>
     ),
   },
-  {
-    accessorKey: "target",
-    header: () => <div className="w-full text-right">Target</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-target`} className="sr-only">
-          Target
-        </Label>
-        <Input
-          className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
-          defaultValue={row.original.target}
-          id={`${row.original.id}-target`}
-        />
-      </form>
-    ),
-  },
-  {
-    accessorKey: "reviewer",
-    header: "Reviewer",
-    cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer"
-
-      if (isAssigned) {
-        return row.original.reviewer
-      }
-
-      return (
-        <>
-          <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
-            Reviewer
-          </Label>
-          <Select>
-            <SelectTrigger className="h-8 w-40" id={`${row.original.id}-reviewer`}>
-              <SelectValue placeholder="Assign reviewer" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-              <SelectItem value="Jamik Tashpulatov">Jamik Tashpulatov</SelectItem>
-            </SelectContent>
-          </Select>
-        </>
-      )
-    },
-  },
+  { accessorKey: "nik", header: "NIK" },
+  { accessorKey: "ttl", header: "TTL" },
+  { accessorKey: "gender", header: "Gender" },
+  { accessorKey: "alamat", header: "Alamat" },
+  { accessorKey: "noWA", header: "No WA" },
+  { accessorKey: "pendidikan", header: "Pendidikan Terakhir" },
+  { accessorKey: "pekerjaan", header: "Pekerjaan" },
   {
     id: "actions",
     cell: () => (

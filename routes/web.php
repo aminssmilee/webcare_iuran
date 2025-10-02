@@ -20,10 +20,19 @@ Route::get('/', function () {
 
 use Inertia\Inertia;
 
+Route::get('/login', function () {
+    return Inertia::render('LoginPage');
+});
+
+Route::get('/register', function () {
+    return Inertia::render('RegisterPage');
+});
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 });
 
-Route::get('/table', function () {
-    return Inertia::render('Table');
+Route::get('/data-anggota', function () {
+    return Inertia::render('DataAnggota');
 });
+

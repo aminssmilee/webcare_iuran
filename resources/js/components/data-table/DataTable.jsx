@@ -3,7 +3,6 @@ import { DndContext, closestCenter, useSensor, useSensors, MouseSensor, TouchSen
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useReactTable, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, getFacetedRowModel, getFacetedUniqueValues } from "@tanstack/react-table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { columns } from "./coloums"
 import { DraggableRow } from "./DragRow"
@@ -46,34 +45,27 @@ export function DataTable({ data: initialData }) {
   }
 
   return (
-    <Tabs defaultValue="outline" className="flex w-full flex-col gap-6">
-      <TabsList>
-        <TabsTrigger value="outline">Outline</TabsTrigger>
-      </TabsList>
-      <TabsContent value="outline">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis]} onDragEnd={handleDragEnd}>
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : header.column.columnDef.header}
-                    </TableHead>
-                  ))}
-                </TableRow>
+    <div className="w-full px-4 lg:px-6 border border-foreground/10 rounded-xl overflow-x-auto">
+      <Table>
+        <TableHeader className="bg-gray-100 sticky top-0 z-10">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id} className="px-4 py-2 text-left">
+                  {header.isPlaceholder ? null : header.column.columnDef.header}
+                </TableHead>
               ))}
-            </TableHeader>
-            <TableBody>
-              <SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
-                {table.getRowModel().rows.map((row) => (
-                  <DraggableRow key={row.id} row={row} />
-                ))}
-              </SortableContext>
-            </TableBody>
-          </Table>
-        </DndContext>
-      </TabsContent>
-    </Tabs>
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          <SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
+            {table.getRowModel().rows.map((row) => (
+              <DraggableRow key={row.id} row={row} />
+            ))}
+          </SortableContext>
+        </TableBody>
+      </Table>
+    </div>
   )
 }
