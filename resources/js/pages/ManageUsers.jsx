@@ -119,22 +119,9 @@ export default function ManageUsers() {
               </div>
 
 
-              <div className="absolute right-6 top-4">
-                {/* Toggle group */}
-                <ToggleGroup
-                  type="single"
-                  value={timeRange}
-                  onValueChange={setTimeRange}
-                  variant="outline"
-                  className="@[767px]/card:flex hidden"
-                >
-                  <ToggleGroupItem value="90d" className="h-8 px-2.5">Last 3 months</ToggleGroupItem>
-                  <ToggleGroupItem value="30d" className="h-8 px-2.5">Last 30 days</ToggleGroupItem>
-                  <ToggleGroupItem value="7d" className="h-8 px-2.5">Last 7 days</ToggleGroupItem>
-                </ToggleGroup>
-
+              <div className="absolute flex self-end gap-2 ">
                 <Select value={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="@[767px]/card:hidden flex w-40" aria-label="Select a value">
+                  <SelectTrigger className="flex w-40" aria-label="Select a value">
                     <SelectValue placeholder="Last 3 months" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -147,7 +134,8 @@ export default function ManageUsers() {
             </div>
           </CardHeader>
 
-          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <div className="flex flex-col gap-4 lg:py-2 lg:px-4 p-2 md:gap-2 md:py-2 border border-foreground/10 rounded-lg mx-4">
+            <h1 className="text-xl font-semibold m-4">Members List</h1>
             <div className="px-4 lg:px-6">
               <DataTable data={usersData} columns={getUserColumns()} />
             </div>

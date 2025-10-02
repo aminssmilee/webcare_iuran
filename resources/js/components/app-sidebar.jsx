@@ -64,7 +64,7 @@ const data = {
         },
         {
           title: "Iuran",
-          url: "#",
+          url: "/payment-validation",
         },
         // {
         //   title: "Settings",

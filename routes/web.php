@@ -43,3 +43,7 @@ Route::get('/dashboard', function () {
 Route::get('/manage-users', function () {
     return Inertia::render('ManageUsers');
 });
+
+Route::get('/payment-validation', function () {
+    return Inertia::render('PaymentValidation');
+});

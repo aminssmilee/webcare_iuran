@@ -31,8 +31,8 @@ export function DataTable({ data, columns }) {
   });
 
   return (
-    <div className="w-full">
-      <Table>
+    <div className=" w-full overflow-x-auto">
+      <Table  className={`min-w-[${table.getAllColumns().length * 100}px]`}>
         <TableHeader>
           {table.getHeaderGroups().map((group) => (
             <TableRow key={group.id}>

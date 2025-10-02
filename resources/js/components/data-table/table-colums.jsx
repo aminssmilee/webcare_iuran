@@ -58,26 +58,99 @@ export function getRegistrationColumns() {
 //  Payment Validation
 export function getPaymentValidationColumns() {
   return [
-    { id: "payer", accessorKey: "payer", header: "Payer" },
+    { id: "name", accessorKey: "name", header: "Name" },
+    { id: "email", accessorKey: "email", header: "Email" },
+    { id: "idNumber", accessorKey: "idNumber", header: "ID Number" },
+    { id: "Mount", accessorKey: "mount", header: "Mount Period" },
     { id: "amount", accessorKey: "amount", header: "Amount" },
-    { id: "submittedAt", accessorKey: "submittedAt", header: "Submitted At" },
+    {
+      id: "dueDate",
+      accessorKey: "dueDate",
+      header: "Due Date",
+      cell: ({ row }) => {
+        const date = row.getValue("dueDate");
+        return date ? (
+          <span className="text-sm">{date}</span>
+        ) : (
+          <span className="text-sm text-muted-foreground">-</span>
+        );
+      },
+    },
+
+    {
+      id: "paidAt",
+      accessorKey: "paidAt",
+      header: "Paid At",
+      cell: ({ row }) => {
+        const date = row.getValue("paidAt");
+        return date ? (
+          <span className="text-sm">{date}</span>
+        ) : (
+          <span className="text-sm text-muted-foreground">-</span>
+        );
+      },
+    },
+
+    // Kolom dokumen bukti bayar
+    {
+      id: "paymentProof",
+      accessorKey: "paymentProof",
+      header: "Payment Proof",
+      cell: ({ row }) => {
+        const doc = row.getValue("paymentProof");
+        if (!doc) return <span className="text-sm text-muted-foreground">-</span>;
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => window.open(doc, "_blank")}
+          >
+            Lihat Dokumen
+          </Button>
+        );
+      }
+    },
+
+    // Kolom keterangan
+    {
+      id: "note",
+      accessorKey: "note",
+      header: "Note",
+      cell: ({ row }) => <span className="text-sm">{row.getValue("note") || "-"}</span>
+    },
+
     {
       id: "status",
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("status");
+
         if (status === "Pending") {
           return (
-            <div className="flex items-center space-x-1">
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block"></span>
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.15s" }}></span>
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.3s" }}></span>
-              <span className="text-gray-700 font-medium">{status}</span>
-            </div>
-          )
+            <Badge variant="outline" className=" w-auto border-yellow-500 text-yellow-500 flex items-center space-x-1">
+              <Loader className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          );
         }
-        return <span>{status}</span>
+        else if (status === "Completed") {
+          return (
+            <Badge variant="outline" className="w-auto border-green-500 text-green-500 flex items-center space-x-1">
+              <Check className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          );
+        }
+        else if (status === "Failed") {
+          return (
+            <Badge variant="outline" className="w-auto border-red-500 text-red-500 flex items-center space-x-1">
+              <Info className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          );
+        }
+        return <Badge variant="default">{status}</Badge>;
       }
     },
     { id: "actions", header: "Actions", cell: ({ row }) => <PaymentValidationActionsCell payment={row.original} /> },
@@ -179,7 +252,7 @@ export function getPaymentColumns() {
 
         return <Badge variant="default">{status}</Badge>;
       }
-        
+
     },
 
     // { id: "actions", header: "Actions", cell: ({ row }) => <PaymentValidationActionsCell payment={row.original} /> },
