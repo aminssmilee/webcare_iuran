@@ -3,6 +3,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+
+function handleSubmit(e) {
+  e.preventDefault(); // mencegah reload halaman
+
+  const formData = new FormData(e.target); // ambil semua input form
+
+  // kirim ke route backend Laravel
+  Inertia.post("/register", formData, {
+    onSuccess: () => {
+      // redirect ke halaman Pending Status setelah sukses
+      Inertia.visit("/");
+    },
+  });
+}
+
 export function LoginForm({
   className,
   ...props
@@ -29,7 +44,7 @@ export function LoginForm({
           </div>
           <Input id="password" type="password" required />
         </div>
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" onClick={handleSubmit}>
           Login
         </Button>
       </div>

@@ -1,0 +1,187 @@
+// columns.js
+import { UserActionsCell, RegistrationValidationActionsCell, PaymentValidationActionsCell } from "./table-action";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Check, AlertTriangle, Info, Loader } from "lucide-react";
+
+
+//  Manage User
+export function getUserColumns() {
+  return [
+    { id: "name", accessorKey: "name", header: "Name" },
+    { id: "email", accessorKey: "email", header: "Email" },
+    { id: "idNumber", accessorKey: "idNumber", header: "ID Number" },
+    { id: "birthPlaceDate", accessorKey: "birthPlaceDate", header: "Birth Place / Date" },
+    { id: "gender", accessorKey: "gender", header: "Gender" },
+    { id: "address", accessorKey: "address", header: "Address" },
+    { id: "whatsapp", accessorKey: "whatsapp", header: "WhatsApp" },
+    { id: "education", accessorKey: "education", header: "Education" },
+    { id: "occupation", accessorKey: "occupation", header: "Occupation" },
+    { id: "status", accessorKey: "status", header: "Status" },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => <UserActionsCell user={row.original} />,
+    },
+  ];
+}
+
+//  Registration Validation
+export function getRegistrationColumns() {
+  return [
+    { id: "name", accessorKey: "name", header: "Name" },
+    { id: "email", accessorKey: "email", header: "Email" },
+    { id: "submittedAt", accessorKey: "submittedAt", header: "Submitted At" },
+    {
+      id: "validationStatus",
+      accessorKey: "validationStatus",
+      header: "Validation Status",
+      cell: ({ row }) => {
+        const status = row.getValue("validationStatus");
+        if (status === "Pending") {
+          return (
+            <div className="flex items-center space-x-1">
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block"></span>
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.15s" }}></span>
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.3s" }}></span>
+              <span className="text-gray-700 font-medium">{status}</span>
+            </div>
+          )
+        }
+        return <span>{status}</span>
+      }
+    },
+    { id: "actions", header: "Actions", cell: ({ row }) => <RegistrationValidationActionsCell user={row.original} /> },
+  ];
+}
+
+//  Payment Validation
+export function getPaymentValidationColumns() {
+  return [
+    { id: "payer", accessorKey: "payer", header: "Payer" },
+    { id: "amount", accessorKey: "amount", header: "Amount" },
+    { id: "submittedAt", accessorKey: "submittedAt", header: "Submitted At" },
+    {
+      id: "status",
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status");
+        if (status === "Pending") {
+          return (
+            <div className="flex items-center space-x-1">
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block"></span>
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.15s" }}></span>
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.3s" }}></span>
+              <span className="text-gray-700 font-medium">{status}</span>
+            </div>
+          )
+        }
+        return <span>{status}</span>
+      }
+    },
+    { id: "actions", header: "Actions", cell: ({ row }) => <PaymentValidationActionsCell payment={row.original} /> },
+  ];
+}
+
+//  Payment List
+export function getPaymentColumns() {
+  return [
+    { id: "Mount", accessorKey: "mount", header: "Mount Period" },
+    { id: "amount", accessorKey: "amount", header: "Amount" },
+    {
+      id: "dueDate",
+      accessorKey: "dueDate",
+      header: "Due Date",
+      cell: ({ row }) => {
+        const date = row.getValue("dueDate");
+        return date ? (
+          <span className="text-sm">{date}</span>
+        ) : (
+          <span className="text-sm text-muted-foreground">-</span>
+        );
+      },
+    },
+
+    {
+      id: "paidAt",
+      accessorKey: "paidAt",
+      header: "Paid At",
+      cell: ({ row }) => {
+        const date = row.getValue("paidAt");
+        return date ? (
+          <span className="text-sm">{date}</span>
+        ) : (
+          <span className="text-sm text-muted-foreground">-</span>
+        );
+      },
+    },
+
+    // Kolom dokumen bukti bayar
+    {
+      id: "paymentProof",
+      accessorKey: "paymentProof",
+      header: "Payment Proof",
+      cell: ({ row }) => {
+        const doc = row.getValue("paymentProof");
+        if (!doc) return <span className="text-sm text-muted-foreground">-</span>;
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => window.open(doc, "_blank")}
+          >
+            Lihat Dokumen
+          </Button>
+        );
+      }
+    },
+
+    // Kolom keterangan
+    {
+      id: "note",
+      accessorKey: "note",
+      header: "note",
+      cell: ({ row }) => <span className="text-sm">{row.getValue("note") || "-"}</span>
+    },
+
+    {
+      id: "status",
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status");
+
+        if (status === "Pending") {
+          return (
+            <Badge variant="outline" className=" w-auto border-yellow-500 text-yellow-500 flex items-center space-x-1">
+              <Loader className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          );
+        }
+        else if (status === "Completed") {
+          return (
+            <Badge variant="outline" className="w-auto border-green-500 text-green-500 flex items-center space-x-1">
+              <Check className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          );
+        }
+        else if (status === "Failed") {
+          return (
+            <Badge variant="outline" className="w-auto border-red-500 text-red-500 flex items-center space-x-1">
+              <Info className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          );
+        }
+
+        return <Badge variant="default">{status}</Badge>;
+      }
+        
+    },
+
+    // { id: "actions", header: "Actions", cell: ({ row }) => <PaymentValidationActionsCell payment={row.original} /> },
+  ];
+}

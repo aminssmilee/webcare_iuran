@@ -25,58 +25,56 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { DataTable } from "@/components/data-table/DataTable"
-import { columns } from "@/components/data-table/coloums"
+import { getUserColumns } from "@/components/data-table/table-colums"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 
+
 // Dummy data anggota
-export const anggotaData = [
+export const usersData = [
   {
     id: 1,
-    nama: "Budi Santoso",
+    name: "Budi Santoso",
     email: "budi@example.com",
-    status: "Aktif",
-    nik: "1234567890",
-    ttl: "Jakarta, 01-01-1990",
-    gender: "Laki-laki",
-    alamat: "Jl. Merdeka No.1",
-    noWA: "081234567890",
-    // noHP: "081234567890",
-    pendidikan: "S1",
-    pekerjaan: "Software Engineer",
+    status: "Active",
+    idNumber: "1234567890",
+    birthPlaceDate: "Jakarta, 01-01-1990",
+    gender: "Male",
+    address: "Jl. Merdeka No.1",
+    whatsapp: "081234567890",
+    education: "Bachelor's",
+    occupation: "Software Engineer",
   },
   {
     id: 2,
-    nama: "Siti Aminah",
+    name: "Siti Aminah",
     email: "siti@example.com",
-    status: "Pasif",
-    nik: "0987654321",
-    ttl: "Bandung, 05-05-1992",
-    gender: "Perempuan",
-    alamat: "Jl. Sudirman No.10",
-    noWA: "081234567891",
-    // noHP: "081234567891",
-    pendidikan: "SMA",
-    pekerjaan: "Guru",
+    status: "Inactive",
+    idNumber: "0987654321",
+    birthPlaceDate: "Bandung, 05-05-1992",
+    gender: "Female",
+    address: "Jl. Sudirman No.10",
+    whatsapp: "081234567891",
+    education: "High School",
+    occupation: "Teacher",
   },
   {
     id: 3,
-    nama: "Andi Wijaya",
+    name: "Andi Wijaya",
     email: "andi@example.com",
-    status: "Aktif",
-    nik: "1122334455",
-    ttl: "Surabaya, 12-12-1985",
-    gender: "Laki-laki",
-    alamat: "Jl. Pemuda No.5",
-    noWA: "081234567892",
-    // noHP: "081234567892",
-    pendidikan: "S2",
-    pekerjaan: "Dokter",
+    status: "Active",
+    idNumber: "1122334455",
+    birthPlaceDate: "Surabaya, 12-12-1985",
+    gender: "Male",
+    address: "Jl. Pemuda No.5",
+    whatsapp: "081234567892",
+    education: "Master's",
+    occupation: "Doctor",
   },
-]
+];
 
-export default function DataAnggota() {
+export default function ManageUsers() {
   const [timeRange, setTimeRange] = useState("90d")
 
   return (
@@ -151,7 +149,7 @@ export default function DataAnggota() {
 
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
             <div className="px-4 lg:px-6">
-              <DataTable data={anggotaData} columns={columns} />
+              <DataTable data={usersData} columns={getUserColumns()} />
             </div>
           </div>
         </div>

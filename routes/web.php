@@ -28,10 +28,18 @@ Route::get('/register', function () {
     return Inertia::render('RegisterPage');
 });
 
+// member
+
+Route::get('/member-payment', function () {
+    return Inertia::render('MemberPayment');
+});
+
+
+// admin
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 });
 
-Route::get('/data-anggota', function () {
-    return Inertia::render('DataAnggota');
+Route::get('/manage-users', function () {
+    return Inertia::render('ManageUsers');
 });
