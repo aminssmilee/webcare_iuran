@@ -4,20 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\HasCustomId;
-use App\Models\Member;
 
 class Iuran extends Model
 {
-    use HasFactory, HasCustomId;
+    use HasFactory;
 
     protected $fillable = [
-        'member_id','jumlah','tanggal_bayar',
-        'status','metode_pembayaran','bukti_transfer'
+        'id',
+        'judul',
+        'jumlah',
+        'tipe',
+        'deskripsi',
     ];
 
-    public function member() {
-        return $this->belongsTo(Member::class);
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'iuran_id');
     }
 }
-
