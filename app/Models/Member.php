@@ -4,21 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\HasCustomId;
-use App\Models\Iuran;
 
 class Member extends Model
 {
-    use HasFactory, HasCustomId;
+    use HasFactory;
+
+    protected $table = 'members';
+    protected $primaryKey = 'id';
+    public $incrementing = false; // karena kita pakai string random 6 huruf
+    protected $keyType = 'string';
 
     protected $fillable = [
-        'nama_lengkap','nik','tgl_lahir','jenis_kelamin',
-        'alamat','hp','email','pendidikan','pekerjaan',
-        'dokumen','status'
+        'id',
+        'user_id',
+        'nama_lengkap',
+        'email',
+        'dokumen',
+        'status',
     ];
-
-    public function iurans() {
-        return $this->hasMany(Iuran::class);
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
     }
 }
-

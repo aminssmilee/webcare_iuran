@@ -60,7 +60,7 @@ const data = {
       items: [
         {
           title: "Pendaftaran",
-          url: "#",
+          url: "/register-validation",
         },
         {
           title: "Iuran",
@@ -141,14 +141,24 @@ const data = {
   projects: [
     {
       name: "Dashboard",
-      url: "/dashboard",
+      url: "/admin/dashboard",
       icon: LayoutDashboardIcon,
     },
     {
       name: "Management Anggota",
-      url: "/manage-users",
+      url: "/admin/users",
       icon: UsersRound,
     },
+    // {
+    //   name: "Kelola Pembayaran",
+    //   url: "/admin/payments",
+    //   icon: CreditCard, // contoh, sesuaikan icon
+    // },
+    // {
+    //   name: "Laporan",
+    //   url: "/admin/reports",
+    //   icon: BarChart2, // contoh
+    // },
   ],
 }
 

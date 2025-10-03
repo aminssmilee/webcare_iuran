@@ -2,7 +2,7 @@
 import { UserActionsCell, RegistrationValidationActionsCell, PaymentValidationActionsCell } from "./table-action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, AlertTriangle, Info, Loader } from "lucide-react";
+import { Check, Info, Loader } from "lucide-react";
 
 
 //  Manage User
@@ -31,24 +31,56 @@ export function getRegistrationColumns() {
   return [
     { id: "name", accessorKey: "name", header: "Name" },
     { id: "email", accessorKey: "email", header: "Email" },
+    {
+      id: "file_registration",
+      accessorKey: "file_registration",
+      header: "File Registration",
+      cell: ({ row }) => {
+        const file = row.getValue("file_registration");
+        if (!file) return <span className="text-sm text-muted-foreground">-</span>;
+        return (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => window.open(file, "_blank")}
+          >
+            Lihat File
+          </Button>
+        );
+      }
+    },
     { id: "submittedAt", accessorKey: "submittedAt", header: "Submitted At" },
     {
       id: "validationStatus",
       accessorKey: "validationStatus",
       header: "Validation Status",
       cell: ({ row }) => {
-        const status = row.getValue("validationStatus");
-        if (status === "Pending") {
+        const validationStatus = row.getValue("validationStatus");
+        if (validationStatus === "Pending") {
           return (
-            <div className="flex items-center space-x-1">
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block"></span>
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.15s" }}></span>
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.3s" }}></span>
-              <span className="text-gray-700 font-medium">{status}</span>
-            </div>
-          )
+            <Badge variant="outline" className=" w-auto border-yellow-500 text-yellow-500 flex items-center space-x-1">
+              <Loader className="w-3 h-3" />
+              <span>{validationStatus}</span>
+            </Badge>
+          );
         }
-        return <span>{status}</span>
+        else if (validationStatus === "Approved") {
+          return (
+            <Badge variant="outline" className="w-auto border-green-500 text-green-500 flex items-center space-x-1">
+              <Check className="w-3 h-3" />
+              <span>{validationStatus}</span>
+            </Badge>
+          );
+        }
+        else if (validationStatus === "Rejected") {
+          return (
+            <Badge variant="outline" className="w-auto border-red-500 text-red-500 flex items-center space-x-1">
+              <Info className="w-3 h-3" />
+              <span>{validationStatus}</span>
+            </Badge>
+          );
+        }
+        return <Badge variant="default">{validationStatus}</Badge>;
       }
     },
     { id: "actions", header: "Actions", cell: ({ row }) => <RegistrationValidationActionsCell user={row.original} /> },
