@@ -1,15 +1,22 @@
 "use client"
 import { useState } from "react"
+import { Inertia } from "@inertiajs/inertia"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 import { MoreVertical } from "lucide-react"
-// import { useRouter } from "next/navigation"
+
+// Dialogs
 import { EditUserDialog } from "@/components/dialogs/EditUserDialog"
-import  { DeleteUserDialog }  from "@/components/dialogs/DeleteUserDialog"
-import  { RejectReasonDialog }  from "@/components/dialogs/RejectReasonDialog"
-import  { PaymentActionDialog }  from "@/components/dialogs/PaymentActionDialog"
+import { DeleteUserDialog } from "@/components/dialogs/DeleteUserDialog"
+import { RejectReasonDialog } from "@/components/dialogs/RejectReasonDialog"
+import { PaymentActionDialog } from "@/components/dialogs/PaymentActionDialog"
 
-
+//
 // -------------------------
 //  User Actions
 // -------------------------
@@ -38,11 +45,34 @@ export function UserActionsCell({ user }) {
   )
 }
 
+//
 // -------------------------
 //  Registration Validation Actions
 // -------------------------
 export function RegistrationValidationActionsCell({ user }) {
   const [openReject, setOpenReject] = useState(false)
+
+  const handleApprove = () => {
+    Inertia.post(`/admin/registrations/${user.id}/approve`, {}, {
+      onSuccess: () => {
+        console.log(`✅ Approved ${user.name}`)
+      },
+      onError: (err) => {
+        console.error("Approve gagal:", err)
+      }
+    })
+  }
+
+  const handleReject = (reason) => {
+    Inertia.post(`/admin/registrations/${user.id}/reject`, { reason }, {
+      onSuccess: () => {
+        console.log(`❌ Rejected ${user.name} dengan alasan: ${reason}`)
+      },
+      onError: (err) => {
+        console.error("Reject gagal:", err)
+      }
+    })
+  }
 
   return (
     <>
@@ -54,16 +84,23 @@ export function RegistrationValidationActionsCell({ user }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => alert(`Approved ${user.name}`)}>Approve</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleApprove}>Approve</DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenReject(true)}>Reject</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <RejectReasonDialog target={user} open={openReject} onOpenChange={setOpenReject} />
+      {/* Dialog alasan Reject */}
+      <RejectReasonDialog
+        target={user}
+        open={openReject}
+        onOpenChange={setOpenReject}
+        onReject={handleReject}
+      />
     </>
   )
 }
 
+//
 // -------------------------
 //  Payment Validation Actions
 // -------------------------
@@ -72,8 +109,15 @@ export function PaymentValidationActionsCell({ payment }) {
   const [actionType, setActionType] = useState("")
 
   const handleAction = (type) => {
-    if(type === "Approve"){
-      alert(`Payment ${payment.id} Approved`)
+    if (type === "Approve") {
+      Inertia.post(`/admin/payments/${payment.id}/approve`, {}, {
+        onSuccess: () => {
+          console.log(`✅ Payment ${payment.id} Approved`)
+        },
+        onError: (err) => {
+          console.error("Approve payment gagal:", err)
+        }
+      })
     } else {
       setActionType(type)
       setOpenReason(true)
@@ -97,7 +141,13 @@ export function PaymentValidationActionsCell({ payment }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <PaymentActionDialog payment={payment} action={actionType} open={openReason} onOpenChange={setOpenReason} />
+      {/* Dialog alasan untuk reject / overpaid / expired */}
+      <PaymentActionDialog
+        payment={payment}
+        action={actionType}
+        open={openReason}
+        onOpenChange={setOpenReason}
+      />
     </>
   )
 }

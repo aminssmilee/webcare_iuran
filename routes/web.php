@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\RegistrationController;
 
 // ===========================
 // Guest Routes (hanya untuk yang belum login)
@@ -21,6 +22,8 @@ Route::middleware('guest')->prefix('member')->group(function () {
 // ===========================
 Route::middleware('auth')->prefix('member')->group(function () {
     Route::get('/', fn() => Inertia::render('MemberPayment'))->name('member.home');
+
+    // Halaman menunggu approval
     Route::get('/waiting-approval', fn() => Inertia::render('WaitingApproval'))->name('member.waiting');
 
     // logout (POST agar aman)
@@ -36,6 +39,22 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/users', fn() => Inertia::render('ManageUsers'))->name('admin.users');
     Route::get('/payments', fn() => Inertia::render('ManagePayments'))->name('admin.payments');
     Route::get('/reports', fn() => Inertia::render('Reports'))->name('admin.reports');
-    Route::get('/payment-validation', fn() => Inertia::render('PaymentValidation'))->name('admin.payment.validation');
-});
 
+    Route::get('/pending-registrations', [RegistrationController::class, 'index'])->name('admin.registrations');
+    Route::post('/registrations/{id}/approve', [RegistrationController::class, 'approve']);
+    Route::post('/registrations/{id}/reject', [RegistrationController::class, 'reject']);
+
+
+    // Halaman validasi pembayaran
+    Route::get('/payment-validation', fn() => Inertia::render('PaymentValidation'))
+        ->name('admin.payment.validation');
+
+    // Action untuk approve / reject member
+    Route::post('/registrations/{member}/approve', [\App\Http\Controllers\Admin\RegistrationController::class, 'approve'])
+        ->name('admin.registrations.approve');
+    Route::post('/registrations/{member}/reject', [\App\Http\Controllers\Admin\RegistrationController::class, 'reject'])
+        ->name('admin.registrations.reject');
+
+    // logout (POST agar aman)
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
+});

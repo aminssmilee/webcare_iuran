@@ -1,5 +1,6 @@
 "use client"
 
+import { Inertia } from "@inertiajs/inertia"
 import {
   BadgeCheck,
   Bell,
@@ -30,10 +31,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-export function NavUser({
-  user
-}) {
+export function NavUser({ user }) {
   const { isMobile } = useSidebar()
+
+  // ✅ Fungsi logout
+  const handleLogout = () => {
+    Inertia.post("/admin/logout") // sesuai route logout admin
+  }
 
   return (
     <SidebarMenu>
@@ -59,6 +63,8 @@ export function NavUser({
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}>
+            
+            {/* User Info */}
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
@@ -71,36 +77,45 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
+
+            {/* Upgrade */}
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Sparkles />
+                <Sparkles className="mr-2 h-4 w-4" />
                 Upgrade to Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
+
+            {/* Menu lainnya */}
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <BadgeCheck />
+                <BadgeCheck className="mr-2 h-4 w-4" />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <CreditCard />
+                <CreditCard className="mr-2 h-4 w-4" />
                 Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Bell />
+                <Bell className="mr-2 h-4 w-4" />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
+
+            {/* ✅ Log out admin */}
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  );
+  )
 }

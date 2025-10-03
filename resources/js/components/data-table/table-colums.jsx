@@ -31,7 +31,28 @@ export function getRegistrationColumns() {
   return [
     { id: "name", accessorKey: "name", header: "Name" },
     { id: "email", accessorKey: "email", header: "Email" },
+    { id: "idNumber", accessorKey: "idNumber", header: "ID Number" },
     { id: "submittedAt", accessorKey: "submittedAt", header: "Submitted At" },
+    {
+      id: "document",
+      accessorKey: "dokumen", // sesuai nama field dari backend
+      header: "Document",
+      cell: ({ row }) => {
+        const doc = row.getValue("dokumen");
+        return doc ? (
+          <a
+            href={doc}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            View
+          </a>
+        ) : (
+          <span className="text-gray-400">No file</span>
+        );
+      },
+    },
     {
       id: "validationStatus",
       accessorKey: "validationStatus",

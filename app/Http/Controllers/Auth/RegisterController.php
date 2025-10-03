@@ -17,41 +17,43 @@ class RegisterController extends Controller
         try {
             $validated = $request->validate([
                 'nama_lengkap' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email',
-                'password' => 'required|string|min:6|confirmed',
-                'dokumen' => 'nullable|mimes:pdf|max:2048',
+                'email'        => 'required|email|unique:users,email',
+                'password'     => 'required|string|min:6|confirmed',
+                'dokumen'      => 'nullable|mimes:pdf|max:2048',
             ]);
 
-            // Simpan file dokumen (jika ada)
+            // Simpan file dokumen jika ada
             $path = null;
             if ($request->hasFile('dokumen')) {
                 $path = $request->file('dokumen')->store('dokumen', 'public');
             }
 
-            // Buat user login
+            // Buat user → status default pending, dokumen disimpan di tabel users
             $user = User::create([
-                'id' => (string) Str::uuid(),
-                'name' => $validated['nama_lengkap'],
-                'email' => $validated['email'],
+                'id'       => (string) Str::uuid(),
+                'name'     => $validated['nama_lengkap'],
+                'email'    => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role' => 'member', // default
+                'role'     => 'member',
+                'status'   => 'pending', // wajib pending dulu
+                'dokumen'  => $path,     // simpan dokumen ke users
             ]);
 
-            // Buat data member profile
+            // Buat profil member (opsional, bisa dipakai untuk data tambahan)
             Member::create([
-                'id' => strtoupper(Str::random(6)),
-                'user_id' => $user->id,
+                'id'           => strtoupper(Str::random(6)),
+                'user_id'      => $user->id,
                 'nama_lengkap' => $validated['nama_lengkap'],
-                'dokumen' => $path,
-                'status' => 'pending', // wajib pending
+                // dokumen & status jangan disimpan di sini lagi
             ]);
 
-            return redirect()->route('member.waiting')->with('success', 'Registrasi berhasil, menunggu persetujuan admin');
+            // Arahkan ke halaman waiting
+            return redirect()->route('member.waiting')
+                ->with('success', 'Registrasi berhasil. Menunggu persetujuan admin.');
         } catch (\Exception $e) {
             Log::error('Register Error: ' . $e->getMessage());
-
             return back()->withErrors([
-                'error' => 'Terjadi kesalahan saat registrasi: ' . $e->getMessage(),
+                'error' => 'Terjadi kesalahan saat registrasi.',
             ]);
         }
     }

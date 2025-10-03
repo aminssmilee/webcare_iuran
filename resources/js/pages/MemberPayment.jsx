@@ -20,6 +20,7 @@ import { PaymentMemberDialog } from "@/components/dialogs/PaymentMemberDialog"
 import { MemberCard } from "@/components/cards/MemberCard"
 import ProfileInfo from "@/components/cards/ProfileInfo"
 import { LogOut } from "lucide-react"
+import { Inertia } from "@inertiajs/inertia"
 
 // Dummy data payments
 export const paymentsData = [
@@ -127,7 +128,12 @@ export default function MemberPayment() {
     <div className="flex flex-1 flex-col px-6 pt-10 lg:px-18 lg:py-20 gap-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-xl lg:text-2xl font-bold ml-2">Member Information</h1>
-        <Button variant="link" ><LogOut className="h-4 w-4" /> Logout</Button>
+        <Button
+          variant="link"
+          onClick={() => Inertia.post(route("member.logout"))}
+        >
+          <LogOut className="h-4 w-4 mr-2" /> Logout
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">

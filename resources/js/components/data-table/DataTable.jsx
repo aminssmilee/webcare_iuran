@@ -4,9 +4,16 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  getFilteredRowModel
+  getFilteredRowModel,
 } from "@tanstack/react-table";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./table-ui";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "./table-ui";
 import { Button } from "@/components/ui/button";
 import { flexRender } from "@tanstack/react-table";
 
@@ -17,13 +24,13 @@ export function DataTable({ data, columns }) {
   const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
-    data,
+    data: data ?? [], // ✅ kalau null jadi array kosong
     columns,
+    state: { sorting, columnFilters, columnVisibility, rowSelection },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    state: { sorting, columnFilters, columnVisibility, rowSelection },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -31,15 +38,24 @@ export function DataTable({ data, columns }) {
   });
 
   return (
-    <div className=" w-full overflow-x-auto">
-      <Table  className={`min-w-[${table.getAllColumns().length * 100}px]`}>
+    <div className="w-full overflow-x-auto">
+      {/* ✅ dynamic min-width biar table gak rusak */}
+      <Table
+        className={`min-w-[${Math.max(
+          table.getAllColumns().length * 150,
+          600
+        )}px]`}
+      >
         <TableHeader>
           {table.getHeaderGroups().map((group) => (
             <TableRow key={group.id}>
               {group.headers.map((header) => (
                 <TableHead key={`${group.id}-${header.id}`}>
                   {!header.isPlaceholder &&
-                    flexRender(header.column.columnDef.header, header.getContext())}
+                    flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                 </TableHead>
               ))}
             </TableRow>
@@ -49,7 +65,10 @@ export function DataTable({ data, columns }) {
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -59,7 +78,10 @@ export function DataTable({ data, columns }) {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+              <TableCell
+                colSpan={table.getAllColumns().length}
+                className="h-24 text-center"
+              >
                 No results.
               </TableCell>
             </TableRow>
@@ -67,13 +89,29 @@ export function DataTable({ data, columns }) {
         </TableBody>
       </Table>
 
+      {/* ✅ Pagination + Info */}
       <div className="flex items-center justify-between py-4 text-sm">
         <div className="text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="space-x-2">
-          <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Previous</Button>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Next</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
         </div>
       </div>
     </div>

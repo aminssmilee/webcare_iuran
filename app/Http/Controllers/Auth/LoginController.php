@@ -16,7 +16,7 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        // cek user berdasarkan email
+        // cari user
         $user = \App\Models\User::where('email', $request->email)->first();
 
         if (!$user) {
@@ -25,35 +25,43 @@ class LoginController extends Controller
             ])->onlyInput('email');
         }
 
-        // cek password manual
+        // cek password
         if (!Hash::check($request->password, $user->password)) {
             return back()->withErrors([
                 'password' => 'Password salah.',
             ])->onlyInput('email');
         }
 
-        // kalau sudah cocok, pakai Auth::login
-        Auth::login($user);
-        $request->session()->regenerate();
+        // cek status user
+        if ($user->status === 'pending') {
+            return back()->withErrors([
+                'auth' => 'Akun Anda masih menunggu persetujuan admin.',
+            ]);
+        }
 
-        // cek akun nonaktif
+        if ($user->status === 'rejected') {
+            return back()->withErrors([
+                'auth' => 'Registrasi Anda ditolak. Silakan hubungi admin.',
+            ]);
+        }
+
         if ($user->status === 'inactive') {
-            Auth::logout();
             return back()->withErrors([
                 'auth' => 'Akun Anda non-aktif. Silakan hubungi admin.',
             ]);
         }
 
-        // cek role
+        // login kalau status sudah active
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // arahkan sesuai role
         if ($user->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }
 
         if ($user->role === 'member') {
-            if ($user->member && $user->member->status === 'pending') {
-                return redirect()->route('member.waiting');
-            }
-            return redirect()->route('member.home');
+            return redirect()->route('member.home'); // pastikan route ini ada
         }
 
         // fallback
