@@ -7,6 +7,7 @@ use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class RegistrationController extends Controller
 {
@@ -15,6 +16,15 @@ class RegistrationController extends Controller
         $users = User::where('role', 'member')->get();
 
         $registrations = $users->map(function ($user) {
+            $dokumenUrl = $user->dokumen ? asset('storage/' . $user->dokumen) : null;
+
+            // 🔹 Tambahkan log biar kelihatan dikirim apa
+            Log::info('Dokumen user:', [
+                'id' => $user->id,
+                'nama' => $user->name,
+                'path' => $user->dokumen,
+                'url' => $dokumenUrl,
+            ]);
             return [
                 'id'               => $user->id,
                 'name'             => $user->name,

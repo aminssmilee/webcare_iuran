@@ -70,10 +70,24 @@ class LoginController extends Controller
 
     public function destroy(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // ✅ Tambahan: cek apakah yang login member atau admin
+        if (Auth::check()) {
+            $role = Auth::user()->role;
 
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            if ($role === 'admin') {
+                return redirect()->route('admin.login'); // arahkan ke login admin
+            }
+
+            if ($role === 'member') {
+                return redirect()->route('member.login'); // arahkan ke login member
+            }
+        }
+
+        // fallback kalau tidak ada user
         return redirect()->route('member.login');
     }
 }

@@ -18,22 +18,24 @@ Route::middleware('guest')->prefix('member')->group(function () {
 });
 
 // ===========================
-// Member Routes (hanya untuk yang sudah login)
+// Member Routes (hanya untuk role: member)
 // ===========================
-Route::middleware('auth')->prefix('member')->group(function () {
-    Route::get('/', fn() => Inertia::render('MemberPayment'))->name('member.home');
+Route::middleware(['auth', 'member'])->prefix('member')->name('member.')->group(function () {
+    // Dashboard / Home Member
+    Route::get('/', fn() => Inertia::render('MemberPayment'))->name('home');
 
     // Halaman menunggu approval
-    Route::get('/waiting-approval', fn() => Inertia::render('WaitingApproval'))->name('member.waiting');
+    Route::get('/waiting-approval', fn() => Inertia::render('WaitingApproval'))->name('waiting');
 
-    // logout (POST agar aman)
-    Route::post('/logout', [LoginController::class, 'destroy'])->name('member.logout');
+    // Logout
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });
 
+
 // ===========================
-// Admin Routes (hanya untuk admin login)
+// Admin Routes (auth + role:admin)
 // ===========================
-Route::middleware('auth')->prefix('admin')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', fn() => Inertia::render('Dashboard'))->name('admin.home');
     Route::get('/dashboard', fn() => Inertia::render('Dashboard'))->name('admin.dashboard');
     Route::get('/users', fn() => Inertia::render('ManageUsers'))->name('admin.users');
@@ -44,17 +46,15 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('/registrations/{id}/approve', [RegistrationController::class, 'approve']);
     Route::post('/registrations/{id}/reject', [RegistrationController::class, 'reject']);
 
-
-    // Halaman validasi pembayaran
     Route::get('/payment-validation', fn() => Inertia::render('PaymentValidation'))
         ->name('admin.payment.validation');
 
-    // Action untuk approve / reject member
-    Route::post('/registrations/{member}/approve', [\App\Http\Controllers\Admin\RegistrationController::class, 'approve'])
+    Route::post('/registrations/{member}/approve', [RegistrationController::class, 'approve'])
         ->name('admin.registrations.approve');
-    Route::post('/registrations/{member}/reject', [\App\Http\Controllers\Admin\RegistrationController::class, 'reject'])
+    Route::post('/registrations/{member}/reject', [RegistrationController::class, 'reject'])
         ->name('admin.registrations.reject');
 
-    // logout (POST agar aman)
+    // logout
     Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
 });
+    

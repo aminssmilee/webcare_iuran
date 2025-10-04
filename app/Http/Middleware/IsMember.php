@@ -9,12 +9,9 @@ class IsMember
 {
     public function handle($request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role === 'member') {
-            return $next($request);
+        if (!Auth::check() || Auth::user()->role !== 'member') {
+            return redirect()->route('admin.dashboard'); // lempar ke admin kalau bukan member
         }
-
-        return redirect()->route('admin')
-            ->withErrors(['auth' => 'Anda tidak punya akses ke halaman member.']);
+        return $next($request);
     }
 }
-

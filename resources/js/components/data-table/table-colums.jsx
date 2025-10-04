@@ -34,12 +34,19 @@ export function getRegistrationColumns() {
     { id: "idNumber", accessorKey: "idNumber", header: "ID Number" },
     { id: "submittedAt", accessorKey: "submittedAt", header: "Submitted At" },
     {
-      id: "document",
-      accessorKey: "dokumen", // sesuai nama field dari backend
+      id: "dokumen",
+      accessorKey: "dokumen",
       header: "Document",
       cell: ({ row }) => {
-        const doc = row.getValue("dokumen");
-        return doc ? (
+        // Gunakan row.original supaya ambil langsung dari data asli inertia
+        const doc = row.original.dokumen;
+        console.log("Dokumen path row:", doc);
+
+        if (!doc) {
+          return <span className="text-gray-400">No file</span>;
+        }
+
+        return (
           <a
             href={doc}
             target="_blank"
@@ -48,11 +55,10 @@ export function getRegistrationColumns() {
           >
             View
           </a>
-        ) : (
-          <span className="text-gray-400">No file</span>
         );
       },
     },
+
     {
       id: "validationStatus",
       accessorKey: "validationStatus",

@@ -20,7 +20,9 @@ import { PaymentMemberDialog } from "@/components/dialogs/PaymentMemberDialog"
 import { MemberCard } from "@/components/cards/MemberCard"
 import ProfileInfo from "@/components/cards/ProfileInfo"
 import { LogOut } from "lucide-react"
+import { route } from "ziggy-js"
 import { Inertia } from "@inertiajs/inertia"
+
 
 // Dummy data payments
 export const paymentsData = [

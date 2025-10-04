@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 
 export default function ProfileInfo({ user, onLogout, onEdit }) {
     return (
-        <Card className="w-full p-6 rounded-2xl shadow-sm w-full">
+        <Card className="w-full p-6 rounded-2xl shadow-sm">
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 {/* Left: Avatar + Info */}

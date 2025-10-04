@@ -9,8 +9,9 @@ import { Upload } from "lucide-react";
 import { Inertia } from "@inertiajs/inertia";
 
 export function RegisterForm({ className, ...props }) {
-  const [errors, setErrors] = useState({}); // error lokal (client) + server
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [fileName, setFileName] = useState(null); // ✅ tambahan state untuk preview file
 
   function validateBeforeSubmit(form) {
     const e = {};
@@ -49,22 +50,18 @@ export function RegisterForm({ className, ...props }) {
     const form = new FormData(ev.target);
     const localErr = validateBeforeSubmit(form);
 
-    // Jika ada error lokal, tampilkan semua & hentikan submit
     if (Object.keys(localErr).length > 0) {
       setErrors(localErr);
-      // scroll ke error pertama (optional)
       const firstKey = Object.keys(localErr)[0];
       const el = ev.target.querySelector(`[name="${firstKey}"]`);
       if (el) el.focus();
       return;
     }
 
-    // Submit ke backend
     setSubmitting(true);
     Inertia.post("/member/register", form, {
       forceFormData: true,
       onError: (serverErr) => {
-        // tampilkan validasi dari Laravel
         setErrors((prev) => ({ ...prev, ...serverErr }));
         setSubmitting(false);
       },
@@ -75,17 +72,26 @@ export function RegisterForm({ className, ...props }) {
     });
   }
 
-  // helper untuk memberi border merah kalau error
   const errClass = (key) =>
     errors[key] ? "border-red-500 focus-visible:ring-red-500" : "";
 
-  // saat user mengetik, bersihkan error field tsb
   const clearErrOnChange = (key) => () =>
     setErrors((prev) => {
       if (!prev[key]) return prev;
       const { [key]: _, ...rest } = prev;
       return rest;
     });
+
+  // ✅ handler untuk update preview file
+  function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (file) {
+      setFileName(file.name);
+    } else {
+      setFileName(null);
+    }
+    clearErrOnChange("dokumen")();
+  }
 
   return (
     <form
@@ -185,9 +191,15 @@ export function RegisterForm({ className, ...props }) {
               type="file"
               accept="application/pdf"
               className="hidden"
-              onChange={clearErrOnChange("dokumen")}
+              onChange={handleFileChange} // ✅ ganti handler
             />
           </label>
+
+          {/* ✅ Preview nama file */}
+          {fileName && (
+            <p className="text-sm text-green-600">Selected: {fileName}</p>
+          )}
+
           {errors.dokumen && (
             <p className="text-sm text-red-500">{errors.dokumen}</p>
           )}
