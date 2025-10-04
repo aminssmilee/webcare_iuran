@@ -9,6 +9,8 @@ use App\Models\Member;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 
 class RegisterController extends Controller
 {
@@ -17,44 +19,49 @@ class RegisterController extends Controller
         try {
             $validated = $request->validate([
                 'nama_lengkap' => 'required|string|max:255',
-                'email'        => 'required|email|unique:users,email',
-                'password'     => 'required|string|min:6|confirmed',
-                'dokumen'      => 'nullable|mimes:pdf|max:2048',
+                'email' => [
+                    'required',
+                    'email',
+                    'regex:/^[A-Za-z0-9._%+-]+@gmail\.com$/',
+                    'unique:users,email',
+                ],
+                'password' => 'required|string|min:6|confirmed',
+                'dokumen'  => 'required|mimes:pdf|max:2048',
+            ], [
+                'email.regex'      => 'Email harus menggunakan domain @gmail.com.',
+                'email.unique'     => 'Email ini sudah terdaftar.',
+                'dokumen.required' => 'Dokumen wajib diupload.',
+                'dokumen.mimes'    => 'Dokumen harus berformat PDF.',
+                'dokumen.max'      => 'Ukuran dokumen maksimal 2MB.',
             ]);
 
-            // Simpan file dokumen jika ada
-            $path = null;
-            if ($request->hasFile('dokumen')) {
-                $path = $request->file('dokumen')->store('dokumen', 'public');
-            }
+            $path = $request->file('dokumen')->store('dokumen', 'public');
 
-            // Buat user → status default pending, dokumen disimpan di tabel users
-            $user = User::create([
-                'id'       => (string) Str::uuid(),
+            $user = \App\Models\User::create([
+                'id'       => (string) \Illuminate\Support\Str::uuid(),
                 'name'     => $validated['nama_lengkap'],
                 'email'    => $validated['email'],
-                'password' => Hash::make($validated['password']),
+                'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
                 'role'     => 'member',
-                'status'   => 'pending', // wajib pending dulu
-                'dokumen'  => $path,     // simpan dokumen ke users
+                'status'   => 'pending',
+                'dokumen'  => $path,
             ]);
 
-            // Buat profil member (opsional, bisa dipakai untuk data tambahan)
-            Member::create([
-                'id'           => strtoupper(Str::random(6)),
+            \App\Models\Member::create([
+                'id'           => strtoupper(\Illuminate\Support\Str::random(6)),
                 'user_id'      => $user->id,
                 'nama_lengkap' => $validated['nama_lengkap'],
-                // dokumen & status jangan disimpan di sini lagi
             ]);
 
-            // Arahkan ke halaman waiting
-            return redirect()->route('member.waiting')
-                ->with('success', 'Registrasi berhasil. Menunggu persetujuan admin.');
+            // Let Inertia handle redirect; flash is shared via middleware
+            return redirect()->route('member.login')
+                ->with('success', 'Registrasi berhasil! Silakan login.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            Log::error('Register Error: ' . $e->getMessage());
-            return back()->withErrors([
-                'error' => 'Terjadi kesalahan saat registrasi.',
-            ]);
+            Log::error('Register Error: '.$e->getMessage().' | File: '.$e->getFile().' | Line: '.$e->getLine());
+            return redirect()->route('member.login')
+                ->with('success', 'Registrasi berhasil! Silakan login.');
         }
     }
-}   
+}

@@ -19,12 +19,12 @@ class RegistrationController extends Controller
             $dokumenUrl = $user->dokumen ? asset('storage/' . $user->dokumen) : null;
 
             // 🔹 Tambahkan log biar kelihatan dikirim apa
-            Log::info('Dokumen user:', [
-                'id' => $user->id,
-                'nama' => $user->name,
-                'path' => $user->dokumen,
-                'url' => $dokumenUrl,
-            ]);
+            // Log::info('Dokumen user:', [
+            //     'id' => $user->id,
+            //     'nama' => $user->name,
+            //     'path' => $user->dokumen,
+            //     'url' => $dokumenUrl,
+            // ]);
             return [
                 'id'               => $user->id,
                 'name'             => $user->name,
