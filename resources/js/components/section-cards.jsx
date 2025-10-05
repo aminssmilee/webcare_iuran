@@ -1,92 +1,110 @@
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
-
 import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
-export function SectionCards() {
+function fmtIDR(n) {
+  if (n == null) return "-"
+  try {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(Number(n))
+  } catch { return String(n) }
+}
+function pct(n) {
+  if (n == null) return "0%"
+  const v = Number(n)
+  return `${v > 0 ? "+" : ""}${v.toFixed(1)}%`
+}
+
+export function SectionCards({ metrics }) {
+  // fallback kalau props belum ada
+  const m = metrics ?? {
+    revenue: { total: 0, diffPct: 0, trend: "up" },
+    newCustomers: { count: 0, diffPct: 0, trend: "down" },
+    activeAccounts: { count: 0, diffPct: 0, trend: "up" },
+    growthRate: 0,
+  }
+
   return (
-    <div
-      className="*:data-[slot=card]:shadow-xs lg:grid-cols-2 3xl:grid-cols-4 grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card lg:px-6">
-      <Card className="@container/card">
+    <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 lg:grid-cols-2 3xl:grid-cols-4 *:data-[slot=card]:shadow-xs *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card">
+      {/* Total Revenue */}
+      <Card className="@container/card" data-slot="card">
         <CardHeader className="relative">
           <CardDescription>Total Revenue</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            $1,250.00
+            {fmtIDR(m.revenue?.total)}
           </CardTitle>
           <div className="absolute right-4 top-4">
             <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              <TrendingUpIcon className="size-3" />
-              +12.5%
+              { (m.revenue?.trend ?? "up") === "up" ? <TrendingUpIcon className="size-3" /> : <TrendingDownIcon className="size-3" /> }
+              {pct(m.revenue?.diffPct)}
             </Badge>
           </div>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month <TrendingUpIcon className="size-4" />
+            { (m.revenue?.trend ?? "up") === "up" ? "Trending up this period" : "Down this period" }
+            { (m.revenue?.trend ?? "up") === "up" ? <TrendingUpIcon className="size-4" /> : <TrendingDownIcon className="size-4" /> }
           </div>
-          <div className="text-muted-foreground">
-            Visitors for the last 6 months
-          </div>
+          <div className="text-muted-foreground">Revenue in selected range</div>
         </CardFooter>
       </Card>
-      <Card className="@container/card">
+
+      {/* New Customers */}
+      <Card className="@container/card" data-slot="card">
         <CardHeader className="relative">
           <CardDescription>New Customers</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            1,234
+            {m.newCustomers?.count ?? 0}
           </CardTitle>
           <div className="absolute right-4 top-4">
             <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              <TrendingDownIcon className="size-3" />
-              -20%
+              { (m.newCustomers?.trend ?? "down") === "up" ? <TrendingUpIcon className="size-3" /> : <TrendingDownIcon className="size-3" /> }
+              {pct(m.newCustomers?.diffPct)}
             </Badge>
           </div>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Down 20% this period <TrendingDownIcon className="size-4" />
+            { (m.newCustomers?.trend ?? "down") === "up" ? "Up vs previous period" : "Down vs previous period" }
+            { (m.newCustomers?.trend ?? "down") === "up" ? <TrendingUpIcon className="size-4" /> : <TrendingDownIcon className="size-4" /> }
           </div>
-          <div className="text-muted-foreground">
-            Acquisition needs attention
-          </div>
+          <div className="text-muted-foreground">Registrations in selected range</div>
         </CardFooter>
       </Card>
-      <Card className="@container/card">
+
+      {/* Active Accounts */}
+      <Card className="@container/card" data-slot="card">
         <CardHeader className="relative">
           <CardDescription>Active Accounts</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            45,678
+            {m.activeAccounts?.count ?? 0}
           </CardTitle>
           <div className="absolute right-4 top-4">
             <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              <TrendingUpIcon className="size-3" />
-              +12.5%
+              { (m.activeAccounts?.trend ?? "up") === "up" ? <TrendingUpIcon className="size-3" /> : <TrendingDownIcon className="size-3" /> }
+              {pct(m.activeAccounts?.diffPct)}
             </Badge>
           </div>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong user retention <TrendingUpIcon className="size-4" />
+            { (m.activeAccounts?.trend ?? "up") === "up" ? "Strong user retention" : "Retention down" }
+            { (m.activeAccounts?.trend ?? "up") === "up" ? <TrendingUpIcon className="size-4" /> : <TrendingDownIcon className="size-4" /> }
           </div>
-          <div className="text-muted-foreground">Engagement exceed targets</div>
+          <div className="text-muted-foreground">Members accepted</div>
         </CardFooter>
       </Card>
-      <Card className="@container/card">
+
+      {/* Growth Rate */}
+      <Card className="@container/card" data-slot="card">
         <CardHeader className="relative">
           <CardDescription>Growth Rate</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            4.5%
+            {Number(m.growthRate ?? 0).toFixed(1)}%
           </CardTitle>
           <div className="absolute right-4 top-4">
             <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
               <TrendingUpIcon className="size-3" />
-              +4.5%
+              {pct(m.growthRate ?? 0)}
             </Badge>
           </div>
         </CardHeader>
@@ -98,5 +116,5 @@ export function SectionCards() {
         </CardFooter>
       </Card>
     </div>
-  );
+  )
 }

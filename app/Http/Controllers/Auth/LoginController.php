@@ -79,7 +79,7 @@ class LoginController extends Controller
             $request->session()->regenerateToken();
 
             if ($role === 'admin') {
-                return redirect()->route('admin.login'); // arahkan ke login admin
+                return redirect()->route('member.login'); // arahkan ke login admin
             }
 
             if ($role === 'member') {

@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Member;
 
 class User extends Authenticatable
 {
@@ -45,10 +46,7 @@ class User extends Authenticatable
     // ==============================
 
     // 1 User = 1 Member
-    public function member()
-    {
-        return $this->hasOne(Member::class, 'user_id');
-    }
+
 
     // 1 User = banyak Payment
     public function payments()
@@ -89,4 +87,9 @@ class User extends Authenticatable
     {
         return $this->status === 'inactive';
     }
+    public function member()
+    {
+        return $this->hasOne(Member::class, 'user_id'); // ✅ gunakan relasi ini
+    }
+
 }
