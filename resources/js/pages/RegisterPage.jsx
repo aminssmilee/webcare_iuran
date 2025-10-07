@@ -1,6 +1,6 @@
 import { GalleryVerticalEnd } from "lucide-react";
 import { RegisterForm } from "@/components/register-form";
-import Image  from "/public/img/aerial-view-novel-white-marble-table.jpg";
+import Image from "/public/img/aerial-view-novel-white-marble-table.jpg";
 
 
 export default function RegisterPage() {
@@ -9,10 +9,12 @@ export default function RegisterPage() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="/" className="flex items-center gap-2 font-medium">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <GalleryVerticalEnd className="h-6 w-6" />
-            </div>
-            Forsinergi.
+            <img
+              src="/img/1-asosiasi-teknik-sistem-energi-indonesia.png"
+              // alt={activeTeam.name}
+              className="size-8 object-contain"
+            />
+            FORSINERGI
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">

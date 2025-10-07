@@ -85,7 +85,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/registrations/{id}/reject', [RegistrationController::class, 'reject']);
 
     Route::get('/payment-validation', [PaymentValidationController::class, 'index'])->name('admin.payment.validation');
-
+    Route::post('/payment-validation/{id}/approve', [PaymentValidationController::class, 'approve'])->name('admin.payment.approve');
+    Route::post('/payment-validation/{id}/reject', [PaymentValidationController::class, 'reject'])->name('admin.payment.reject');
+    Route::post('/payment-validation/{id}/overpaid', [PaymentValidationController::class, 'overpaid']);
+    Route::post('/payment-validation/{id}/expired', [PaymentValidationController::class, 'expired']);
+    
     Route::post('/registrations/{member}/approve', [RegistrationController::class, 'approve'])
         ->name('admin.registrations.approve');
     Route::post('/registrations/{member}/reject', [RegistrationController::class, 'reject'])

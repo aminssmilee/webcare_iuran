@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
-import { Check, Upload } from "lucide-react"
+import { Check, Upload, X } from "lucide-react"
 import { router } from "@inertiajs/react"
 
 const MONTHS = [
@@ -40,6 +40,7 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
   const [status, setStatus] = React.useState("Pending")
   const [statusMessage, setStatusMessage] = React.useState("")
   const [proofFile, setProofFile] = React.useState(null)
+  const [fileName, setFileName] = React.useState("") // tambahan
   const [submitting, setSubmitting] = React.useState(false)
   const [errors, setErrors] = React.useState({})
 
@@ -66,11 +67,13 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     const res = validateFile(file)
     if (!res.valid) {
       setProofFile(null)
+      setFileName("")
       setErrors((prev) => ({ ...prev, proof: res.message }))
       return
     }
     setErrors((prev) => ({ ...prev, proof: undefined }))
     setProofFile(file)
+    setFileName(file.name)
   }
 
   const handleDrop = (e) => {
@@ -79,11 +82,18 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     const res = validateFile(file)
     if (!res.valid) {
       setProofFile(null)
+      setFileName("")
       setErrors((prev) => ({ ...prev, proof: res.message }))
       return
     }
     setErrors((prev) => ({ ...prev, proof: undefined }))
     setProofFile(file)
+    setFileName(file.name)
+  }
+
+  const handleRemoveFile = () => {
+    setProofFile(null)
+    setFileName("")
   }
 
   // === Status otomatis berdasarkan pilihan bulan ===
@@ -116,11 +126,12 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
   React.useEffect(() => {
     if (open) {
       setSelectedMonths([])
-      setAmount("")
+      setAmount("") 
       setNote("")
       setStatus("Pending")
       setStatusMessage("")
       setProofFile(null)
+      setFileName("")
       setErrors({})
     }
   }, [open])
@@ -248,26 +259,43 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
           {/* Payment Proof */}
           <div className="grid gap-2">
             <Label>Payment Proof (max 500 KB) <span className="text-red-500">*</span></Label>
-            <div
-              className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 ${errors.proof ? "border-red-500" : ""}`}
-              onClick={() => document.getElementById("payment-proof")?.click()}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-            >
-              <Upload className="h-6 w-6 mb-2 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground font-normal">
-                Drag & drop image or PDF here or click to upload
-              </span>
-              <Input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={handleFileChange}
-                className="hidden"
-                id="payment-proof"
-              />
-            </div>
-            {proofFile && <p className="text-xs text-muted-foreground">{proofFile.name}</p>}
-            {errors.proof && <p className="text-red-500 text-xs">{errors.proof}</p>}
+
+            {!proofFile ? (
+              <div
+                className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 ${errors.proof ? "border-red-500" : ""}`}
+                onClick={() => document.getElementById("payment-proof")?.click()}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+              >
+                <Upload className="h-6 w-6 mb-2 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground font-normal">
+                  Drag & drop image or PDF here or click to upload
+                </span>
+                <Input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="payment-proof"
+                />
+              </div>
+            ) : (
+              <div className="relative flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
+                <div className="flex flex-col">
+                  <Label className="font-semibold text-sm">Uploaded Document</Label>
+                  <span className="text-sm text-green-700">{fileName}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveFile}
+                  className="absolute top-2 right-2 rounded-full p-1 hover:bg-red-100 transition"
+                >
+                  <X className="h-4 w-4 text-red-500" />
+                </button>
+              </div>
+            )}
+
+            {errors.proof && <p className="text-sm text-red-500">{errors.proof}</p>}
           </div>
 
           {/* Status (auto) */}

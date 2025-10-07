@@ -28,21 +28,21 @@ export function SectionCards({ metrics }) {
       {/* Total Revenue */}
       <Card className="@container/card" data-slot="card">
         <CardHeader className="relative">
-          <CardDescription>Total Revenue</CardDescription>
+          <CardDescription>Total Iuran Bulan Ini</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
             {fmtIDR(m.revenue?.total)}
           </CardTitle>
           <div className="absolute right-4 top-4">
             <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              { (m.revenue?.trend ?? "up") === "up" ? <TrendingUpIcon className="size-3" /> : <TrendingDownIcon className="size-3" /> }
+              {(m.revenue?.trend ?? "up") === "up" ? <TrendingUpIcon className="size-3" /> : <TrendingDownIcon className="size-3" />}
               {pct(m.revenue?.diffPct)}
             </Badge>
           </div>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            { (m.revenue?.trend ?? "up") === "up" ? "Trending up this period" : "Down this period" }
-            { (m.revenue?.trend ?? "up") === "up" ? <TrendingUpIcon className="size-4" /> : <TrendingDownIcon className="size-4" /> }
+            {(m.revenue?.trend ?? "up") === "up" ? "Trending up this period" : "Down this period"}
+            {(m.revenue?.trend ?? "up") === "up" ? <TrendingUpIcon className="size-4" /> : <TrendingDownIcon className="size-4" />}
           </div>
           <div className="text-muted-foreground">Revenue in selected range</div>
         </CardFooter>
@@ -51,28 +51,73 @@ export function SectionCards({ metrics }) {
       {/* New Customers */}
       <Card className="@container/card" data-slot="card">
         <CardHeader className="relative">
-          <CardDescription>New Customers</CardDescription>
+          <CardDescription>Anggota Baru Non Instansi</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
             {m.newCustomers?.count ?? 0}
           </CardTitle>
           <div className="absolute right-4 top-4">
             <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              { (m.newCustomers?.trend ?? "down") === "up" ? <TrendingUpIcon className="size-3" /> : <TrendingDownIcon className="size-3" /> }
+              {(m.newCustomers?.trend ?? "down") === "up" ? <TrendingUpIcon className="size-3" /> : <TrendingDownIcon className="size-3" />}
               {pct(m.newCustomers?.diffPct)}
             </Badge>
           </div>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            { (m.newCustomers?.trend ?? "down") === "up" ? "Up vs previous period" : "Down vs previous period" }
-            { (m.newCustomers?.trend ?? "down") === "up" ? <TrendingUpIcon className="size-4" /> : <TrendingDownIcon className="size-4" /> }
+            {(m.newCustomers?.trend ?? "down") === "up" ? "Up vs previous period" : "Down vs previous period"}
+            {(m.newCustomers?.trend ?? "down") === "up" ? <TrendingUpIcon className="size-4" /> : <TrendingDownIcon className="size-4" />}
           </div>
           <div className="text-muted-foreground">Registrations in selected range</div>
         </CardFooter>
       </Card>
 
-      {/* Active Accounts */}
+      {/* New Customers */}
       <Card className="@container/card" data-slot="card">
+        <CardHeader className="relative">
+          <CardDescription>Anggota Baru Instantsi</CardDescription>
+          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+            {m.newCustomers?.count ?? 0}
+          </CardTitle>
+          <div className="absolute right-4 top-4">
+            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
+              {(m.newCustomers?.trend ?? "down") === "up" ? <TrendingUpIcon className="size-3" /> : <TrendingDownIcon className="size-3" />}
+              {pct(m.newCustomers?.diffPct)}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            {(m.newCustomers?.trend ?? "down") === "up" ? "Up vs previous period" : "Down vs previous period"}
+            {(m.newCustomers?.trend ?? "down") === "up" ? <TrendingUpIcon className="size-4" /> : <TrendingDownIcon className="size-4" />}
+          </div>
+          <div className="text-muted-foreground">Registrations in selected range</div>
+        </CardFooter>
+      </Card>
+
+      {/* Growth Rate */}
+      <Card className="@container/card" data-slot="card">
+        <CardHeader className="relative">
+          <CardDescription>Persentase Pertumbuhan</CardDescription>
+          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+            {Number(m.growthRate ?? 0).toFixed(1)}%
+          </CardTitle>
+          <div className="absolute right-4 top-4">
+            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
+              <TrendingUpIcon className="size-3" />
+              {pct(m.growthRate ?? 0)}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Steady performance <TrendingUpIcon className="size-4" />
+          </div>
+          <div className="text-muted-foreground">Meets growth projections</div>
+        </CardFooter>
+      </Card>
+      
+      {/* Active Accounts */}
+      {/* <Card className="@container/card" data-slot="card">
         <CardHeader className="relative">
           <CardDescription>Active Accounts</CardDescription>
           <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
@@ -92,29 +137,7 @@ export function SectionCards({ metrics }) {
           </div>
           <div className="text-muted-foreground">Members accepted</div>
         </CardFooter>
-      </Card>
-
-      {/* Growth Rate */}
-      <Card className="@container/card" data-slot="card">
-        <CardHeader className="relative">
-          <CardDescription>Growth Rate</CardDescription>
-          <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-            {Number(m.growthRate ?? 0).toFixed(1)}%
-          </CardTitle>
-          <div className="absolute right-4 top-4">
-            <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">
-              <TrendingUpIcon className="size-3" />
-              {pct(m.growthRate ?? 0)}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Steady performance <TrendingUpIcon className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Meets growth projections</div>
-        </CardFooter>
-      </Card>
+      </Card> */}
     </div>
   )
 }

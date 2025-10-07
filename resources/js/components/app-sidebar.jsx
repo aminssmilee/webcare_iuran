@@ -170,15 +170,15 @@ export function AppSidebar({
   ...props
 }) {
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+    <Sidebar collapsible="icon" {...props} className="">
+      <SidebarHeader className="bg-[#0279a3] text-white">
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavProjects projects={data.projects} />
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="bg-[#0279a3] ">
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
