@@ -15,8 +15,12 @@ export function TeamSwitcher({ teams }) {
       <SidebarMenuItem>
         <SidebarMenuButton size="lg" className="cursor-default">
           <div
-            className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <activeTeam.logo className="size-4" />
+            className="flex aspect-square size-10 items-center justify-center rounded-lg bg-sidebar-secondary shadow-sm text-sidebar-primary-foreground">
+            <img
+              src={activeTeam.logo}
+              alt={activeTeam.name}
+              className="size-4 object-contain"
+            />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">

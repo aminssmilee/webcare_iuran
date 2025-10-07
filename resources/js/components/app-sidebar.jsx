@@ -27,6 +27,9 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
+
+const Logo = "/img/1-asosiasi-teknik-sistem-energi-indonesia.png"
+
 // This is sample data.
 const data = {
   user: {
@@ -36,21 +39,22 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
+      name: "FORSINEGI",
+      logo: Logo,
+      plan: "Forum Sistem Energi ",
     },
   ],
+  //   // {
+  //   //   name: "Acme Corp.",
+  //   //   logo: AudioWaveform,
+  //   //   plan: "Startup",
+  //   // },
+  //   // {
+  //   //   name: "Evil Corp.",
+  //   //   logo: Command,
+  //   //   plan: "Free",
+  //   // },
+  // ],
   navMain: [
     {
       title: "Validasi",

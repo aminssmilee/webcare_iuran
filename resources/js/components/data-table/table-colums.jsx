@@ -11,7 +11,7 @@ export function getUserColumns() {
     {
       id: "name",
       accessorKey: "name",
-      header: "Name",
+      header: "Nama",
       cell: ({ row }) => (
         <span className="text-sm font-medium">{row.getValue("name") || "-"}</span>
       ),
@@ -31,10 +31,13 @@ export function getUserColumns() {
         )
       },
     },
+
+    { id: "roles", accessorKey: "roles", header: "Role" },
+
     {
       id: "idNumber",
       accessorKey: "idNumber",
-      header: "ID Number",
+      header: "ID Anggota",
       cell: ({ row }) => (
         <span className="text-sm">{row.getValue("idNumber") || "-"}</span>
       ),
@@ -42,7 +45,7 @@ export function getUserColumns() {
     {
       id: "birthPlaceDate",
       accessorKey: "birthPlaceDate",
-      header: "Birth Date", // kalau mau tetap "Birth Place / Date" silakan ganti
+      header: "TTL", // kalau mau tetap "Birth Place / Date" silakan ganti
       cell: ({ row }) => (
         <span className="text-sm">{row.getValue("birthPlaceDate") || "-"}</span>
       ),
@@ -50,7 +53,7 @@ export function getUserColumns() {
     {
       id: "gender",
       accessorKey: "gender",
-      header: "Gender",
+      header: "Jenis Kelamin",
       cell: ({ row }) => (
         <span className="text-sm">{row.getValue("gender") || "-"}</span>
       ),
@@ -58,7 +61,7 @@ export function getUserColumns() {
     {
       id: "address",
       accessorKey: "address",
-      header: "Address",
+      header: "Alamat",
       cell: ({ row }) => (
         <span className="text-sm">{row.getValue("address") || "-"}</span>
       ),
@@ -66,7 +69,7 @@ export function getUserColumns() {
     {
       id: "whatsapp",
       accessorKey: "whatsapp",
-      header: "WhatsApp",
+      header: "No WhatsApp",
       cell: ({ row }) => {
         const wa = row.getValue("whatsapp")
         if (!wa) {
@@ -78,8 +81,8 @@ export function getUserColumns() {
           digits.startsWith("62")
             ? digits
             : digits.startsWith("0")
-            ? `62${digits.slice(1)}`
-            : `62${digits}`
+              ? `62${digits.slice(1)}`
+              : `62${digits}`
         return (
           <a
             href={`https://wa.me/${e164}`}
@@ -95,7 +98,7 @@ export function getUserColumns() {
     {
       id: "education",
       accessorKey: "education",
-      header: "Education",
+      header: "Pendidikan Terakhir",
       cell: ({ row }) => (
         <span className="text-sm">{row.getValue("education") || "-"}</span>
       ),
@@ -103,7 +106,7 @@ export function getUserColumns() {
     {
       id: "occupation",
       accessorKey: "occupation",
-      header: "Occupation",
+      header: "Jabatan",
       cell: ({ row }) => (
         <span className="text-sm">{row.getValue("occupation") || "-"}</span>
       ),
@@ -118,10 +121,10 @@ export function getUserColumns() {
           s === "Active"
             ? "border-green-500 text-green-600"
             : s === "Pending"
-            ? "border-yellow-500 text-yellow-600"
-            : s === "Rejected"
-            ? "border-red-500 text-red-600"
-            : "border-gray-400 text-gray-600"
+              ? "border-yellow-500 text-yellow-600"
+              : s === "Rejected"
+                ? "border-red-500 text-red-600"
+                : "border-gray-400 text-gray-600"
         return (
           <Badge variant="outline" className={`w-auto ${color}`}>
             {s}
@@ -131,7 +134,7 @@ export function getUserColumns() {
     },
     {
       id: "actions",
-      header: "Actions",
+      header: "Aksi",
       cell: ({ row }) => <UserActionsCell user={row.original} />,
     },
   ]
@@ -140,14 +143,15 @@ export function getUserColumns() {
 //  Registration Validation
 export function getRegistrationColumns() {
   return [
-    { id: "name", accessorKey: "name", header: "Name" },
+    { id: "name", accessorKey: "name", header: "Nama" },
     { id: "email", accessorKey: "email", header: "Email" },
-    { id: "idNumber", accessorKey: "idNumber", header: "ID Number" },
-    { id: "submittedAt", accessorKey: "submittedAt", header: "Submitted At" },
+    { id: "roles", accessorKey: "roles", header: "Role" },
+    { id: "idNumber", accessorKey: "idNumber", header: "ID Anggota" },
+    { id: "submittedAt", accessorKey: "submittedAt", header: "Tanggal Pendaftaran" },
     {
       id: "dokumen",
       accessorKey: "dokumen",
-      header: "Document",
+      header: "Dokumen",
       cell: ({ row }) => {
         // Gunakan row.original supaya ambil langsung dari data asli inertia
         const doc = row.original.dokumen;
@@ -164,7 +168,7 @@ export function getRegistrationColumns() {
             rel="noopener noreferrer"
             className="text-blue-600 underline"
           >
-            View
+            Lihat
           </a>
         );
       },
@@ -173,7 +177,7 @@ export function getRegistrationColumns() {
     {
       id: "validationStatus",
       accessorKey: "validationStatus",
-      header: "Validation Status",
+      header: "Status Validasi",
       cell: ({ row }) => {
         const status = row.getValue("validationStatus");
         if (status === "Pending") {
@@ -189,24 +193,26 @@ export function getRegistrationColumns() {
         return <span>{status}</span>
       }
     },
-    { id: "actions", header: "Actions", cell: ({ row }) => <RegistrationValidationActionsCell user={row.original} /> },
+    { id: "actions", header: "Aksi", cell: ({ row }) => <RegistrationValidationActionsCell user={row.original} /> },
   ];
 }
 
 //  Payment Validation
 export function getPaymentValidationColumns() {
   return [
-    { id: "name", accessorKey: "name", header: "Name" },
+    { id: "name", accessorKey: "name", header: "Nama" },
+    { id: "roles", accessorKey: "roles", header: "Role" },
     { id: "email", accessorKey: "email", header: "Email" },
-    { id: "idNumber", accessorKey: "idNumber", header: "ID Number" },
-    { id: "Mount", accessorKey: "mount", header: "Mount Period" },
-    { id: "amount", accessorKey: "amount", header: "Amount" },
+    { id: "idNumber", accessorKey: "idNumber", header: "ID Anggota" },
+    { id: "Mount", accessorKey: "mount", header: "Periode Bulan" },
+    { id: "amount", accessorKey: "amount", header: "Jumlah" },
+
     {
-      id: "dueDate",
-      accessorKey: "dueDate",
-      header: "Due Date",
+      id: "paidAt",
+      accessorKey: "paidAt",
+      header: "Tanggal Pembayaran",
       cell: ({ row }) => {
-        const date = row.getValue("dueDate");
+        const date = row.getValue("paidAt");
         return date ? (
           <span className="text-sm">{date}</span>
         ) : (
@@ -216,11 +222,11 @@ export function getPaymentValidationColumns() {
     },
 
     {
-      id: "paidAt",
-      accessorKey: "paidAt",
-      header: "Paid At",
+      id: "dueDate",
+      accessorKey: "dueDate",
+      header: "Tenggat",
       cell: ({ row }) => {
-        const date = row.getValue("paidAt");
+        const date = row.getValue("dueDate");
         return date ? (
           <span className="text-sm">{date}</span>
         ) : (
@@ -233,7 +239,7 @@ export function getPaymentValidationColumns() {
     {
       id: "paymentProof",
       accessorKey: "paymentProof",
-      header: "Payment Proof",
+      header: "Bukti Bayar",
       cell: ({ row }) => {
         const doc = row.getValue("paymentProof");
         if (!doc) return <span className="text-sm text-muted-foreground">-</span>;
@@ -253,14 +259,14 @@ export function getPaymentValidationColumns() {
     {
       id: "note",
       accessorKey: "note",
-      header: "Note",
+      header: "Keterangan",
       cell: ({ row }) => <span className="text-sm">{row.getValue("note") || "-"}</span>
     },
 
     {
       id: "status",
       accessorKey: "status",
-      header: "Status",
+      header: "Status Pembayaran",
       cell: ({ row }) => {
         const status = row.getValue("status");
 
@@ -291,23 +297,23 @@ export function getPaymentValidationColumns() {
         return <Badge variant="default">{status}</Badge>;
       }
     },
-    { id: "actions", header: "Actions", cell: ({ row }) => <PaymentValidationActionsCell payment={row.original} /> },
+    { id: "actions", header: "Aksi", cell: ({ row }) => <PaymentValidationActionsCell payment={row.original} /> },
   ];
 }
 
 //  Payment List
 export function getPaymentColumns() {
   return [
-    { id: "mount", accessorKey: "mount", header: "Month Period" },
+    { id: "mount", accessorKey: "mount", header: "Periode Bulan" },
 
-    { id: "amount", accessorKey: "amount", header: "Amount" },
+    { id: "amount", accessorKey: "amount", header: "Jumlah" },
 
     {
-      id: "dueDate",
-      accessorKey: "dueDate",
-      header: "Due Date",
+      id: "paidAt",
+      accessorKey: "paidAt",
+      header: "Tanggal Pembayaran",
       cell: ({ row }) => {
-        const date = row.getValue("dueDate")
+        const date = row.getValue("paidAt")
         return date ? (
           <span className="text-sm">{date}</span>
         ) : (
@@ -317,11 +323,11 @@ export function getPaymentColumns() {
     },
 
     {
-      id: "paidAt",
-      accessorKey: "paidAt",
-      header: "Paid At",
+      id: "dueDate",
+      accessorKey: "dueDate",
+      header: "Tenggat",
       cell: ({ row }) => {
-        const date = row.getValue("paidAt")
+        const date = row.getValue("dueDate")
         return date ? (
           <span className="text-sm">{date}</span>
         ) : (
@@ -334,7 +340,7 @@ export function getPaymentColumns() {
     {
       id: "paymentProof",
       accessorKey: "paymentProof",
-      header: "Payment Proof",
+      header: "Bukti Bayar",
       cell: ({ row }) => {
         const doc = row.getValue("paymentProof")
         if (!doc) {
@@ -363,7 +369,7 @@ export function getPaymentColumns() {
     {
       id: "note",
       accessorKey: "note",
-      header: "Note",
+      header: "Keterangan",
       cell: ({ row }) => (
         <span className="text-sm">{row.getValue("note") || "-"}</span>
       ),

@@ -78,20 +78,20 @@ export function NavUser({ user }) {
               </div>
             </DropdownMenuLabel>
 
-            <DropdownMenuSeparator />
+            {/* <DropdownMenuSeparator />
 
             {/* Upgrade */}
-            <DropdownMenuGroup>
+            {/* <DropdownMenuGroup>
               <DropdownMenuItem>
                 <Sparkles className="mr-2 h-4 w-4" />
                 Upgrade to Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator /> */}
 
             {/* Menu lainnya */}
-            <DropdownMenuGroup>
+            {/* <DropdownMenuGroup>
               <DropdownMenuItem>
                 <BadgeCheck className="mr-2 h-4 w-4" />
                 Account
@@ -106,7 +106,7 @@ export function NavUser({ user }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator />  */}
 
             {/* ✅ Log out admin */}
             <DropdownMenuItem onClick={handleLogout}>
