@@ -18,12 +18,11 @@ class MemberController extends Controller
         $member = $user->member;
 
         if (!$member) {
-            // kalau belum punya member entry
-            return Inertia::render('WaitingApproval', [
+            // jika belum ada data member, tetap tampilkan halaman dashboard kosong
+            return Inertia::render('MemberPayment', [
                 'user' => $user,
                 'member' => null,
                 'payments' => [],
-                'profileComplete' => false,
             ]);
         }
 

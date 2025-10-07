@@ -16,7 +16,6 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        // cari user
         $user = \App\Models\User::where('email', $request->email)->first();
 
         if (!$user) {
@@ -25,48 +24,48 @@ class LoginController extends Controller
             ])->onlyInput('email');
         }
 
-        // cek password
-        if (!Hash::check($request->password, $user->password)) {
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
             return back()->withErrors([
                 'password' => 'Password salah.',
             ])->onlyInput('email');
         }
 
-        // cek status user
-        if ($user->status === 'pending') {
+        // ✅ Hanya member yang harus verifikasi email
+        if ($user->role === 'member' && !$user->hasVerifiedEmail()) {
             return back()->withErrors([
-                'auth' => 'Akun Anda masih menunggu persetujuan admin.',
+                'auth' => 'Silakan verifikasi email Anda terlebih dahulu. Cek inbox atau folder spam.',
             ]);
         }
 
-        if ($user->status === 'rejected') {
-            return back()->withErrors([
-                'auth' => 'Registrasi Anda ditolak. Silakan hubungi admin.',
-            ]);
+        // ✅ Status pengecekan member
+        if ($user->role === 'member') {
+            if ($user->status === 'pending') {
+                return back()->withErrors(['auth' => 'Akun Anda masih menunggu persetujuan admin.']);
+            }
+            if ($user->status === 'rejected') {
+                return back()->withErrors(['auth' => 'Registrasi Anda ditolak. Silakan hubungi admin.']);
+            }
+            if ($user->status === 'inactive') {
+                return back()->withErrors(['auth' => 'Akun Anda nonaktif. Silakan hubungi admin.']);
+            }
         }
 
-        if ($user->status === 'inactive') {
-            return back()->withErrors([
-                'auth' => 'Akun Anda non-aktif. Silakan hubungi admin.',
-            ]);
-        }
-
-        // login kalau status sudah active
-        Auth::login($user);
+        // ✅ Lolos semua, lanjut login
+        \Illuminate\Support\Facades\Auth::login($user);
         $request->session()->regenerate();
 
-        // arahkan sesuai role
+        // Arahkan sesuai role
         if ($user->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }
 
         if ($user->role === 'member') {
-            return redirect()->route('member.home'); // pastikan route ini ada
+            return redirect()->route('member.home');
         }
 
-        // fallback
         return redirect()->route('member.login');
     }
+
 
     public function destroy(Request $request)
     {

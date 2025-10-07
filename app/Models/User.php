@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;   // ✅ tambahkan baris ini
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Member;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail   // ✅ ubah baris ini
 {
     use HasFactory, Notifiable;
 
@@ -34,24 +34,24 @@ class User extends Authenticatable
 
     /**
      * Casting atribut
-     * 🔹 Gunakan hashed (Laravel 10+) agar password otomatis di-hash
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed', // auto hash di Laravel 10+
+        'email_verified_at' => 'datetime', // ✅ diperlukan untuk verifikasi email
+        'password' => 'hashed',
     ];
 
     // ==============================
     // 🔹 Relasi
     // ==============================
 
-    // 1 User = 1 Member
-
-
-    // 1 User = banyak Payment
     public function payments()
     {
         return $this->hasMany(Payment::class, 'user_id');
+    }
+
+    public function member()
+    {
+        return $this->hasOne(Member::class, 'user_id');
     }
 
     // ==============================
@@ -87,9 +87,4 @@ class User extends Authenticatable
     {
         return $this->status === 'inactive';
     }
-    public function member()
-    {
-        return $this->hasOne(Member::class, 'user_id'); // ✅ gunakan relasi ini
-    }
-
 }
