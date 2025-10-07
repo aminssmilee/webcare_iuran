@@ -11,9 +11,17 @@ use App\Http\Controllers\Member\PaymentController;
 use App\Http\Controllers\Admin\ManageUsersController;
 use App\Http\Controllers\Admin\PaymentValidationController;
 use App\Http\Controllers\Admin\DashboardController;
-use Illuminate\Foundation\Auth\EmailVerificationRequest; // ✅ Tambahkan
-use Illuminate\Http\Request; // ✅ Tambahkan
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
 
+// ===================================
+// 🏠 Default Route (Root Domain)
+// ===================================
+// Ketika user membuka domain utama (misal: http://iuran.webcare.id),
+// otomatis diarahkan ke halaman login member.
+Route::get('/', function () {
+    return redirect()->route('member.login');
+});
 
 // ===========================
 // Guest Routes (hanya untuk yang belum login)
@@ -32,12 +40,12 @@ Route::middleware('guest')->prefix('member')->group(function () {
 
 // 1️⃣ Halaman instruksi setelah register
 Route::get('/email/verify', function () {
-    return view('auth.verify-email'); // bisa pakai Inertia nanti
+    return view('auth.verify-email'); // bisa pakai Inertia juga nanti
 })->middleware('auth')->name('verification.notice');
 
 // 2️⃣ Endpoint yang dipanggil saat klik link di email
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill(); // ini yang menandai email sudah diverifikasi
+    $request->fulfill(); // Menandai email sudah diverifikasi
     return redirect('/member/login')->with('success', 'Email kamu sudah terverifikasi! Silakan login.');
 })->middleware(['auth', 'signed'])->name('verification.verify');
 
@@ -48,30 +56,21 @@ Route::post('/email/verification-notification', function (Request $request) {
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 // ===========================
-// Member Routes (hanya untuk role: member)
+// Member Routes (auth + verified + member)
 // ===========================
-Route::middleware(['auth', 'verified', 'member']) // ✅ Tambahkan middleware verified
+Route::middleware(['auth', 'verified', 'member'])
     ->prefix('member')
     ->name('member.')
     ->group(function () {
-        // Dashboard / Home Member
         Route::get('/', [MemberController::class, 'index'])->name('home');
-
-        // Update Profil
         Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-
-        // Halaman menunggu approval
-        // Route::get('/waiting-approval', fn() => Inertia::render('WaitingApproval'))->name('waiting');
         Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
-        Route::get('/payments', [\App\Http\Controllers\Member\PaymentController::class, 'index'])
-            ->name('payments.index');
-
-        // Logout
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::post('/logout', [LoginController::class, 'destroy'])->name('member.logout');
     });
 
 // ===========================
-// Admin Routes (auth + role:admin)
+// Admin Routes (auth + admin)
 // ===========================
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.home');
@@ -85,14 +84,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/registrations/{id}/approve', [RegistrationController::class, 'approve']);
     Route::post('/registrations/{id}/reject', [RegistrationController::class, 'reject']);
 
-    Route::get('/payment-validation', [PaymentValidationController::class, 'index'])
-        ->name('admin.payment.validation');
+    Route::get('/payment-validation', [PaymentValidationController::class, 'index'])->name('admin.payment.validation');
 
     Route::post('/registrations/{member}/approve', [RegistrationController::class, 'approve'])
         ->name('admin.registrations.approve');
     Route::post('/registrations/{member}/reject', [RegistrationController::class, 'reject'])
         ->name('admin.registrations.reject');
 
-    // Logout
     Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
 });
