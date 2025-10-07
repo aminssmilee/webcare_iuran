@@ -12,7 +12,7 @@ export default function RegisterPage() {
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GalleryVerticalEnd className="h-6 w-6" />
             </div>
-            Acme Inc.
+            Forsinergi.
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">

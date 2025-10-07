@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Sinergi</title>
+    <title>FORSINERGI</title>
+    
+    <!-- ✅ Favicon -->
+    <link rel="icon" href="{{ asset('img/1-asosiasi-teknik-sistem-energi-indonesia.png') }}" type="image/png">
 
     {{-- ✅ AUTO SWITCH: Dev vs Production --}}
     @if (app()->environment('local') && file_exists(base_path('vite.config.js')))

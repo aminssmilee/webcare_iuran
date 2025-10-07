@@ -27,16 +27,17 @@ export default function ManageUsers() {
 
   return (
     <SidebarProvider>
-      <AppSidebar /* pastikan AppSidebar TIDAK pakai route() Ziggy */ />
+      <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2">
-          <div className="flex items-center gap-2 px-4">
+
+        {/*  Header */}
+        <header className="flex h-16 shrink-0 items-center gap-2 px-4 overflow-hidden">
+          <div className="flex items-center gap-2 w-full">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  {/* Hindari route(), pakai href biasa */}
                   <BreadcrumbLink href="/admin/users">
                     Management Anggota
                   </BreadcrumbLink>
@@ -46,9 +47,11 @@ export default function ManageUsers() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col">
-          <CardHeader className="relative lg:px-6 w-full">
-            <div className="flex flex-wrap items-center gap-2 justify-between w-full">
+        {/* Content area */}
+        <div className="flex flex-col flex-1 max-w-full overflow-x-hidden overflow-y-auto">
+          <CardHeader className="relative lg:px-6 w-full overflow-x-hidden">
+            <div className="flex flex-wrap items-center gap-2 justify-between">
+              {/*  Search bar */}
               <div className="flex items-start justify-start gap-2 w-full md:w-1/3">
                 <div className="relative w-full">
                   <Input
@@ -65,6 +68,7 @@ export default function ManageUsers() {
                 </Button>
               </div>
 
+              {/*  Time filter */}
               <Select value={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger className="flex w-40" aria-label="Select a value">
                   <SelectValue placeholder="Last 3 months" />
@@ -72,19 +76,24 @@ export default function ManageUsers() {
                 <SelectContent className="rounded-xl">
                   <SelectItem value="90d" className="rounded-lg">Last 3 months</SelectItem>
                   <SelectItem value="30d" className="rounded-lg">Last 30 days</SelectItem>
-                  <SelectItem value="7d"  className="rounded-lg">Last 7 days</SelectItem>
+                  <SelectItem value="7d" className="rounded-lg">Last 7 days</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </CardHeader>
 
-          <div className="flex flex-col gap-4 lg:py-2 lg:px-2 p-2 md:gap-2 md:py-4 border border-foreground/10 rounded-lg mx-6 overflow-x-hidden">
+          {/*  Table area */}
+          <div className="flex flex-col gap-4 lg:py-2 lg:px-2 p-2 md:gap-2 md:py-4 border border-foreground/10 rounded-lg mx-6 bg-background overflow-x-hidden">
             <h1 className="text-xl font-semibold m-4">Members List</h1>
-            <div className="px-4 lg:px-2 w-full overflow-x-auto">
-              <DataTable data={users} columns={getUserColumns()} />
+            {/*  Tabel scrollable horizontal */}
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-full inline-block align-middle">
+                <DataTable data={users} columns={getUserColumns()} />
+              </div>
             </div>
           </div>
         </div>
+
       </SidebarInset>
     </SidebarProvider>
   )
