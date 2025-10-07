@@ -13,8 +13,8 @@ import { Check, Upload } from "lucide-react"
 import { router } from "@inertiajs/react"
 
 const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ]
 
 const toMonthIndex = (name) => MONTHS.indexOf(name) + 1 // 1..12
@@ -198,7 +198,7 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
                   className={`w-full justify-between text-sm font-normal py-2 ${errors.months ? "border-red-500" : ""}`}
                 >
                   {selectedMonths.length > 0
-                    ? selectedMonths.slice().sort((a,b)=>a-b).map(toLabel).join(", ")
+                    ? selectedMonths.slice().sort((a, b) => a - b).map(toLabel).join(", ")
                     : "Select months"}
                 </Button>
               </PopoverTrigger>
@@ -246,28 +246,59 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
           </div>
 
           {/* Payment Proof */}
-          <div className="grid gap-2">
-            <Label>Payment Proof (max 500 KB) <span className="text-red-500">*</span></Label>
-            <div
-              className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 ${errors.proof ? "border-red-500" : ""}`}
-              onClick={() => document.getElementById("payment-proof")?.click()}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-            >
-              <Upload className="h-6 w-6 mb-2 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground font-normal">
-                Drag & drop image or PDF here or click to upload
-              </span>
-              <Input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={handleFileChange}
-                className="hidden"
-                id="payment-proof"
-              />
-            </div>
-            {proofFile && <p className="text-xs text-muted-foreground">{proofFile.name}</p>}
-            {errors.proof && <p className="text-red-500 text-xs">{errors.proof}</p>}
+          <div className="grid gap-2 relative">
+            {!fileName ? (
+              <>
+                <Label htmlFor="document">Upload Your Document</Label>
+                <label
+                  htmlFor="document"
+                  className="flex h-32 w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-input bg-background text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  {uploading ? (
+                    <div className="flex flex-col items-center gap-2 animate-pulse">
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      <span className="text-sm text-primary">Uploading...</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      <span className="text-sm">Upload a document (PDF)</span>
+                    </div>
+                  )}
+                  <Input
+                    id="document"
+                    name="dokumen"
+                    type="file"
+                    accept="application/pdf"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
+              </>
+            ) : (
+              <div className="relative flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
+                <div className="flex flex-col">
+                  <Label htmlFor="document" className="font-semibold text-sm">
+                    Uploaded Document
+                  </Label>
+                  <span className="text-sm text-green-700">{fileName}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveFile}
+                  className="absolute top-2 right-2 rounded-full p-1 hover:bg-red-100 transition"
+                >
+                  <X className="h-4 w-4 text-red-500" />
+                </button>
+              </div>
+            )}
+
+            {errors.dokumen && (
+              <p className="text-sm text-red-500">{errors.dokumen}</p>
+            )}
+            {errors.error && (
+              <p className="text-sm text-red-500">{errors.error}</p>
+            )}
           </div>
 
           {/* Status (auto) */}
@@ -276,10 +307,10 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
             <div
               className={`p-2 rounded-md text-sm font-medium
               ${status === "On-time" ? "bg-green-100 text-green-700" :
-                status === "Advance Payment" ? "bg-blue-100 text-blue-700" :
-                status === "Late Payment" ? "bg-yellow-100 text-yellow-700" :
-                status === "Incomplete" ? "bg-red-100 text-red-700" :
-                "bg-gray-100 text-gray-700"}`}
+                  status === "Advance Payment" ? "bg-blue-100 text-blue-700" :
+                    status === "Late Payment" ? "bg-yellow-100 text-yellow-700" :
+                      status === "Incomplete" ? "bg-red-100 text-red-700" :
+                        "bg-gray-100 text-gray-700"}`}
             >
               {status}
             </div>
