@@ -13,7 +13,7 @@ import { Inertia } from "@inertiajs/inertia"
 import { usePage } from "@inertiajs/react"
 import { toast } from "sonner"
 import { EditProfileDialog } from "@/components/dialogs/EditProfileDialog"
-// import {PaymentWrapper} from "@/components/paymentWrapper"
+import {PaymentWrapper} from "@/components/paymentWrapper"
 
 
 export default function MemberPayment() {

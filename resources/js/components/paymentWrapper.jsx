@@ -1,0 +1,50 @@
+"use client"
+import * as React from "react"
+import { usePage } from "@inertiajs/react"
+import { Button } from "@/components/ui/button"
+import { PaymentMemberDialog } from "@/components/dialogs/PaymentMemberDialog"
+import { EditProfileDialog } from "@/components/dialogs/EditProfileDialog"
+import { toast } from "sonner"
+
+export function PaymentWrapper({ profileComplete }) {
+  const { props } = usePage()
+  const user = props.auth?.user || {}
+  const member = props.member || null
+
+  const [openPayment, setOpenPayment] = React.useState(false)
+  const [openProfile, setOpenProfile] = React.useState(false)
+
+  const handleOpenPayment = () => {
+    if (!member || !member.id) {
+      toast.error("Lengkapi profil Anda terlebih dahulu sebelum membayar.")
+      setOpenProfile(true)
+      return
+    }
+    setOpenPayment(true)
+  }
+
+  return (
+    <>
+      <Button
+        variant={profileComplete ? "secondary" : "outline"}
+        className={`text-sm font-normal self-end ${
+          !profileComplete ? "opacity-70 hover:opacity-90" : ""
+        }`}
+        onClick={handleOpenPayment}
+      >
+        Pay This Month
+      </Button>
+
+      {/* Modal Payment */}
+      <PaymentMemberDialog open={openPayment} onOpenChange={setOpenPayment} />
+
+      {/* Modal Edit Profile */}
+      <EditProfileDialog
+        open={openProfile}
+        onOpenChange={setOpenProfile}
+        user={user}
+        member={member}
+      />
+    </>
+  )
+}
