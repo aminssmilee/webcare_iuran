@@ -4,6 +4,16 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\RegistrationController;
+use App\Http\Controllers\Member\MemberController;
+use App\Http\Controllers\Member\ProfileController;
+use App\Http\Controllers\Member\PaymentController;
+use App\Http\Controllers\Admin\ManageUsersController;
+use App\Http\Controllers\Admin\PaymentValidationController;
+use App\Http\Controllers\Admin\DashboardController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest; // ✅ Tambahkan
+use Illuminate\Http\Request; // ✅ Tambahkan
+
 
 // ===========================
 // Guest Routes (hanya untuk yang belum login)
@@ -16,32 +26,73 @@ Route::middleware('guest')->prefix('member')->group(function () {
     Route::post('/register', [RegisterController::class, 'store'])->name('member.register.store');
 });
 
-// ===========================
-// Member Routes (hanya untuk yang sudah login)
-// ===========================
-Route::middleware('auth')->prefix('member')->group(function () {
-    Route::get('/', fn() => Inertia::render('MemberPayment'))->name('member.home');
-    Route::get('/waiting-approval', fn() => Inertia::render('WaitingApproval'))->name('member.waiting');
+// ===================================
+// 📧 Email Verification Routes
+// ===================================
 
-    // logout (POST agar aman)
-    Route::post('/logout', [LoginController::class, 'destroy'])->name('member.logout');
-});
+// 1️⃣ Halaman instruksi setelah register
+Route::get('/email/verify', function () {
+    return view('auth.verify-email'); // bisa pakai Inertia nanti
+})->middleware('auth')->name('verification.notice');
+
+// 2️⃣ Endpoint yang dipanggil saat klik link di email
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill(); // ini yang menandai email sudah diverifikasi
+    return redirect('/member/login')->with('success', 'Email kamu sudah terverifikasi! Silakan login.');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+// 3️⃣ Tombol "kirim ulang" email verifikasi
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return back()->with('success', 'Link verifikasi telah dikirim ulang ke email kamu.');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 // ===========================
-// Admin Routes (hanya untuk admin login)
+// Member Routes (hanya untuk role: member)
 // ===========================
-Route::middleware('auth')->prefix('admin')->group(function () {
-    Route::get('/', fn() => Inertia::render('Dashboard'))->name('admin.home');
-    Route::get('/dashboard', fn() => Inertia::render('Dashboard'))->name('admin.dashboard');
-    Route::get('/users', fn() => Inertia::render('ManageUsers'))->name('admin.users');
+Route::middleware(['auth', 'verified', 'member']) // ✅ Tambahkan middleware verified
+    ->prefix('member')
+    ->name('member.')
+    ->group(function () {
+        // Dashboard / Home Member
+        Route::get('/', [MemberController::class, 'index'])->name('home');
+
+        // Update Profil
+        Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+
+        // Halaman menunggu approval
+        // Route::get('/waiting-approval', fn() => Inertia::render('WaitingApproval'))->name('waiting');
+        Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
+        Route::get('/payments', [\App\Http\Controllers\Member\PaymentController::class, 'index'])
+            ->name('payments.index');
+
+        // Logout
+        Route::post('/logout', [LoginController::class, 'destroy'])->name('member.logout');
+    });
+
+// ===========================
+// Admin Routes (auth + role:admin)
+// ===========================
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('admin.home');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/users', [ManageUsersController::class, 'index'])->name('admin.users');
+    Route::delete('/users/{user}', [ManageUsersController::class, 'destroy'])->name('admin.users.destroy');
     Route::get('/payments', fn() => Inertia::render('ManagePayments'))->name('admin.payments');
     Route::get('/reports', fn() => Inertia::render('Reports'))->name('admin.reports');
-});
 
-Route::get('/payment-validation', function () {return Inertia::render('PaymentValidation');
-    
-});
+    Route::get('/pending-registrations', [RegistrationController::class, 'index'])->name('admin.registrations');
+    Route::post('/registrations/{id}/approve', [RegistrationController::class, 'approve']);
+    Route::post('/registrations/{id}/reject', [RegistrationController::class, 'reject']);
 
-Route::get('/register-validation', function () {return Inertia::render('RegistValidation');
-    
+    Route::get('/payment-validation', [PaymentValidationController::class, 'index'])
+        ->name('admin.payment.validation');
+
+    Route::post('/registrations/{member}/approve', [RegistrationController::class, 'approve'])
+        ->name('admin.registrations.approve');
+    Route::post('/registrations/{member}/reject', [RegistrationController::class, 'reject'])
+        ->name('admin.registrations.reject');
+
+    // Logout
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
 });

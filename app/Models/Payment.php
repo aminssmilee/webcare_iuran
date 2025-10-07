@@ -5,28 +5,33 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+// app/Models/Payment.php
+    
 class Payment extends Model
 {
-    use HasFactory;
+    protected $table = 'payments';
+
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'id',
         'member_id',
-        'iuran_id',
-        'periode',
-        'jumlah_bayar',
-        'status',
-        'metode',
-        'bukti',
+        'periode',        // 'YYYY-MM'
+        'jumlah_bayar',   // decimal(12,2)
+        'status',         // pending|paid|rejected
+        'metode',         // cash|transfer
+        'bukti',          // path file
+    ];
+
+    protected $casts = [
+        'jumlah_bayar' => 'decimal:2',
     ];
 
     public function member()
     {
-        return $this->belongsTo(Member::class, 'member_id');
-    }
-
-    public function iuran()
-    {
-        return $this->belongsTo(Iuran::class, 'iuran_id');
+        return $this->belongsTo(\App\Models\Member::class, 'member_id', 'id');
     }
 }
+

@@ -16,7 +16,6 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        // cek user berdasarkan email
         $user = \App\Models\User::where('email', $request->email)->first();
 
         if (!$user) {
@@ -25,47 +24,69 @@ class LoginController extends Controller
             ])->onlyInput('email');
         }
 
-        // cek password manual
-        if (!Hash::check($request->password, $user->password)) {
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
             return back()->withErrors([
                 'password' => 'Password salah.',
             ])->onlyInput('email');
         }
 
-        // kalau sudah cocok, pakai Auth::login
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        // cek akun nonaktif
-        if ($user->status === 'inactive') {
-            Auth::logout();
+        // ✅ Hanya member yang harus verifikasi email
+        if ($user->role === 'member' && !$user->hasVerifiedEmail()) {
             return back()->withErrors([
-                'auth' => 'Akun Anda non-aktif. Silakan hubungi admin.',
+                'auth' => 'Silakan verifikasi email Anda terlebih dahulu. Cek inbox atau folder spam.',
             ]);
         }
 
-        // cek role
+        // ✅ Status pengecekan member
+        if ($user->role === 'member') {
+            if ($user->status === 'pending') {
+                return back()->withErrors(['auth' => 'Akun Anda masih menunggu persetujuan admin.']);
+            }
+            if ($user->status === 'rejected') {
+                return back()->withErrors(['auth' => 'Registrasi Anda ditolak. Silakan hubungi admin.']);
+            }
+            if ($user->status === 'inactive') {
+                return back()->withErrors(['auth' => 'Akun Anda nonaktif. Silakan hubungi admin.']);
+            }
+        }
+
+        // ✅ Lolos semua, lanjut login
+        \Illuminate\Support\Facades\Auth::login($user);
+        $request->session()->regenerate();
+
+        // Arahkan sesuai role
         if ($user->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }
 
         if ($user->role === 'member') {
-            if ($user->member && $user->member->status === 'pending') {
-                return redirect()->route('member.waiting');
-            }
             return redirect()->route('member.home');
         }
 
-        // fallback
         return redirect()->route('member.login');
     }
 
+
     public function destroy(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // ✅ Tambahan: cek apakah yang login member atau admin
+        if (Auth::check()) {
+            $role = Auth::user()->role;
 
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            if ($role === 'admin') {
+                return redirect()->route('member.login'); // arahkan ke login admin
+            }
+
+            if ($role === 'member') {
+                return redirect()->route('member.login'); // arahkan ke login member
+            }
+        }
+
+        // fallback kalau tidak ada user
         return redirect()->route('member.login');
     }
 }

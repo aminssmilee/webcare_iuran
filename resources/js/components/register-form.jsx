@@ -1,40 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePage, router } from "@inertiajs/react";   // ✅ use router (NOT Inertia core)
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
-import { Inertia } from "@inertiajs/inertia";
 
 export function RegisterForm({ className, ...props }) {
-  const [errors, setErrors] = useState({}); // error lokal (client) + server
+  const { props: page } = usePage();
+  const flash = page.flash || {};
+  const serverErrors = page.errors || {};
+
+  const [errors, setErrors] = useState(serverErrors);
   const [submitting, setSubmitting] = useState(false);
+  const [fileName, setFileName] = useState(null);
+
+  // Show flash success (after server redirect) — optional
+  useEffect(() => {
+    if (flash.success) {
+      alert(flash.success);
+    }
+  }, [flash.success]);
 
   function validateBeforeSubmit(form) {
     const e = {};
-
     const nama = (form.get("nama_lengkap") || "").trim();
     const email = (form.get("email") || "").trim();
     const password = form.get("password") || "";
     const password_confirmation = form.get("password_confirmation") || "";
-    const file = form.get("dokumen"); // File | null
+    const file = form.get("dokumen");
 
     if (!nama) e.nama_lengkap = "Nama lengkap wajib diisi.";
     if (!email) e.email = "Email wajib diisi.";
-    else if (!/^\S+@\S+\.\S+$/.test(email)) e.email = "Format email tidak valid.";
+    else if (!/^[A-Za-z0-9._%+-]+@gmail\.com$/.test(email))
+      e.email = "Email harus menggunakan domain @gmail.com.";
 
     if (!password) e.password = "Password wajib diisi.";
     else if (password.length < 6) e.password = "Password minimal 6 karakter.";
 
-    if (!password_confirmation) {
-      e.password_confirmation = "Konfirmasi password wajib diisi.";
-    } else if (password !== password_confirmation) {
-      e.password_confirmation = "Konfirmasi password tidak cocok.";
-    }
+    if (!password_confirmation) e.password_confirmation = "Konfirmasi password wajib diisi.";
+    else if (password !== password_confirmation) e.password_confirmation = "Konfirmasi password tidak cocok.";
 
-    if (file && file.size) {
+    if (!file || !file.size) e.dokumen = "Dokumen wajib diupload (PDF maksimal 2MB).";
+    else {
       if (file.type !== "application/pdf") e.dokumen = "Dokumen harus PDF.";
       if (file.size > 2 * 1024 * 1024) e.dokumen = "Maksimal 2MB.";
     }
@@ -49,37 +59,28 @@ export function RegisterForm({ className, ...props }) {
     const form = new FormData(ev.target);
     const localErr = validateBeforeSubmit(form);
 
-    // Jika ada error lokal, tampilkan semua & hentikan submit
     if (Object.keys(localErr).length > 0) {
       setErrors(localErr);
-      // scroll ke error pertama (optional)
       const firstKey = Object.keys(localErr)[0];
-      const el = ev.target.querySelector(`[name="${firstKey}"]`);
-      if (el) el.focus();
+      ev.target.querySelector(`[name="${firstKey}"]`)?.focus();
       return;
     }
 
-    // Submit ke backend
     setSubmitting(true);
-    Inertia.post("/member/register", form, {
+
+    router.post("/member/register", form, {
       forceFormData: true,
       onError: (serverErr) => {
-        // tampilkan validasi dari Laravel
-        setErrors((prev) => ({ ...prev, ...serverErr }));
+        setErrors(serverErr || {});
         setSubmitting(false);
       },
-      onSuccess: () => {
-        Inertia.visit("/member/waiting-approval");
-      },
+      // DO NOT manually redirect here; server redirect handles it.
       onFinish: () => setSubmitting(false),
     });
   }
 
-  // helper untuk memberi border merah kalau error
-  const errClass = (key) =>
-    errors[key] ? "border-red-500 focus-visible:ring-red-500" : "";
+  const errClass = (key) => (errors[key] ? "border-red-500 focus-visible:ring-red-500" : "");
 
-  // saat user mengetik, bersihkan error field tsb
   const clearErrOnChange = (key) => () =>
     setErrors((prev) => {
       if (!prev[key]) return prev;
@@ -87,113 +88,63 @@ export function RegisterForm({ className, ...props }) {
       return rest;
     });
 
+  function handleFileChange(e) {
+    const file = e.target.files[0];
+    setFileName(file ? file.name : null);
+    clearErrOnChange("dokumen")();
+  }
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      encType="multipart/form-data"
-      className={cn("flex flex-col gap-6", className)}
-      {...props}
-    >
+    <form onSubmit={handleSubmit} encType="multipart/form-data" className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Create a new account</h1>
-        <p className="text-sm text-muted-foreground">
-          Fill in your details to register a new account
-        </p>
+        <p className="text-sm text-muted-foreground">Fill in your details to register a new account</p>
       </div>
 
       <div className="grid gap-6">
-        {/* Username */}
         <div className="grid gap-2">
           <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            name="nama_lengkap"
-            type="text"
-            placeholder="Your username"
-            className={errClass("nama_lengkap")}
-            onChange={clearErrOnChange("nama_lengkap")}
-          />
-          {errors.nama_lengkap && (
-            <p className="text-sm text-red-500">{errors.nama_lengkap}</p>
-          )}
+          <Input id="username" name="nama_lengkap" type="text" placeholder="Your username"
+                 className={errClass("nama_lengkap")} onChange={clearErrOnChange("nama_lengkap")} />
+          {errors.nama_lengkap && <p className="text-sm text-red-500">{errors.nama_lengkap}</p>}
         </div>
 
-        {/* Email */}
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="you@example.com"
-            className={errClass("email")}
-            onChange={clearErrOnChange("email")}
-          />
-          {errors.email && (
-            <p className="text-sm text-red-500">{errors.email}</p>
-          )}
+          <Input id="email" name="email" type="email" placeholder="you@gmail.com"
+                 className={errClass("email")} onChange={clearErrOnChange("email")} />
+          {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
         </div>
 
-        {/* Password */}
         <div className="grid gap-2">
           <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Enter password"
-            className={errClass("password")}
-            onChange={clearErrOnChange("password")}
-          />
-          {errors.password && (
-            <p className="text-sm text-red-500">{errors.password}</p>
-          )}
+          <Input id="password" name="password" type="password" placeholder="Enter password"
+                 className={errClass("password")} onChange={clearErrOnChange("password")} />
+          {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
         </div>
 
-        {/* Confirm Password */}
         <div className="grid gap-2">
           <Label htmlFor="password_confirmation">Confirm Password</Label>
-          <Input
-            id="password_confirmation"
-            name="password_confirmation"
-            type="password"
-            placeholder="Repeat password"
-            className={errClass("password_confirmation")}
-            onChange={clearErrOnChange("password_confirmation")}
-          />
-          {errors.password_confirmation && (
-            <p className="text-sm text-red-500">
-              {errors.password_confirmation}
-            </p>
-          )}
+          <Input id="password_confirmation" name="password_confirmation" type="password" placeholder="Repeat password"
+                 className={errClass("password_confirmation")} onChange={clearErrOnChange("password_confirmation")} />
+          {errors.password_confirmation && <p className="text-sm text-red-500">{errors.password_confirmation}</p>}
         </div>
 
-        {/* Document */}
         <div className="grid gap-2">
           <Label htmlFor="document">Upload Your Document</Label>
-          <label
-            htmlFor="document"
-            className="flex h-32 w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-input bg-background text-muted-foreground hover:bg-muted transition-colors"
-          >
+          <label htmlFor="document" className="flex h-32 w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-input bg-background text-muted-foreground hover:bg-muted transition-colors">
             <div className="flex flex-col items-center justify-center gap-2">
               <Upload className="h-4 w-4" />
               <span className="text-sm">Upload a document (PDF)</span>
             </div>
-            <Input
-              id="document"
-              name="dokumen"
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              onChange={clearErrOnChange("dokumen")}
-            />
+            <Input id="document" name="dokumen" type="file" accept="application/pdf" className="hidden" onChange={handleFileChange} />
           </label>
-          {errors.dokumen && (
-            <p className="text-sm text-red-500">{errors.dokumen}</p>
-          )}
+
+          {fileName && <p className="text-sm text-green-600">Selected: {fileName}</p>}
+          {errors.dokumen && <p className="text-sm text-red-500">{errors.dokumen}</p>}
+          {errors.error && <p className="text-sm text-red-500">{errors.error}</p>}
         </div>
 
-        {/* Submit */}
         <Button type="submit" className="w-full" disabled={submitting}>
           {submitting ? "Processing..." : "Register"}
         </Button>
@@ -201,9 +152,7 @@ export function RegisterForm({ className, ...props }) {
 
       <div className="text-center text-sm">
         Already have an account?{" "}
-        <a href="/member/login" className="underline underline-offset-4">
-          Sign in
-        </a>
+        <a href="/member/login" className="underline underline-offset-4">Sign in</a>
       </div>
     </form>
   );

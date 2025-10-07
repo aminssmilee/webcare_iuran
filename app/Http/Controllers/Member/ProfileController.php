@@ -3,43 +3,61 @@
 namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
-    public function show()
-    {
-        $user = Auth::user();
-
-        return response()->json([
-            'message' => 'Data profile',
-            'data' => $user->member
-        ]);
-    }
-
     public function update(Request $request)
     {
+        $request->validate([
+            'name'           => 'required|string|max:255',
+            'nik'            => 'required|string|size:16',
+            'tgl_lahir'      => 'required|date',
+            'jenis_kelamin'  => 'required|in:L,P',
+            'alamat'         => 'required|string|max:255',
+            'no_wa'          => 'required|string|max:20',
+            'pendidikan'     => 'required|string|max:50',
+            'pekerjaan'      => 'required|string|max:100',
+        ]);
+
+        // ✅ Update tabel users
+
+        /** @var \App\Models\User $user */
         $user = Auth::user();
+        /** @var \App\Models\Member|null $member */
         $member = $user->member;
 
-        $request->validate([
-            'nama_lengkap' => 'sometimes|string|max:255',
-            'alamat' => 'sometimes|string',
-            'hp' => 'sometimes|string|max:20',
-            'dokumen' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
+        $user->update([
+            'name' => $request->name,
         ]);
 
-        if ($request->hasFile('dokumen')) {
-            $path = $request->file('dokumen')->store('dokumen', 'public');
-            $member->dokumen = $path;
+        // ✅ Update atau buat data di tabel members
+        if (!$member) {
+            $user->member()->create([
+                'id'            => strtoupper(str()->random(6)),
+                'user_id'       => $user->id,
+                'nik'           => $request->nik,
+                'tgl_lahir'     => $request->tgl_lahir,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'alamat'        => $request->alamat,
+                'no_wa'         => $request->no_wa,
+                'pendidikan'    => $request->pendidikan,
+                'pekerjaan'     => $request->pekerjaan,
+                // 'status'        => 'pending',
+            ]);
+        } else {
+            $member->update([
+                'nik'           => $request->nik,
+                'tgl_lahir'     => $request->tgl_lahir,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'alamat'        => $request->alamat,
+                'no_wa'         => $request->no_wa,
+                'pendidikan'    => $request->pendidikan,
+                'pekerjaan'     => $request->pekerjaan,
+            ]);
         }
 
-        $member->update($request->except(['dokumen']));
-
-        return response()->json([
-            'message' => 'Profile berhasil diperbarui',
-            'data' => $member
-        ]);
+        return back()->with('success', 'Profil berhasil diperbarui!');
     }
 }

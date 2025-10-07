@@ -14,22 +14,16 @@ export function MemberCard({ id, name, job }) {
 
       <CardContent className="space-y-3">
         <div className="flex justify-between">
-          <span className="text-sm font-regular text-muted-foreground">
-            ID Member
-          </span>
-          <span className="text-sm font-semibold">{id}</span>
+          <span className="text-sm text-muted-foreground">ID Member</span>
+          <span className="text-sm font-semibold">{id || "-"}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-sm font-regular text-muted-foreground">
-            Nama Lengkap
-          </span>
-          <span className="text-sm font-semibold">{name}</span>
+          <span className="text-sm text-muted-foreground">Nama Lengkap</span>
+          <span className="text-sm font-semibold">{name || "-"}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-sm font-regular text-muted-foreground">
-            Jobs
-          </span>
-          <span className="text-sm font-semibold">{job}</span>
+          <span className="text-sm text-muted-foreground">Pekerjaan</span>
+          <span className="text-sm font-semibold">{job || "-"}</span>
         </div>
       </CardContent>
     </Card>

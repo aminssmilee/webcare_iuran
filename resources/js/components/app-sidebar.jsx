@@ -60,11 +60,11 @@ const data = {
       items: [
         {
           title: "Pendaftaran",
-          url: "/register-validation",
+          url: "/admin/pending-registrations",
         },
         {
           title: "Iuran",
-          url: "/payment-validation",
+          url: "/admin/payment-validation",
         },
         // {
         //   title: "Settings",

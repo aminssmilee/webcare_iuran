@@ -1,48 +1,69 @@
 <?php
 
 namespace App\Http\Controllers\Member;
+// namespace App\Http\Controllers\Member;
+
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use App\Models\Iuran;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use App\Models\Payment;
 
 class PaymentController extends Controller
 {
-    public function index()
-    {
-        $user = Auth::user();
-        $payments = Iuran::where('member_id', $user->member->id)->get();
-
-        return response()->json([
-            'message' => 'Riwayat pembayaran',
-            'data' => $payments
-        ]);
-    }
-
     public function store(Request $request)
     {
+        $user   = Auth::user();
+        $member = $user->member;
+
+        if (!$member) {
+            return back()->withErrors(['member' => 'Profil member belum lengkap.'])->withInput();
+        }
+
         $request->validate([
-            'jumlah' => 'required|numeric|min:1000',
-            'bukti_transfer' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'months'    => ['required','array','min:1'],
+            'months.*'  => ['integer','between:1,12'],
+            'amount'    => ['required','numeric','min:1000'],
+            'note'      => ['nullable','string','max:500'], // (belum disimpan karena kolomnya tidak ada)
+            'proof'     => ['required','file','mimes:jpeg,jpg,png,pdf','max:500'], // KB
+        ], [
+            'proof.max' => 'Ukuran file maksimal 500KB.',
         ]);
 
-        $user = Auth::user();
+        // Simpan file bukti ke storage/app/public/payment_proofs
+        $buktiPath = $request->file('proof')->store('payment_proofs', 'public');
 
-        $path = $request->file('bukti_transfer')->store('bukti_transfer', 'public');
+        $currentYear  = now()->year;
+        $jumlahBayar  = (float) $request->amount;
+        $metode       = 'transfer'; // default (sesuai migration), bisa diubah dari request jika diperlukan
+        $status       = 'pending';  // default (sesuai migration)
 
-        $payment = Iuran::create([
-            'id' => strtoupper(uniqid()),
-            'member_id' => $user->member->id,
-            'jumlah' => $request->jumlah,
-            'status' => 'pending',
-            'metode_pembayaran' => 'transfer',
-            'bukti_transfer' => $path,
-        ]);
+        foreach ($request->months as $m) {
+            $m       = (int) $m; // 1..12
+            $periode = sprintf('%04d-%02d', $currentYear, $m); // "YYYY-MM"
 
-        return response()->json([
-            'message' => 'Pembayaran berhasil diajukan, menunggu verifikasi admin',
-            'data' => $payment
-        ], 201);
+            // ambil jika sudah ada, kalau belum buat baru
+            $payment = Payment::firstOrNew([
+                'member_id' => $member->id,
+                'periode'   => $periode,
+            ]);
+
+            if (!$payment->exists) {
+                // generate id string(6) unik
+                do {
+                    $id = strtoupper(Str::random(6));
+                } while (Payment::whereKey($id)->exists());
+                $payment->id = $id;
+            }
+
+            $payment->jumlah_bayar = $jumlahBayar;
+            $payment->status       = $status;    // pending
+            $payment->metode       = $metode;    // transfer
+            $payment->bukti        = $buktiPath; // path file
+            $payment->save();
+        }
+
+        return back()->with('success', 'Pembayaran berhasil disimpan.');
     }
 }

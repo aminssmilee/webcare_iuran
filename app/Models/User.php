@@ -2,63 +2,89 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;   // ✅ tambahkan baris ini
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Member;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail   // ✅ ubah baris ini
 {
     use HasFactory, Notifiable;
 
+    /**
+     * Kolom yang boleh diisi mass-assignment
+     */
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
+        'status',
+        'dokumen',
     ];
 
+    /**
+     * Kolom yang harus disembunyikan saat serialisasi
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    /**
+     * Casting atribut
+     */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed', // Laravel 10+ auto hash
+        'email_verified_at' => 'datetime', // ✅ diperlukan untuk verifikasi email
+        'password' => 'hashed',
     ];
 
-    // Hash password otomatis kalau belum pakai casts (Laravel < 10)
-    protected static function booted()
-    {
-        static::creating(function ($user) {
-            if ($user->password) {
-                $user->password = Hash::make($user->password);
-            }
+    // ==============================
+    // 🔹 Relasi
+    // ==============================
 
-            // default role = member kalau tidak diisi
-            if (!$user->role) {
-                $user->role = 'member';
-            }
-        });
-
-        static::updating(function ($user) {
-            if ($user->isDirty('password')) {
-                $user->password = Hash::make($user->password);
-            }
-        });
-    }
-
-    // Relasi dengan tabel Member
-    public function member()
-    {
-        return $this->hasOne(\App\Models\Member::class, 'user_id');
-    }
-
-    // Contoh relasi tambahan
     public function payments()
     {
-        return $this->hasMany(\App\Models\Payment::class, 'user_id');
+        return $this->hasMany(Payment::class, 'user_id');
+    }
+
+    public function member()
+    {
+        return $this->hasOne(Member::class, 'user_id');
+    }
+
+    // ==============================
+    // 🔹 Helper role & status
+    // ==============================
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isMember(): bool
+    {
+        return $this->role === 'member';
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === 'rejected';
+    }
+
+    public function isInactive(): bool
+    {
+        return $this->status === 'inactive';
     }
 }

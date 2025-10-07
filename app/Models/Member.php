@@ -11,19 +11,29 @@ class Member extends Model
 
     protected $table = 'members';
     protected $primaryKey = 'id';
-    public $incrementing = false; // karena kita pakai string random 6 huruf
+
+    // ⚠️ Kalau kamu pakai ID random string, tetap gunakan ini:
+    public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [
         'id',
         'user_id',
-        'nama_lengkap',
-        'email',
-        'dokumen',
-        'status',
+        'nik',
+        'tgl_lahir',
+        'jenis_kelamin',
+        'alamat',
+        'no_wa',
+        'pendidikan',
+        'pekerjaan',
     ];
+    protected $casts = [
+        'tgl_lahir' => 'date',
+    ];
+
     public function user()
     {
-        return $this->belongsTo(\App\Models\User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
+    
 }
