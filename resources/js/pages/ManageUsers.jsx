@@ -16,7 +16,7 @@ import { Search } from "lucide-react"
 
 export default function ManageUsers() {
   const { props } = usePage()
-  const users   = props.users || []
+  const users = props.users || []
   const filters = props.filters || {}
   const [timeRange, setTimeRange] = useState("90d")
   const [q, setQ] = useState(filters.q || "")
@@ -28,7 +28,7 @@ export default function ManageUsers() {
   return (
     <SidebarProvider>
       <AppSidebar /* pastikan AppSidebar TIDAK pakai route() Ziggy */ />
-      <SidebarInset>
+      <SidebarInset className="overflow-x-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
@@ -72,7 +72,7 @@ export default function ManageUsers() {
                 <SelectContent className="rounded-xl">
                   <SelectItem value="90d" className="rounded-lg">Last 3 months</SelectItem>
                   <SelectItem value="30d" className="rounded-lg">Last 30 days</SelectItem>
-                  <SelectItem value="7d"  className="rounded-lg">Last 7 days</SelectItem>
+                  <SelectItem value="7d" className="rounded-lg">Last 7 days</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -80,8 +80,10 @@ export default function ManageUsers() {
 
           <div className="flex flex-col gap-4 lg:py-2 lg:px-2 p-2 md:gap-2 md:py-4 border border-foreground/10 rounded-lg mx-6 overflow-x-hidden">
             <h1 className="text-xl font-semibold m-4">Members List</h1>
-            <div className="px-4 lg:px-2 w-full overflow-x-auto">
-              <DataTable data={users} columns={getUserColumns()} />
+            <div className="px-4 lg:px-2 w-full overflow-x-auto max-w-full">
+              <div className="min-w-full">
+                <DataTable data={users} columns={getUserColumns()} />
+              </div>
             </div>
           </div>
         </div>
