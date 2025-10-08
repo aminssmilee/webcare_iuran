@@ -1,5 +1,7 @@
 "use client"
-import * as React from "react"
+
+import { useState } from "react"
+import { Inertia } from "@inertiajs/inertia"
 import {
   Dialog,
   DialogContent,
@@ -7,53 +9,58 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 
-export function PaymentActionDialog({
-  payment = {},
-  action = "Review",
-  open,
-  onOpenChange,
-}) {
-  const [reason, setReason] = React.useState("")
+export function PaymentActionDialog({ payment, action, open, onOpenChange }) {
+  const [reason, setReason] = useState("")
 
   const handleSubmit = () => {
-    console.log(
-      `Payment ${payment?.id || "-"} action ${action} with reason:`,
-      reason
-    )
-    onOpenChange(false)
-  }
+    if (!reason.trim()) {
+      alert("Mohon isi alasan terlebih dahulu.")
+      return
+    }
 
-  React.useEffect(() => {
-    if (open) setReason("") // reset hanya saat dialog dibuka
-  }, [open])
+    const routeMap = {
+      Reject: "reject",
+      Overpaid: "overpaid",
+      Expired: "expired",
+    }
+
+    const endpoint = `/admin/payment-validation/${payment.id}/${routeMap[action]}`
+
+    Inertia.post(endpoint, { reason }, {
+      preserveScroll: true,
+      onSuccess: () => {
+        console.log(`${action} success`)
+        onOpenChange(false)
+      },
+      onError: (err) => {
+        console.error(`${action} gagal:`, err)
+      },
+    })
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>{action} Payment</DialogTitle>
+          <DialogTitle>{action} Pembayaran</DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <p>
-            Provide a reason for <strong>{action}</strong> on payment{" "}
-            <strong>{payment?.id}</strong>:
-          </p>
-          <Textarea
+        <div className="py-2">
+          <Input
+            placeholder={`Masukkan alasan ${action.toLowerCase()}...`}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Reason..."
           />
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            Batal
           </Button>
-          <Button onClick={handleSubmit}>Submit</Button>
+          <Button onClick={handleSubmit}>Kirim</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

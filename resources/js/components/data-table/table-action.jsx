@@ -140,16 +140,16 @@ export function PaymentValidationActionsCell({ payment }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => handleAction("Approve")}>
-            ✅ Approve
+            Approve
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleAction("Reject")}>
-            ❌ Reject
+            Reject
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleAction("Overpaid")}>
-            💰 Overpaid
+            Overpaid
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleAction("Expired")}>
-            ⏰ Expired
+            Expired
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
