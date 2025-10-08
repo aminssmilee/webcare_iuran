@@ -152,32 +152,6 @@ export default function PaymentValidation() {
                 <DataTable data={rows} columns={getPaymentValidationColumns()} />
               </div>
             </div>
-
-            {/* Pagination */}
-            {pageMeta?.last_page > 1 && (
-              <div className="flex justify-between items-center mt-4 px-4 pb-2">
-                <Button
-                  variant="outline"
-                  disabled={pageMeta.current_page <= 1}
-                  onClick={() => applyFilters({ page: pageMeta.current_page - 1 })}
-                >
-                  Prev
-                </Button>
-
-                <span className="text-sm text-muted-foreground">
-                  Page {pageMeta.current_page} of {pageMeta.last_page} • Total{" "}
-                  {pageMeta.total}
-                </span>
-
-                <Button
-                  variant="outline"
-                  disabled={pageMeta.current_page >= pageMeta.last_page}
-                  onClick={() => applyFilters({ page: pageMeta.current_page + 1 })}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </SidebarInset>

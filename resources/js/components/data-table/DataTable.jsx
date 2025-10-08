@@ -24,9 +24,14 @@ export function DataTable({ data, columns }) {
   const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
-    data: data ?? [], // ✅ kalau null jadi array kosong
+    data: data ?? [],
     columns,
     state: { sorting, columnFilters, columnVisibility, rowSelection },
+    initialState: {
+      pagination: {
+        pageSize: 15,
+      },
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -35,7 +40,8 @@ export function DataTable({ data, columns }) {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-  });
+  })
+
 
   return (
     <div className="w-full overflow-x-auto">
