@@ -17,6 +17,7 @@ export function RegisterForm({ className, ...props }) {
   const [submitting, setSubmitting] = useState(false);
   const [fileName, setFileName] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [file, setFile] = useState(null);
 
   // 🔔 Show flash success (after redirect)
   useEffect(() => {
@@ -59,9 +60,13 @@ export function RegisterForm({ className, ...props }) {
   function handleSubmit(ev) {
     ev.preventDefault();
     setErrors({});
-    const form = new FormData(ev.target);
-    const localErr = validateBeforeSubmit(form);
 
+    const form = new FormData(ev.target);
+
+    // tambahkan file manual agar pasti terkirim
+    if (file) form.set("dokumen", file);
+
+    const localErr = validateBeforeSubmit(form);
     if (Object.keys(localErr).length > 0) {
       setErrors(localErr);
       const firstKey = Object.keys(localErr)[0];
@@ -94,16 +99,23 @@ export function RegisterForm({ className, ...props }) {
 
   // ✅ File upload handling
   function handleFileChange(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) return;
 
-    // Simulasi waktu upload
-    setTimeout(() => {
-      setFileName(file.name);
-      setUploading(false);
-      clearErrOnChange("dokumen")();
-    }, 1200);
+    // Validasi langsung di frontend
+    if (selectedFile.type !== "application/pdf") {
+      setErrors({ dokumen: "Dokumen harus berupa PDF." });
+      return;
+    }
+    if (selectedFile.size > 2 * 1024 * 1024) {
+      setErrors({ dokumen: "Ukuran dokumen maksimal 2MB." });
+      return;
+    }
+
+    setFile(selectedFile); // simpan file ke state
+    setFileName(selectedFile.name);
+    setUploading(false);
+    clearErrOnChange("dokumen")();
   }
 
   function handleRemoveFile() {

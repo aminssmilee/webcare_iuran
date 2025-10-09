@@ -11,8 +11,10 @@ use App\Http\Controllers\Member\PaymentController;
 use App\Http\Controllers\Admin\ManageUsersController;
 use App\Http\Controllers\Admin\PaymentValidationController;
 use App\Http\Controllers\Admin\DashboardController;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Http\Request;
+// use Illuminate\Foundation\Auth\EmailVerificationRequest;
+// use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\Events\Verified;
 
 // ===================================
 // 🏠 Default Route (Root Domain)
@@ -40,20 +42,44 @@ Route::middleware('guest')->prefix('member')->group(function () {
 
 // 1️⃣ Halaman instruksi setelah register
 Route::get('/email/verify', function () {
-    return view('auth.verify-email'); // bisa pakai Inertia juga nanti
+    return view('auth.verify-email');
 })->middleware('auth')->name('verification.notice');
 
-// 2️⃣ Endpoint yang dipanggil saat klik link di email
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill(); // Menandai email sudah diverifikasi
-    return redirect('/member/login')->with('success', 'Email kamu sudah terverifikasi! Silakan login.');
-})->middleware(['auth', 'signed'])->name('verification.verify');
+// 2️⃣ Endpoint klik link di email (ganti bagian ini!)
+Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
+    // ✅ Ambil user berdasarkan ID
+    $user = \App\Models\User::find($id);
 
-// 3️⃣ Tombol "kirim ulang" email verifikasi
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-    return back()->with('success', 'Link verifikasi telah dikirim ulang ke email kamu.');
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+    // 🚨 Kalau user tidak ditemukan
+    if (!$user) {
+        abort(404, 'User not found');
+    }
+
+    // ✅ Validasi hash dari link
+    if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        abort(403, 'Invalid verification link');
+    }
+
+    // ✅ Tandai email sebagai terverifikasi
+    if (!$user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+        event(new Verified($user));
+    }
+
+    // ✅ Login otomatis (opsional)
+    Auth::login($user);
+
+    // ✅ Redirect ke halaman sukses
+    return redirect()->route('verification.success');
+})->middleware(['signed'])->name('verification.verify');
+
+
+// ✅ Halaman sukses verifikasi
+Route::get('/email/verified-success', function () {
+    return Inertia::render('Auth/VerifiedSuccess', [
+        'message' => 'Email kamu berhasil diverifikasi! Akunmu sekarang aktif.',
+    ]);
+})->name('verification.success');
 
 // ===========================
 // Member Routes (auth + verified + member)
@@ -89,7 +115,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/payment-validation/{id}/reject', [PaymentValidationController::class, 'reject'])->name('admin.payment.reject');
     Route::post('/payment-validation/{id}/overpaid', [PaymentValidationController::class, 'overpaid']);
     Route::post('/payment-validation/{id}/expired', [PaymentValidationController::class, 'expired']);
-    
+
     Route::post('/registrations/{member}/approve', [RegistrationController::class, 'approve'])
         ->name('admin.registrations.approve');
     Route::post('/registrations/{member}/reject', [RegistrationController::class, 'reject'])
