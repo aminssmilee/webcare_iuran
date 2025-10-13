@@ -116,22 +116,34 @@ export function getUserColumns() {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const s = row.getValue("status") || "-"
-        const color =
-          s === "Active"
-            ? "border-green-500 text-green-600"
-            : s === "Pending"
-              ? "border-yellow-500 text-yellow-600"
-              : s === "Rejected"
-                ? "border-red-500 text-red-600"
-                : "border-gray-400 text-gray-600"
-        return (
-          <Badge variant="outline" className={`w-auto ${color}`}>
-            {s}
-          </Badge>
-        )
-      },
+        const status = row.getValue("status")
+
+        if (status === "Pending") {
+          return (
+            <Badge
+              variant="outline"
+              className="border-yellow-500 text-yellow-600 bg-yellow-50 flex items-center gap-1"
+            >
+              <Loader className="w-3 h-3 animate-spin" />
+              <span>{status}</span>
+            </Badge>
+          )
+        }
+
+        if (status === "Active") {
+          // ganti Approved
+          return (
+            <Badge
+              variant="outline"
+              className="border-green-500 text-green-600 bg-green-50 flex items-center gap-1"
+            >
+              <Check className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          )
+        }
     },
+  },
     {
       id: "actions",
       header: "Aksi",
@@ -176,23 +188,44 @@ export function getRegistrationColumns() {
 
     {
       id: "validationStatus",
-      accessorKey: "validationStatus",
-      header: "Status Validasi",
+      accessorKey: "validationStatus", // pastikan sama dengan data field
+      header: "Status Pembayaran",
       cell: ({ row }) => {
-        const status = row.getValue("validationStatus");
+        const status = row.getValue("validationStatus")
+
         if (status === "Pending") {
           return (
-            <div className="flex items-center space-x-1">
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block"></span>
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.15s" }}></span>
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping inline-block" style={{ animationDelay: "0.3s" }}></span>
-              <span className="text-gray-700 font-medium">{status}</span>
-            </div>
+            <Badge
+              variant="outline"
+              className="border-yellow-500 text-yellow-600 bg-yellow-50 flex items-center gap-1"
+            >
+              <Loader className="w-3 h-3 animate-spin" />
+              <span>{status}</span>
+            </Badge>
           )
         }
-        return <span>{status}</span>
-      }
+
+        
+        if (status === "Rejected") {
+          return (
+            <Badge
+              variant="outline"
+              className="border-red-500 text-red-600 bg-red-50 flex items-center gap-1"
+            >
+              <Check className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          )
+        }
+
+        return (
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <span>{status}</span>
+          </Badge>
+        )
+      },
     },
+
     { id: "actions", header: "Aksi", cell: ({ row }) => <RegistrationValidationActionsCell user={row.original} /> },
   ];
 }

@@ -7,6 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, X, Loader2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+
 
 export function RegisterForm({ className, ...props }) {
   const { props: page } = usePage();
@@ -18,6 +28,8 @@ export function RegisterForm({ className, ...props }) {
   const [fileName, setFileName] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // 🔔 Show flash success (after redirect)
   useEffect(() => {
@@ -128,19 +140,19 @@ export function RegisterForm({ className, ...props }) {
     <form
       onSubmit={handleSubmit}
       encType="multipart/form-data"
-      className={cn("flex flex-col gap-6", className)}
+      className={cn("flex flex-col gap-8", className)}
       {...props}
     >
       {/* Header */}
-      <div className="flex flex-col items-center gap-2 text-center">
+      <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="text-2xl font-bold">Create a new account</h1>
         <p className="text-sm text-muted-foreground">
           Fill in your details to register a new account
         </p>
       </div>
 
-      {/* Fields */}
-      <div className="grid gap-6">
+      {/* ================== FIELD SECTION ================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Username */}
         <div className="grid gap-2">
           <Label htmlFor="username">Username</Label>
@@ -174,114 +186,148 @@ export function RegisterForm({ className, ...props }) {
         </div>
 
         {/* Password */}
-        <div className="grid gap-2">
+        <div className="grid gap-2 relative">
           <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Enter password"
-            className={errClass("password")}
-            onChange={clearErrOnChange("password")}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter password"
+              className={errClass("password") + " pr-10"}
+              onChange={clearErrOnChange("password")}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {errors.password && (
             <p className="text-sm text-red-500">{errors.password}</p>
           )}
         </div>
 
         {/* Confirm Password */}
-        <div className="grid gap-2">
+        <div className="grid gap-2 relative">
           <Label htmlFor="password_confirmation">Confirm Password</Label>
-          <Input
-            id="password_confirmation"
-            name="password_confirmation"
-            type="password"
-            placeholder="Repeat password"
-            className={errClass("password_confirmation")}
-            onChange={clearErrOnChange("password_confirmation")}
-          />
+          <div className="relative">
+            <Input
+              id="password_confirmation"
+              name="password_confirmation"
+              type={showConfirm ? "text" : "password"}
+              placeholder="Repeat password"
+              className={errClass("password_confirmation") + " pr-10"}
+              onChange={clearErrOnChange("password_confirmation")}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {errors.password_confirmation && (
             <p className="text-sm text-red-500">
               {errors.password_confirmation}
             </p>
           )}
         </div>
-
-        {/* Upload Document */}
-        <div className="grid gap-2 relative">
-          {!fileName ? (
-            <>
-              <Label htmlFor="document">Upload Your Document</Label>
-              <label
-                htmlFor="document"
-                className="flex h-32 w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-input bg-background text-muted-foreground hover:bg-muted transition-colors"
-              >
-                {uploading ? (
-                  <div className="flex flex-col items-center gap-2 animate-pulse">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span className="text-sm text-primary">Uploading...</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <Upload className="h-4 w-4" />
-                    <span className="text-sm">Upload a document (PDF)</span>
-                  </div>
-                )}
-                <Input
-                  id="document"
-                  name="dokumen"
-                  type="file"
-                  accept="application/pdf"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </label>
-            </>
-          ) : (
-            <div className="relative flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
-              <div className="flex flex-col">
-                <Label htmlFor="document" className="font-semibold text-sm">
-                  Uploaded Document
-                </Label>
-                <span className="text-sm text-green-700">{fileName}</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleRemoveFile}
-                className="absolute top-2 right-2 rounded-full p-1 hover:bg-red-100 transition"
-              >
-                <X className="h-4 w-4 text-red-500" />
-              </button>
-            </div>
-          )}
-
-          {errors.dokumen && (
-            <p className="text-sm text-red-500">{errors.dokumen}</p>
-          )}
-          {errors.error && (
-            <p className="text-sm text-red-500">{errors.error}</p>
-          )}
-        </div>
-
-        {/* Submit */}
-        <Button type="submit" className="w-full" disabled={submitting}>
-          {submitting ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            "Register"
-          )}
-        </Button>
       </div>
 
+      {/* ================== ROLE ================== */}
+      <div className="grid gap-2">
+        <Label htmlFor="role">Role</Label>
+        <Select
+          name="role"
+          onValueChange={(value) => {
+            clearErrOnChange("role")();
+            document.getElementById("role-hidden").value = value;
+          }}
+        >
+          <SelectTrigger id="role" className={cn(errClass("role"), "w-full")}>
+            <SelectValue placeholder="Select your account type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="institution">Institution</SelectItem>
+            <SelectItem value="member">Member</SelectItem>
+          </SelectContent>
+        </Select>
+        <input type="hidden" id="role-hidden" name="role" />
+        {errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
+      </div>
+
+      {/* ================== UPLOAD FILE ================== */}
+      <div className="grid gap-2">
+        <Label htmlFor="document">Upload Your Document</Label>
+        {!fileName ? (
+          <label
+            htmlFor="document"
+            className="flex h-32 w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-input bg-background text-muted-foreground hover:bg-muted transition-colors"
+          >
+            {uploading ? (
+              <div className="flex flex-col items-center gap-2 animate-pulse">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span className="text-sm text-primary">Uploading...</span>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-2">
+                <Upload className="h-4 w-4" />
+                <span className="text-sm">Upload a document (PDF)</span>
+                <small className="text-xs text-muted-foreground">Max 2MB</small>
+              </div>
+            )}
+            <Input
+              id="document"
+              name="dokumen"
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </label>
+        ) : (
+          <div className="relative flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
+            <div className="flex flex-col">
+              <Label htmlFor="document" className="font-semibold text-sm">
+                Uploaded Document
+              </Label>
+              <span className="text-sm text-green-700">{fileName}</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleRemoveFile}
+              className="absolute top-2 right-2 rounded-full p-1 hover:bg-red-100 transition"
+            >
+              <X className="h-4 w-4 text-red-500" />
+            </button>
+          </div>
+        )}
+        {errors.dokumen && <p className="text-sm text-red-500">{errors.dokumen}</p>}
+        {errors.error && <p className="text-sm text-red-500">{errors.error}</p>}
+      </div>
+
+      {/* ================== SUBMIT ================== */}
+      <Button type="submit" className="w-full h-11 font-semibold" disabled={submitting}>
+        {submitting ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          "Register"
+        )}
+      </Button>
+
       {/* Footer */}
-      <div className="text-center text-sm">
+      <div className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <a href="/member/login" className="underline underline-offset-4">
-          Sign in
-        </a>
+        <a href="/member/login" className="underline underline-offset-4 hover:text-primary">
+            Sign up
+          </a>
       </div>
     </form>
   );

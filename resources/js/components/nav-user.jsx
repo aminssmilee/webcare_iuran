@@ -48,6 +48,14 @@ export function NavUser() {
     })
   }
 
+  const getInitials = (name) => {
+    if (!name) return "?"
+    const parts = name.trim().split(" ")
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase()
+  }
+
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -97,12 +105,12 @@ export function NavUser() {
                   {avatarUrl ? (
                     <AvatarImage src={avatarUrl} alt={userName} />
                   ) : (
-                    <AvatarFallback className="rounded-lg bg-white text-black">
-                      {userName}
+                    <AvatarFallback className="rounded-lg bg-gray-100 text-gray-700 font-medium">
+                      {getInitials(userName)}
                     </AvatarFallback>
                   )}
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight text-white">
+                <div className="grid flex-1 text-left text-sm leading-tight text-foreground">
                   <span className="truncate font-semibold">{userName}</span>
                   <span className="truncate text-xs opacity-80">{userEmail}</span>
                 </div>
@@ -111,7 +119,7 @@ export function NavUser() {
 
             <DropdownMenuItem
               onClick={handleLogout}
-              className="text-red-500 focus:text-red-600 focus:bg-red-100"
+              className="flex items-center gap-2 px-4 py-3 text-left text-sm"
             >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Keluar</span>
