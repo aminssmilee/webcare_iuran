@@ -201,48 +201,49 @@ export function getRegistrationColumns() {
 export function getPaymentValidationColumns() {
   return [
     { id: "name", accessorKey: "name", header: "Nama" },
-    { id: "roles", accessorKey: "roles", header: "Role" },
     { id: "email", accessorKey: "email", header: "Email" },
     { id: "idNumber", accessorKey: "idNumber", header: "ID Anggota" },
-    { id: "Mount", accessorKey: "mount", header: "Periode Bulan" },
-    { id: "amount", accessorKey: "amount", header: "Jumlah" },
+    { id: "mount", accessorKey: "mount", header: "Periode Bulan" },
+    { id: "amount", accessorKey: "amount", header: "Jumlah Pembayaran" },
 
+    // Kolom tanggal pembayaran
     {
       id: "paidAt",
       accessorKey: "paidAt",
       header: "Tanggal Pembayaran",
       cell: ({ row }) => {
-        const date = row.getValue("paidAt");
+        const date = row.getValue("paidAt")
         return date ? (
           <span className="text-sm">{date}</span>
         ) : (
           <span className="text-sm text-muted-foreground">-</span>
-        );
+        )
       },
     },
 
+    // Kolom tenggat (sementara tidak ada datanya)
     {
       id: "dueDate",
       accessorKey: "dueDate",
       header: "Tenggat",
       cell: ({ row }) => {
-        const date = row.getValue("dueDate");
+        const date = row.getValue("dueDate")
         return date ? (
           <span className="text-sm">{date}</span>
         ) : (
           <span className="text-sm text-muted-foreground">-</span>
-        );
+        )
       },
     },
 
-    // Kolom dokumen bukti bayar
+    // Kolom bukti bayar
     {
       id: "paymentProof",
       accessorKey: "paymentProof",
-      header: "Bukti Bayar",
+      header: "Bukti Pembayaran",
       cell: ({ row }) => {
-        const doc = row.getValue("paymentProof");
-        if (!doc) return <span className="text-sm text-muted-foreground">-</span>;
+        const doc = row.getValue("paymentProof")
+        if (!doc) return <span className="text-sm text-muted-foreground">-</span>
         return (
           <Button
             size="sm"
@@ -251,54 +252,77 @@ export function getPaymentValidationColumns() {
           >
             Lihat Dokumen
           </Button>
-        );
-      }
+        )
+      },
     },
 
-    // Kolom keterangan
+    // Kolom keterangan tambahan (note)
     {
       id: "note",
       accessorKey: "note",
       header: "Keterangan",
-      cell: ({ row }) => <span className="text-sm">{row.getValue("note") || "-"}</span>
+      cell: ({ row }) => (
+        <span className="text-sm">{row.getValue("note") || "-"}</span>
+      ),
     },
 
+    // Kolom status pembayaran (warna + ikon)
     {
       id: "status",
       accessorKey: "status",
       header: "Status Pembayaran",
       cell: ({ row }) => {
-        const status = row.getValue("status");
+        const status = row.getValue("status")
 
         if (status === "Pending") {
           return (
-            <Badge variant="outline" className=" w-auto border-yellow-500 text-yellow-500 flex items-center space-x-1">
-              <Loader className="w-3 h-3" />
+            <Badge
+              variant="outline"
+              className="border-yellow-500 text-yellow-500 flex items-center gap-1"
+            >
+              <Loader className="w-3 h-3 animate-spin" />
               <span>{status}</span>
             </Badge>
-          );
+          )
         }
-        else if (status === "Completed") {
+
+        if (status === "Completed") {
           return (
-            <Badge variant="outline" className="w-auto border-green-500 text-green-500 flex items-center space-x-1">
+            <Badge
+              variant="outline"
+              className="border-green-500 text-green-500 flex items-center gap-1"
+            >
               <Check className="w-3 h-3" />
               <span>{status}</span>
             </Badge>
-          );
+          )
         }
-        else if (status === "Failed") {
+
+        if (status === "Failed") {
           return (
-            <Badge variant="outline" className="w-auto border-red-500 text-red-500 flex items-center space-x-1">
+            <Badge
+              variant="outline"
+              className="border-red-500 text-red-500 flex items-center gap-1"
+            >
               <Info className="w-3 h-3" />
               <span>{status}</span>
             </Badge>
-          );
+          )
         }
-        return <Badge variant="default">{status}</Badge>;
-      }
+
+        return <Badge variant="secondary">{status}</Badge>
+      },
     },
-    { id: "actions", header: "Aksi", cell: ({ row }) => <PaymentValidationActionsCell payment={row.original} /> },
-  ];
+
+    // Kolom aksi: approve/reject
+    {
+      id: "actions",
+      header: "Aksi",
+      cell: ({ row }) => (
+        <PaymentValidationActionsCell payment={row.original} />
+      ),
+    },
+  ]
 }
 
 //  Payment List

@@ -6,13 +6,14 @@ import { getPaymentColumns } from "@/components/data-table/table-colums"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search, LogOut } from "lucide-react"
-import { PaymentMemberDialog } from "@/components/dialogs/PaymentMemberDialog"
+// import { PaymentMemberDialog } from "@/components/dialogs/PaymentMemberDialog"
 import { MemberCard } from "@/components/cards/MemberCard"
 import ProfileInfo from "@/components/cards/ProfileInfo"
 import { Inertia } from "@inertiajs/inertia"
 import { usePage } from "@inertiajs/react"
 import { toast } from "sonner"
 import { EditProfileDialog } from "@/components/dialogs/EditProfileDialog"
+import {PaymentWrapper} from "@/components/paymentWrapper"
 
 
 export default function MemberPayment() {
@@ -89,7 +90,7 @@ export default function MemberPayment() {
           <div className="flex flex-col gap-4 p-4 md:gap-2 md:py-2">
             <div className="flex items-center justify-between p-4">
               <h1 className="text-xl font-semibold">Payment List</h1>
-              <PaymentMemberDialog open={openDialog} onOpenChange={setOpenDialog}>
+              {/* <PaymentMemberDialog open={openDialog} onOpenChange={setOpenDialog}>
                 <Button
                   variant={profileComplete ? "secondary" : "outline"}
                   className={`text-sm font-normal self-end ${!profileComplete ? "opacity-70 hover:opacity-90" : ""
@@ -107,7 +108,8 @@ export default function MemberPayment() {
                 >
                   Pay This Month
                 </Button>
-              </PaymentMemberDialog>
+              </PaymentMemberDialog> */}
+              <PaymentWrapper profileComplete={profileComplete} />
             </div>
 
             <div className="px-4 lg:px-2">

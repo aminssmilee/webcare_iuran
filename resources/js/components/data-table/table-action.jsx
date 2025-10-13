@@ -108,17 +108,19 @@ export function PaymentValidationActionsCell({ payment }) {
   const [openReason, setOpenReason] = useState(false)
   const [actionType, setActionType] = useState("")
 
+  // 🔹 Fungsi utama untuk handle aksi menu
   const handleAction = (type) => {
     if (type === "Approve") {
-      Inertia.post(`/admin/payments/${payment.id}/approve`, {}, {
-        onSuccess: () => {
-          console.log(`✅ Payment ${payment.id} Approved`)
-        },
-        onError: (err) => {
-          console.error("Approve payment gagal:", err)
-        }
-      })
+      if (confirm(`Setujui pembayaran ${payment.name}?`)) {
+        Inertia.post(`/admin/payment-validation/${payment.id}/approve`, {}, {
+          preserveScroll: true,
+          preserveState: true,
+          onSuccess: () => console.log(`✅ Payment ${payment.id} approved`),
+          onError: (err) => console.error("Approve gagal:", err),
+        })
+      }
     } else {
+      // untuk Reject, Overpaid, Expired → minta alasan
       setActionType(type)
       setOpenReason(true)
     }
@@ -128,20 +130,31 @@ export function PaymentValidationActionsCell({ payment }) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0 border-2 rounded-lg">
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0 border rounded-lg hover:bg-muted"
+          >
             <span className="sr-only">Open menu</span>
             <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handleAction("Approve")}>Approve</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAction("Reject")}>Reject</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAction("Overpaid")}>Overpaid</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAction("Expired")}>Expired</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAction("Approve")}>
+            Approve
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAction("Reject")}>
+            Reject
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAction("Overpaid")}>
+            Overpaid
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAction("Expired")}>
+            Expired
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Dialog alasan untuk reject / overpaid / expired */}
+      {/* Modal alasan (Reject, Overpaid, Expired) */}
       <PaymentActionDialog
         payment={payment}
         action={actionType}
@@ -150,4 +163,5 @@ export function PaymentValidationActionsCell({ payment }) {
       />
     </>
   )
+
 }

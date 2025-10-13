@@ -178,7 +178,7 @@ export function AppSidebar({
         <NavProjects projects={data.projects} />
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter className="bg-[#0279a3]">
+      <SidebarFooter className="bg-[#0279a3] ">
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
