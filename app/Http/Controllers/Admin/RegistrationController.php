@@ -8,14 +8,14 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;        // ✅ tambahkan
-use App\Mail\AccountApprovedMail;           // ✅ tambahkan
+use Illuminate\Support\Facades\Mail;
+use App\Mail\AccountApprovedMail;
 
 class RegistrationController extends Controller
 {
     public function index()
     {
-        $users = User::where('role', 'member')->get();
+        $users = User::whereIn('role', ['member', 'institution'])->get();
 
         $registrations = $users->map(function ($user) {
             $dokumenUrl = $user->dokumen ? asset('storage/' . $user->dokumen) : null;
@@ -24,6 +24,7 @@ class RegistrationController extends Controller
                 'id'               => $user->id,
                 'name'             => $user->name,
                 'email'            => $user->email,
+                'roles'            => ucfirst($user->role),
                 'submittedAt'      => $user->created_at->format('Y-m-d H:i'),
                 'validationStatus' => ucfirst($user->status),
                 'dokumen'          => $dokumenUrl,
@@ -39,11 +40,16 @@ class RegistrationController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // ✅ ubah status jadi active (disetujui)
+        // ✅ Cek apakah user sudah verifikasi email
+        if (is_null($user->email_verified_at)) {
+            return back()->with('error', "User {$user->name} belum verifikasi email, tidak dapat di-approve.");
+        }
+
+        // ✅ Jika sudah verifikasi → ubah status jadi active
         $user->status = 'active';
         $user->save();
 
-        // ✅ kirim email ke user
+        // ✅ Kirim email notifikasi
         try {
             Mail::to($user->email)->send(new AccountApprovedMail($user));
         } catch (\Exception $e) {
@@ -51,7 +57,7 @@ class RegistrationController extends Controller
             return back()->with('error', 'User disetujui, tapi email gagal dikirim.');
         }
 
-        return back()->with('success', 'Registrasi disetujui, user aktif, dan email notifikasi telah dikirim.');
+        return back()->with('success', "Registrasi {$user->name} disetujui, user aktif, dan email notifikasi telah dikirim.");
     }
 
     public function reject($id)
@@ -60,6 +66,6 @@ class RegistrationController extends Controller
         $user->status = 'inactive';
         $user->save();
 
-        return back()->with('success', 'Registrasi ditolak dan user nonaktif.');
+        return back()->with('success', "Registrasi {$user->name} ditolak dan user dinonaktifkan.");
     }
 }

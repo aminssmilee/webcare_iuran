@@ -67,16 +67,15 @@ Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
     }
 
     // ✅ Login otomatis (opsional)
-    Auth::login($user);
+    // Auth::login($user);
 
     // ✅ Redirect ke halaman sukses
     return redirect()->route('verification.success');
 })->middleware(['signed'])->name('verification.verify');
 
-
 // ✅ Halaman sukses verifikasi
 Route::get('/email/verified-success', function () {
-    return Inertia::render('Auth/VerifiedSuccess', [
+    return Inertia::render('VerifiedSuccess', [
         'message' => 'Email kamu berhasil diverifikasi! Akunmu sekarang aktif.',
     ]);
 })->name('verification.success');
@@ -84,6 +83,7 @@ Route::get('/email/verified-success', function () {
 // ===========================
 // Member Routes (auth + verified + member)
 // ===========================
+
 Route::middleware(['auth', 'verified', 'member'])
     ->prefix('member')
     ->name('member.')
@@ -98,6 +98,7 @@ Route::middleware(['auth', 'verified', 'member'])
 // ===========================
 // Admin Routes (auth + admin)
 // ===========================
+
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.home');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');

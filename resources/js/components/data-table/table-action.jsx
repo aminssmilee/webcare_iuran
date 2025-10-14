@@ -53,15 +53,28 @@ export function RegistrationValidationActionsCell({ user }) {
   const [openReject, setOpenReject] = useState(false)
 
   const handleApprove = () => {
-    Inertia.post(`/admin/registrations/${user.id}/approve`, {}, {
-      onSuccess: () => {
-        console.log(`✅ Approved ${user.name}`)
-      },
-      onError: (err) => {
-        console.error("Approve gagal:", err)
-      }
-    })
-  }
+  Inertia.post(`/admin/registrations/${user.id}/approve`, {}, {
+  preserveScroll: true,
+  preserveState: false, // 🚨 WAJIB false supaya flash props dikirim ulang
+  onSuccess: (page) => {
+    console.log("🟢 onSuccess:", page.props)
+    const flash = page.props.flash
+    if (flash?.success) {
+      alert(flash.success)
+    } else if (flash?.error) {
+      alert(flash.error)
+    } else {
+      alert("✅ Proses selesai tanpa pesan flash")
+    }
+  },
+  onError: (err) => {
+    console.error("🔴 onError:", err)
+    alert("Terjadi kesalahan saat approve.")
+  },
+})
+
+}
+
 
   const handleReject = (reason) => {
     Inertia.post(`/admin/registrations/${user.id}/reject`, { reason }, {

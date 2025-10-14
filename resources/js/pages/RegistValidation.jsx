@@ -1,5 +1,5 @@
 "use client"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { usePage } from "@inertiajs/react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -30,14 +30,34 @@ import { Search } from "lucide-react"
 
 export default function RegistValidation() {
   const { props } = usePage()
-  const registrations = props.registrations || [] // ✅ sesuai controller
+  const registrations = props.registrations || []
 
-  // Filter state
+  // ✅ Tambahan: ambil flash message dari Laravel
+  const flash = props.flash || {}
+  const [hasShownFlash, setHasShownFlash] = useState(false)
+
+  // ✅ Tampilkan alert ketika ada flash message (success/error)
+  useEffect(() => {
+    if (!hasShownFlash) {
+      if (flash.success) {
+        alert(flash.success)
+        console.log("✅ Success:", flash.success)
+        setHasShownFlash(true)
+      } else if (flash.error) {
+        alert(flash.error)
+        console.warn("⚠️ Error:", flash.error)
+        setHasShownFlash(true)
+      }
+    }
+  }, [flash, hasShownFlash])
+
+  // -----------------------------
+  // Filter state dan logika lama
+  // -----------------------------
   const [q, setQ] = useState("")
   const [status, setStatus] = useState("all")
   const [timeRange, setTimeRange] = useState("90d")
 
-  // Filter logic
   const filteredData = useMemo(() => {
     const now = new Date()
     const getDateLimit = (days) => {
@@ -47,20 +67,17 @@ export default function RegistValidation() {
     }
 
     return registrations.filter((item) => {
-      // Status match
       const matchStatus =
         status === "all"
           ? true
           : item.validationStatus.toLowerCase() === status.toLowerCase()
 
-      // Search match (name, email, month)
       const matchSearch =
         q === "" ||
         item.name?.toLowerCase().includes(q.toLowerCase()) ||
         item.email?.toLowerCase().includes(q.toLowerCase()) ||
         item.submittedAt?.toLowerCase().includes(q.toLowerCase())
 
-      // Time filter
       let matchTime = true
       if (timeRange === "7d")
         matchTime = new Date(item.submittedAt) >= getDateLimit(7)
@@ -73,6 +90,9 @@ export default function RegistValidation() {
     })
   }, [registrations, q, status, timeRange])
 
+  // -----------------------------
+  // Tampilan utama (tidak diubah)
+  // -----------------------------
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -125,8 +145,8 @@ export default function RegistValidation() {
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="active">Approved</SelectItem>
+                    {/* <SelectItem value="inactive">Inactive</SelectItem> */}
                   </SelectContent>
                 </Select>
 

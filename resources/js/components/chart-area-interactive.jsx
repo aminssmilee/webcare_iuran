@@ -16,51 +16,58 @@ import {
 export function ChartAreaInteractive({ data, timeRange }) {
   const isMobile = useIsMobile()
 
-  // Validasi data
+  // ✅ Ambil labels dan series dari props (dikirim dari Laravel)
   const labels = data?.labels ?? []
   const series = data?.series ?? {}
 
-  // Gabungkan data chart jadi format recharts
+  // ✅ Gabungkan data chart jadi format Recharts
   const chartData = React.useMemo(() => {
     if (!labels.length) return []
     return labels.map((label, i) => ({
       date: label,
       revenue: series.revenue?.[i] ?? 0,
-      new_customers: series.new_customers?.[i] ?? 0,
+      new_members: series.new_members?.[i] ?? 0,
+      new_institutions: series.new_institutions?.[i] ?? 0,
       active_accounts: series.active_accounts?.[i] ?? 0,
     }))
   }, [labels, series])
 
-  // Filter data sesuai time range
+  // ✅ Filter data sesuai time range
   const filteredData = React.useMemo(() => {
     const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90
     return chartData.slice(-days)
   }, [chartData, timeRange])
 
-  // Config warna chart
+  // ✅ Config warna chart (pakai warna bawaan dari theme CSS)
   const chartConfig = {
     revenue: { label: "Revenue", color: "hsl(var(--chart-1))" },
-    new_customers: { label: "New Customers", color: "hsl(var(--chart-2))" },
-    active_accounts: { label: "Active Accounts", color: "hsl(var(--chart-3))" },
+    new_members: { label: "Anggota Non Instansi", color: "hsl(var(--chart-2))" },
+    new_institutions: { label: "Anggota Instansi", color: "hsl(var(--chart-4))" },
+    active_accounts: { label: "Akun Aktif", color: "hsl(var(--chart-3))" },
   }
 
   return (
     <Card className="@container/card">
       <CardTitle className="px-2 pt-4 sm:px-6 sm:pt-6">
-        Total Growth (Revenue, New Customers, Active Accounts)
+        Tren Pertumbuhan (Revenue, Anggota, dan Aktivasi)
       </CardTitle>
 
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-[280px] w-full">
           <AreaChart data={filteredData}>
+            {/* Gradient warna */}
             <defs>
               <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-revenue)" stopOpacity={0.8} />
                 <stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0.1} />
               </linearGradient>
-              <linearGradient id="fillNewCustomers" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-new_customers)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-new_customers)" stopOpacity={0.1} />
+              <linearGradient id="fillNewMembers" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-new_members)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-new_members)" stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id="fillNewInstitutions" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-new_institutions)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-new_institutions)" stopOpacity={0.1} />
               </linearGradient>
               <linearGradient id="fillActiveAccounts" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-active_accounts)" stopOpacity={0.8} />
@@ -68,6 +75,7 @@ export function ChartAreaInteractive({ data, timeRange }) {
               </linearGradient>
             </defs>
 
+            {/* Grid + Axis */}
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="date"
@@ -83,6 +91,8 @@ export function ChartAreaInteractive({ data, timeRange }) {
                 })
               }}
             />
+
+            {/* Tooltip */}
             <ChartTooltip
               cursor={false}
               content={
@@ -97,28 +107,40 @@ export function ChartAreaInteractive({ data, timeRange }) {
                 />
               }
             />
-            {/* Area Chart Lines */}
+
+            {/* Area Lines */}
             <Area
               dataKey="revenue"
               type="natural"
               fill="url(#fillRevenue)"
               stroke="hsl(var(--chart-1))"
               strokeWidth={2}
+              name="Revenue (Rp)"
             />
             <Area
-              dataKey="new_customers"
+              dataKey="new_members"
               type="natural"
-              fill="url(#fillNewCustomers)"
+              fill="url(#fillNewMembers)"
               stroke="hsl(var(--chart-2))"
               strokeWidth={2}
+              name="Anggota Non Instansi"
             />
             <Area
+              dataKey="new_institutions"
+              type="natural"
+              fill="url(#fillNewInstitutions)"
+              stroke="hsl(var(--chart-4))"
+              strokeWidth={2}
+              name="Anggota Instansi"
+            />
+            {/* <Area
               dataKey="active_accounts"
               type="natural"
               fill="url(#fillActiveAccounts)"
               stroke="hsl(var(--chart-3))"
               strokeWidth={2}
-            />
+              name="Akun Aktif"
+            /> */}
           </AreaChart>
         </ChartContainer>
       </CardContent>

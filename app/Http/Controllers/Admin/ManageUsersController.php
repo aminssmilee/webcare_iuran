@@ -17,7 +17,7 @@ class ManageUsersController extends Controller
 
         $query = User::query()
             ->with('member')
-            ->where('role', 'member')
+            ->where('role', 'member', 'institution')
             ->orderBy('created_at', 'desc');
 
         // 🔎 Filter pencarian nama/email/NIK
@@ -51,13 +51,14 @@ class ManageUsersController extends Controller
                 'id'             => $u->id,
                 'name'           => $u->name ?? '-',
                 'email'          => $u->email ?? '-',
-                'idNumber'       => $m?->nik ?? '-',
+                'roles'          => ucfirst($u->role),
+                'nik'       => $m?->nik ?? '-',
                 'birthPlaceDate' => $m?->tgl_lahir
                     ? (is_string($m->tgl_lahir) ? $m->tgl_lahir : $m->tgl_lahir->format('Y-m-d'))
                     : '-',
                 'gender'         => $m?->jenis_kelamin === 'L' ? 'Male' : ($m?->jenis_kelamin === 'P' ? 'Female' : '-'),
                 'address'        => $m?->alamat ?? '-',
-                'whatsapp'       => $m?->no_wa ?? '-',
+                'whatsapp'       => $m?->no_wa ?? '',
                 'education'      => $m?->pendidikan ?? '-',
                 'occupation'     => $m?->pekerjaan ?? '-',
                 'status'         => ucfirst($u->status ?? 'Pending'),

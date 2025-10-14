@@ -20,6 +20,7 @@ import {
 
 import { SectionCards } from "@/components/section-cards"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { router } from "@inertiajs/react"
 
 export default function Dashboard() {
   // Ambil data dari server
@@ -57,7 +58,16 @@ export default function Dashboard() {
               <ToggleGroup
                 type="single"
                 value={timeRange}
-                onValueChange={(v) => v && setTimeRange(v)}
+                onValueChange={(v) => {
+                  if (v && v !== timeRange) {
+                    setTimeRange(v)
+                    router.visit(`/admin/dashboard?range=${v}`, {
+                      preserveState: true,   // biar sidebar dll tidak reload
+                      preserveScroll: true,
+                      replace: true,         // update URL tanpa reload penuh
+                    })
+                  }
+                }}
                 variant="outline"
                 className="hidden md:flex"
               >
@@ -67,7 +77,17 @@ export default function Dashboard() {
               </ToggleGroup>
 
               {/* Select (mobile) */}
-              <Select value={timeRange} onValueChange={setTimeRange}>
+              <Select value={timeRange} onValueChange={(v) => {
+                if (v && v !== timeRange) {
+                  setTimeRange(v)
+                  router.visit(`/admin/dashboard?range=${v}`, {
+                      preserveState: true,
+                      preserveScroll: true,
+                      replace: true,
+                    })
+                  }
+                }}
+              >
                 <SelectTrigger className="md:hidden flex w-40">
                   <SelectValue placeholder="Select range" />
                 </SelectTrigger>

@@ -9,6 +9,14 @@ import { Check, AlertTriangle, Info, Loader } from "lucide-react";
 export function getUserColumns() {
   return [
     {
+      id: "id",
+      accessorKey: "id",
+      header: "ID Member",
+      cell: ({ row }) => (
+        <span className="text-sm">{row.getValue("id") || "-"}</span>
+      ),
+    },
+    {
       id: "name",
       accessorKey: "name",
       header: "Nama",
@@ -32,14 +40,14 @@ export function getUserColumns() {
       },
     },
 
-    { id: "roles", accessorKey: "roles", header: "Role" },
+    { id: "roles", accessorKey: "roles", header: "Type Akun" },
 
     {
-      id: "idNumber",
-      accessorKey: "idNumber",
-      header: "ID Anggota",
+      id: "nik",
+      accessorKey: "nik",
+      header: "NIK",
       cell: ({ row }) => (
-        <span className="text-sm">{row.getValue("idNumber") || "-"}</span>
+        <span className="text-sm">{row.getValue("nik") || "-"}</span>
       ),
     },
     {
@@ -158,7 +166,7 @@ export function getRegistrationColumns() {
     { id: "name", accessorKey: "name", header: "Nama" },
     { id: "email", accessorKey: "email", header: "Email" },
     { id: "roles", accessorKey: "roles", header: "Role" },
-    { id: "idNumber", accessorKey: "idNumber", header: "ID Anggota" },
+    // { id: "idNumber", accessorKey: "idNumber", header: "ID Anggota" },
     { id: "submittedAt", accessorKey: "submittedAt", header: "Tanggal Pendaftaran" },
     {
       id: "dokumen",

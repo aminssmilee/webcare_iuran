@@ -24,21 +24,21 @@ class LoginController extends Controller
             ])->onlyInput('email');
         }
 
-        if (!\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+        if (!Hash::check($request->password, $user->password)) {
             return back()->withErrors([
                 'password' => 'Password salah.',
             ])->onlyInput('email');
         }
 
-        // ✅ Hanya member yang harus verifikasi email
-        if ($user->role === 'member' && !$user->hasVerifiedEmail()) {
+        // ✅ Verifikasi email hanya untuk member & institution
+        if (in_array($user->role, ['member', 'institution']) && !$user->hasVerifiedEmail()) {
             return back()->withErrors([
                 'auth' => 'Silakan verifikasi email Anda terlebih dahulu. Cek inbox atau folder spam.',
             ]);
         }
 
-        // ✅ Status pengecekan member
-        if ($user->role === 'member') {
+        // ✅ Cek status (hanya berlaku untuk member & institution)
+        if (in_array($user->role, ['member', 'institution'])) {
             if ($user->status === 'pending') {
                 return back()->withErrors(['auth' => 'Akun Anda masih menunggu persetujuan admin.']);
             }
@@ -50,26 +50,25 @@ class LoginController extends Controller
             }
         }
 
-        // ✅ Lolos semua, lanjut login
-        \Illuminate\Support\Facades\Auth::login($user);
+        // ✅ Login
+        Auth::login($user);
         $request->session()->regenerate();
 
-        // Arahkan sesuai role
+        // ✅ Arahkan sesuai role
         if ($user->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }
 
-        if ($user->role === 'member') {
-            return redirect()->route('member.home');
+        if (in_array($user->role, ['member', 'institution'])) {
+            return redirect()->route('member.home'); // 🔥 arah sama
         }
 
+        // fallback
         return redirect()->route('member.login');
     }
 
-
     public function destroy(Request $request)
     {
-        // ✅ Tambahan: cek apakah yang login member atau admin
         if (Auth::check()) {
             $role = Auth::user()->role;
 
@@ -77,16 +76,11 @@ class LoginController extends Controller
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            if ($role === 'admin') {
-                return redirect()->route('member.login'); // arahkan ke login admin
-            }
-
-            if ($role === 'member') {
-                return redirect()->route('member.login'); // arahkan ke login member
+            if (in_array($role, ['admin', 'member', 'institution'])) {
+                return redirect()->route('member.login');
             }
         }
 
-        // fallback kalau tidak ada user
         return redirect()->route('member.login');
     }
 }
