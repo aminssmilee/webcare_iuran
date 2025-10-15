@@ -121,11 +121,17 @@ export function LoginForm({ className, ...props }) {
       <div className="text-center text-sm space-y-1">
         <div className="text-center text-sm text-muted-foreground">
           Forgot your password?{" "}
-          <a href="/contact-admin" className="underline underline-offset-4 hover:text-primary">
-            Contact admin
+          <a
+            href="/member/forgot-password"
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Reset here
           </a>{" "}
           · Don&apos;t have an account?{" "}
-          <a href="/member/register" className="underline underline-offset-4 hover:text-primary">
+          <a
+            href="/member/register"
+            className="underline underline-offset-4 hover:text-primary"
+          >
             Sign up
           </a>
         </div>

@@ -121,8 +121,9 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
             <Input
               name="nik"
               value={data.nik}
-              onChange={(e) => setData({ ...data, nik: e.target.value })}
-              className={errors.nik ? "border-red-500" : ""}
+              readOnly
+              className={`bg-gray-100 dark:bg-gray-800 cursor-not-allowed ${errors.nik ? "border-red-500" : ""
+                }`}
             />
             {errors.nik && <p className="text-red-500 text-sm">{errors.nik}</p>}
           </div>

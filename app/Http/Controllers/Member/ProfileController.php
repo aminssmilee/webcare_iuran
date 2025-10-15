@@ -16,13 +16,13 @@ class ProfileController extends Controller
 
         $request->validate([
             'name'           => 'required|string|max:255',
-            'nik'            => [
-                'required',
-                'string',
-                'size:16',
-                // ✅ Cegah duplikat nik antar member, tapi izinkan nik milik dirinya sendiri
-                Rule::unique('members', 'nik')->ignore($member?->id),
-            ],
+            // 'nik'            => [
+            //     'required',
+            //     'string',
+            //     'size:16',
+            //     // ✅ Cegah duplikat nik antar member, tapi izinkan nik milik dirinya sendiri
+            //     Rule::unique('members', 'nik')->ignore($member?->id),
+            // ],
             'tgl_lahir'      => 'required|date',
             'jenis_kelamin'  => 'required|in:L,P',
             'alamat'         => 'required|string|max:255',

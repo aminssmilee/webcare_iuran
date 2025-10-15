@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Admin\RegistrationController;
 use App\Http\Controllers\Member\MemberController;
 use App\Http\Controllers\Member\ProfileController;
@@ -15,6 +17,7 @@ use App\Http\Controllers\Admin\DashboardController;
 // use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\Events\Verified;
+
 
 // ===================================
 // 🏠 Default Route (Root Domain)
@@ -34,6 +37,22 @@ Route::middleware('guest')->prefix('member')->group(function () {
 
     Route::get('/register', fn() => Inertia::render('RegisterPage'))->name('member.register');
     Route::post('/register', [RegisterController::class, 'store'])->name('member.register.store');
+
+    // Form lupa password
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
+        ->name('password.request');
+
+    // Kirim link reset ke email
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->name('password.email');
+
+    // Form reset password (token dari email)
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+        ->name('password.reset');
+
+    // Proses ubah password baru
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])
+        ->name('password.update');
 });
 
 // ===================================
@@ -99,28 +118,41 @@ Route::middleware(['auth', 'verified', 'member'])
 // Admin Routes (auth + admin)
 // ===========================
 
+
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('admin.home');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+
+    // 👤 Manajemen Anggota
     Route::get('/users', [ManageUsersController::class, 'index'])->name('admin.users');
-    Route::delete('/users/{user}', [ManageUsersController::class, 'destroy'])->name('admin.users.destroy');
+    Route::delete('/users/{user}', [ManageUsersController::class, 'destroy'])
+        ->whereNumber('user') // keamanan: hanya angka
+        ->name('admin.users.destroy');
+    Route::put('/users/{user}', [ManageUsersController::class, 'update'])->name('admin.users.update');
+
+    // 💸 Pembayaran & Validasi
     Route::get('/payments', fn() => Inertia::render('ManagePayments'))->name('admin.payments');
-    Route::get('/reports', fn() => Inertia::render('Reports'))->name('admin.reports');
-
-    Route::get('/pending-registrations', [RegistrationController::class, 'index'])->name('admin.registrations');
-    Route::post('/registrations/{id}/approve', [RegistrationController::class, 'approve']);
-    Route::post('/registrations/{id}/reject', [RegistrationController::class, 'reject']);
-
-    Route::get('/payment-validation', [PaymentValidationController::class, 'index'])->name('admin.payment.validation');
-    Route::post('/payment-validation/{id}/approve', [PaymentValidationController::class, 'approve'])->name('admin.payment.approve');
-    Route::post('/payment-validation/{id}/reject', [PaymentValidationController::class, 'reject'])->name('admin.payment.reject');
+    Route::get('/payment-validation', [PaymentValidationController::class, 'index'])
+        ->name('admin.payment.validation');
+    Route::post('/payment-validation/{id}/approve', [PaymentValidationController::class, 'approve'])
+        ->name('admin.payment.approve');
+    Route::post('/payment-validation/{id}/reject', [PaymentValidationController::class, 'reject'])
+        ->name('admin.payment.reject');
     Route::post('/payment-validation/{id}/overpaid', [PaymentValidationController::class, 'overpaid']);
     Route::post('/payment-validation/{id}/expired', [PaymentValidationController::class, 'expired']);
 
+    // 🧾 Laporan
+    Route::get('/reports', fn() => Inertia::render('Reports'))->name('admin.reports');
+
+    // 🧍 Registrasi Pending
+    Route::get('/pending-registrations', [RegistrationController::class, 'index'])
+        ->name('admin.registrations');
     Route::post('/registrations/{member}/approve', [RegistrationController::class, 'approve'])
         ->name('admin.registrations.approve');
     Route::post('/registrations/{member}/reject', [RegistrationController::class, 'reject'])
         ->name('admin.registrations.reject');
 
+    // 🚪 Logout
     Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
 });

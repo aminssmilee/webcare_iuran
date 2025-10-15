@@ -9,11 +9,11 @@ import { Check, AlertTriangle, Info, Loader } from "lucide-react";
 export function getUserColumns() {
   return [
     {
-      id: "id",
-      accessorKey: "id",
+      id: "id_member",
+      accessorKey: "id_member",
       header: "ID Member",
       cell: ({ row }) => (
-        <span className="text-sm">{row.getValue("id") || "-"}</span>
+        <span className="text-sm">{row.getValue("id_member") || "-"}</span>
       ),
     },
     {
@@ -40,7 +40,7 @@ export function getUserColumns() {
       },
     },
 
-    { id: "roles", accessorKey: "roles", header: "Type Akun" },
+    { id: "roles", accessorKey: "roles", header: "Type Anggota" },
 
     {
       id: "nik",
@@ -197,7 +197,7 @@ export function getRegistrationColumns() {
     {
       id: "validationStatus",
       accessorKey: "validationStatus", // pastikan sama dengan data field
-      header: "Status Pembayaran",
+      header: "Status Validasi",
       cell: ({ row }) => {
         const status = row.getValue("validationStatus")
 

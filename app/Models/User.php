@@ -51,7 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail   // ✅ ubah bari
 
     public function member()
     {
-        return $this->hasOne(Member::class, 'user_id');
+        return $this->hasOne(Member::class, 'user_id', 'id');
     }
 
     // ==============================

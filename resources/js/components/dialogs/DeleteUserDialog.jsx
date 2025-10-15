@@ -1,26 +1,59 @@
 "use client"
-import * as React from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { router } from "@inertiajs/react"
+import { useState } from "react"
 
 export function DeleteUserDialog({ user, open, onOpenChange }) {
-  const handleDelete = () => {
-    console.log("Deleted user:", user)
-    onOpenChange(false)
+  const [loading, setLoading] = useState(false)
+
+  function handleDelete() {
+    setLoading(true)
+    router.delete(`/admin/users/${user.id}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setLoading(false)
+        onOpenChange(false)
+      },
+      onError: () => {
+        setLoading(false)
+        alert("Gagal menghapus user.")
+      },
+      onFinish: () => setLoading(false),
+    })
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-[400px]" aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle>Delete User</DialogTitle>
+          <DialogTitle>Hapus User</DialogTitle>
+          <DialogDescription>
+            Apakah Anda yakin ingin menghapus user{" "}
+            <span className="font-semibold">{user.name}</span>? <br />
+            Tindakan ini tidak dapat dibatalkan.
+          </DialogDescription>
         </DialogHeader>
 
-        <p>Are you sure you want to delete <strong>{user.name}</strong>?</p>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+        <DialogFooter className="flex justify-end space-x-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Batal
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={loading}
+          >
+            {loading ? "Menghapus..." : "Hapus"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
