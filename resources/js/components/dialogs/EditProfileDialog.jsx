@@ -116,7 +116,38 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
           </div>
 
           {/* NIK */}
+          {/* NIK */}
           <div>
+            <Label>NIK</Label>
+            <Input
+              name="nik"
+              value={data.nik}
+              onChange={(e) => {
+                // hanya izinkan mengetik jika NIK sebelumnya kosong
+                if (!member?.nik) {
+                  setData({ ...data, nik: e.target.value })
+                }
+              }}
+              placeholder="Masukkan NIK"
+              readOnly={!!member?.nik} // kalau sudah ada → kunci input
+              className={`${member?.nik
+                  ? "bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
+                  : "bg-white dark:bg-gray-900"
+                } ${errors.nik ? "border-red-500" : ""}`}
+            />
+            {member?.nik ? (
+              <p className="text-xs text-muted-foreground">
+                NIK sudah terisi dan tidak dapat diubah.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Masukkan NIK Anda (16 digit).
+              </p>
+            )}
+            {errors.nik && <p className="text-red-500 text-sm">{errors.nik}</p>}
+          </div>
+
+          {/* <div>
             <Label>NIK</Label>
             <Input
               name="nik"
@@ -126,7 +157,7 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
                 }`}
             />
             {errors.nik && <p className="text-red-500 text-sm">{errors.nik}</p>}
-          </div>
+          </div> */}
 
           {/* Tanggal Lahir */}
           <div>

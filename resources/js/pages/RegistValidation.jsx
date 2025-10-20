@@ -120,19 +120,16 @@ export default function RegistValidation() {
           <CardHeader className="relative lg:px-6 w-full">
             <div className="flex flex-wrap items-center gap-2 justify-between w-full">
               {/* Search */}
-              <div className="flex items-start gap-2 w-full md:w-1/3">
+              <div className="flex items-start justify-start gap-2 w-full md:w-1/3">
                 <div className="relative w-full">
                   <Input
-                    className="h-8 w-full pl-8 border border-foreground/20 bg-transparent shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
-                    placeholder="Search name / email / month"
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
+                    placeholder="Keta nama atau email..."
+                    className="h-8 w-full pl-8 border border-foreground/20 bg-transparent shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
                   />
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
-                <Button className="h-8 w-20" onClick={() => setQ(q.trim())}>
-                  Search
-                </Button>
               </div>
 
               {/* Filters */}

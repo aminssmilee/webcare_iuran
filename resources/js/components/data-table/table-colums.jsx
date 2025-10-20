@@ -165,7 +165,7 @@ export function getRegistrationColumns() {
   return [
     { id: "name", accessorKey: "name", header: "Nama" },
     { id: "email", accessorKey: "email", header: "Email" },
-    { id: "roles", accessorKey: "roles", header: "Role" },
+    { id: "roles", accessorKey: "roles", header: "Type Anggota" },
     // { id: "idNumber", accessorKey: "idNumber", header: "ID Anggota" },
     { id: "submittedAt", accessorKey: "submittedAt", header: "Tanggal Pendaftaran" },
     {
@@ -241,9 +241,9 @@ export function getRegistrationColumns() {
 //  Payment Validation
 export function getPaymentValidationColumns() {
   return [
+    { id: "id_member", accessorKey: "id_member", header: "ID Member" },
     { id: "name", accessorKey: "name", header: "Nama" },
     { id: "email", accessorKey: "email", header: "Email" },
-    { id: "idNumber", accessorKey: "idNumber", header: "ID Anggota" },
     { id: "mount", accessorKey: "mount", header: "Periode Bulan" },
     { id: "amount", accessorKey: "amount", header: "Jumlah Pembayaran" },
 
@@ -263,19 +263,19 @@ export function getPaymentValidationColumns() {
     },
 
     // Kolom tenggat (sementara tidak ada datanya)
-    {
-      id: "dueDate",
-      accessorKey: "dueDate",
-      header: "Tenggat",
-      cell: ({ row }) => {
-        const date = row.getValue("dueDate")
-        return date ? (
-          <span className="text-sm">{date}</span>
-        ) : (
-          <span className="text-sm text-muted-foreground">-</span>
-        )
-      },
-    },
+    // {
+    //   id: "dueDate",
+    //   accessorKey: "dueDate",
+    //   header: "Tenggat",
+    //   cell: ({ row }) => {
+    //     const date = row.getValue("dueDate")
+    //     return date ? (
+    //       <span className="text-sm">{date}</span>
+    //     ) : (
+    //       <span className="text-sm text-muted-foreground">-</span>
+    //     )
+    //   },
+    // },
 
     // Kolom bukti bayar
     {
@@ -298,14 +298,14 @@ export function getPaymentValidationColumns() {
     },
 
     // Kolom keterangan tambahan (note)
-    {
-      id: "note",
-      accessorKey: "note",
-      header: "Keterangan",
-      cell: ({ row }) => (
-        <span className="text-sm">{row.getValue("note") || "-"}</span>
-      ),
-    },
+    // {
+    //   id: "note",
+    //   accessorKey: "note",
+    //   header: "Keterangan",
+    //   cell: ({ row }) => (
+    //     <span className="text-sm">{row.getValue("note") || "-"}</span>
+    //   ),
+    // },
 
     // Kolom status pembayaran (warna + ikon)
     {
