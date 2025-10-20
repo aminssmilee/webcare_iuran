@@ -9,7 +9,7 @@ export default function LoginPage() {
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="/" className="flex items-center gap-2 font-medium">
             <img
-              src="/img/1-asosiasi-teknik-sistem-energi-indonesia.png"
+              src="/img/collaborative-process-multicultural-businesspeople-using-laptop-presentation-communication-meeting-brainstorming-ideas-about-project-colleagues-working-plan-success-strategy-modern-office.jpg"
               // alt={activeTeam.name}
               className="size-8 object-contain"
             />
