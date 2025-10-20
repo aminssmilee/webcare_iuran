@@ -45,48 +45,70 @@ export function UserActionsCell({ user }) {
   )
 }
 
-//
 // -------------------------
 //  Registration Validation Actions
 // -------------------------
 export function RegistrationValidationActionsCell({ user }) {
   const [openReject, setOpenReject] = useState(false)
 
+  // ======================
+  //  ✅ Fungsi Approve (lama, tetap dipakai)
+  // ======================
   const handleApprove = () => {
-  Inertia.post(`/admin/registrations/${user.id}/approve`, {}, {
-  preserveScroll: true,
-  preserveState: false, // 🚨 WAJIB false supaya flash props dikirim ulang
-  onSuccess: (page) => {
-    console.log("🟢 onSuccess:", page.props)
-    const flash = page.props.flash
-    if (flash?.success) {
-      alert(flash.success)
-    } else if (flash?.error) {
-      alert(flash.error)
-    } else {
-      alert("✅ Proses selesai tanpa pesan flash")
-    }
-  },
-  onError: (err) => {
-    console.error("🔴 onError:", err)
-    alert("Terjadi kesalahan saat approve.")
-  },
-})
+    console.log("🟢 handleApprove dijalankan untuk:", user)
 
-}
-
-
-  const handleReject = (reason) => {
-    Inertia.post(`/admin/registrations/${user.id}/reject`, { reason }, {
-      onSuccess: () => {
-        console.log(`❌ Rejected ${user.name} dengan alasan: ${reason}`)
+    Inertia.post(`/admin/registrations/${user.id}/approve`, {}, {
+      preserveScroll: true,
+      preserveState: false, // 🚨 WAJIB false supaya flash props dikirim ulang
+      onSuccess: (page) => {
+        console.log("🟢 onSuccess:", page.props)
+        const flash = page.props.flash
+        if (flash?.success) {
+          alert(flash.success)
+        } else if (flash?.error) {
+          alert(flash.error)
+        } else {
+          alert("✅ Proses selesai tanpa pesan flash")
+        }
       },
       onError: (err) => {
-        console.error("Reject gagal:", err)
-      }
+        console.error("🔴 onError:", err)
+        alert("Terjadi kesalahan saat approve.")
+      },
     })
   }
 
+  // ======================
+  //  ✅ Fungsi Reject (diperbaiki + tambahan log)
+  // ======================
+  const handleReject = (reason) => {
+    console.log("🚀 handleReject dipanggil. Reason:", reason)
+    console.log("Target user:", user)
+
+    Inertia.post(`/admin/registrations/${user.id}/reject`, { reason }, {
+      preserveScroll: true,
+      preserveState: false, // refresh props biar flash dikirim
+      onSuccess: (page) => {
+        console.log("✅ Reject success:", page.props)
+        const flash = page.props.flash
+        if (flash?.success) {
+          alert(flash.success)
+        } else if (flash?.error) {
+          alert(flash.error)
+        } else {
+          alert(`❌ ${user.name} berhasil ditolak.`)
+        }
+      },
+      onError: (err) => {
+        console.error("Reject gagal:", err)
+        alert("Gagal menolak user.")
+      },
+    })
+  }
+
+  // ======================
+  //  ✅ UI Dropdown Menu (tidak dihapus)
+  // ======================
   return (
     <>
       <DropdownMenu>
@@ -102,7 +124,9 @@ export function RegistrationValidationActionsCell({ user }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Dialog alasan Reject */}
+      {/* ====================== */}
+      {/* ✅ Dialog alasan Reject */}
+      {/* ====================== */}
       <RejectReasonDialog
         target={user}
         open={openReject}
@@ -112,7 +136,6 @@ export function RegistrationValidationActionsCell({ user }) {
     </>
   )
 }
-
 //
 // -------------------------
 //  Payment Validation Actions

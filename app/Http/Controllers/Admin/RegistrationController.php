@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AccountApprovedMail;
+use App\Mail\AccountRejectedMail; // ✅ Tambah mailable baru
 
 class RegistrationController extends Controller
 {
+    // ======================
+    // ✅ Halaman daftar pendaftaran
+    // ======================
     public function index()
     {
         $users = User::whereIn('role', ['member', 'institution'])->get();
@@ -36,6 +39,9 @@ class RegistrationController extends Controller
         ]);
     }
 
+    // ======================
+    // ✅ Approve user
+    // ======================
     public function approve($id)
     {
         $user = User::findOrFail($id);
@@ -49,7 +55,7 @@ class RegistrationController extends Controller
         $user->status = 'active';
         $user->save();
 
-        // ✅ Kirim email notifikasi
+        // ✅ Kirim email notifikasi approval
         try {
             Mail::to($user->email)->send(new AccountApprovedMail($user));
         } catch (\Exception $e) {
@@ -60,12 +66,30 @@ class RegistrationController extends Controller
         return back()->with('success', "Registrasi {$user->name} disetujui, user aktif, dan email notifikasi telah dikirim.");
     }
 
-    public function reject($id)
+    // ======================
+    // ❌ Reject user (baru, lebih lengkap)
+    // ======================
+    public function reject(Request $request, $id)
     {
+        // ✅ Validasi alasan wajib diisi
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
         $user = User::findOrFail($id);
-        $user->status = 'inactive';
+
+        // ✅ Ganti status jadi "rejected" agar sinkron dengan tabel React kamu
+        $user->status = 'rejected';
         $user->save();
 
-        return back()->with('success', "Registrasi {$user->name} ditolak dan user dinonaktifkan.");
+        // ✅ Coba kirim email notifikasi penolakan
+        try {
+            Mail::to($user->email)->send(new AccountRejectedMail($user, $request->reason));
+        } catch (\Exception $e) {
+            Log::error('Gagal kirim email penolakan ke ' . $user->email . ': ' . $e->getMessage());
+            return back()->with('error', "User {$user->name} ditolak, tapi email gagal dikirim.");
+        }
+
+        return back()->with('success', "Registrasi {$user->name} ditolak dan email notifikasi telah dikirim.");
     }
 }

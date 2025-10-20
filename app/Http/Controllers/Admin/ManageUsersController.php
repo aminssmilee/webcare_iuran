@@ -48,12 +48,12 @@ class ManageUsersController extends Controller
         $users = $query->paginate(10)->through(function (User $u) {
             $m = $u->member;
             return [
-                'id' => $u->id,
-                'id_member' => $u->member?->id ?? null,
+                'id'             => $u->id,
+                'id_member'      => $u->member?->id ?? null,
                 'name'           => $u->name ?? '-',
                 'email'          => $u->email ?? '-',
                 'roles'          => ucfirst($u->role),
-                'nik'       => $m?->nik ?? '-',
+                'nik'            => $m?->nik ?? '-',
                 'birthPlaceDate' => $m?->tgl_lahir
                     ? (is_string($m->tgl_lahir) ? $m->tgl_lahir : $m->tgl_lahir->format('Y-m-d'))
                     : '-',
@@ -62,12 +62,26 @@ class ManageUsersController extends Controller
                 'whatsapp'       => $m?->no_wa ?? '',
                 'education'      => $m?->pendidikan ?? '-',
                 'occupation'     => $m?->pekerjaan ?? '-',
-                'status' => ucfirst($u->member?->status ?? 'Pending'),
+                'status'         => ucfirst($u->member?->status ?? 'Pending'),
                 'created_at'     => $u->created_at?->format('Y-m-d H:i'),
             ];
         });
 
-        // 🚀 Kirim data ke Inertia
+        // 🧩 Jika request datang dari AJAX biasa (bukan Inertia) → kirim JSON
+        if ($request->ajax() && !$request->header('X-Inertia')) {
+            return response()->json([
+                'data' => $users->items(),
+                'meta' => [
+                    'current_page' => $users->currentPage(),
+                    'last_page'    => $users->lastPage(),
+                    'total'        => $users->total(),
+                    'per_page'     => $users->perPage(),
+                ],
+            ]);
+        }
+
+
+        // 🚀 Jika bukan AJAX → render normal via Inertia
         return Inertia::render('ManageUsers', [
             'users' => $users,
             'filters' => [
@@ -77,12 +91,15 @@ class ManageUsersController extends Controller
             ],
         ]);
     }
+
+    // =====================================================
+    // 🧩 UPDATE USER
+    // =====================================================
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
             'name'   => 'required|string|max:255',
             'email'  => 'required|email|max:255|unique:users,email,' . $user->id,
-            // 'status' => 'required|in:active,inactive,pending',
             'role'   => 'required|in:member,institution,admin',
         ]);
 
@@ -100,7 +117,9 @@ class ManageUsersController extends Controller
         return back()->with('success', 'User berhasil diperbarui!');
     }
 
-
+    // =====================================================
+    // 🧩 HAPUS USER
+    // =====================================================
     public function destroy(User $user)
     {
         // ✅ Cegah admin menghapus dirinya sendiri

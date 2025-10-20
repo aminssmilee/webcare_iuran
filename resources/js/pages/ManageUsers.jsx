@@ -1,6 +1,7 @@
 "use client"
-import { useState } from "react"
-import { usePage, router } from "@inertiajs/react"
+import { useState, useEffect } from "react"
+import axios from "axios"
+import { usePage } from "@inertiajs/react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -31,33 +32,52 @@ import { Search } from "lucide-react"
 export default function ManageUsers() {
   const { props } = usePage()
 
-  // ✅ Ambil data dari Laravel (paginator)
-  const users = props.users?.data || []
-  const pageMeta = props.users?.meta || {}
-  const filters = props.filters || {}
+  // 🔹 Ambil data awal dari Laravel (Inertia)
+  const [users, setUsers] = useState(props.users?.data || [])
+  const [pageMeta, setPageMeta] = useState(props.users?.meta || {})
+  const [q, setQ] = useState(props.filters?.q || "")
+  const [status, setStatus] = useState(props.filters?.status || "all")
+  const [timeRange, setTimeRange] = useState(props.filters?.timeRange || "90d")
+  const [loading, setLoading] = useState(false)
 
-  // ✅ State default filter (dari server)
-  const [q, setQ] = useState(filters.q || "")
-  const [status, setStatus] = useState(filters.status || "all")
-  const [timeRange, setTimeRange] = useState(filters.timeRange || "90d")
+  // =====================================================
+  // ⚡️ Fungsi Ambil Data via AJAX (tanpa reload Inertia)
+  // =====================================================
+  const fetchUsers = async (extra = {}) => {
+    setLoading(true)
+    try {
+      const res = await axios.get("/admin/users", {
+        params: {
+          q,
+          status,
+          timeRange,
+          page: extra.page || 1,
+        },
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
 
-  // 🔍 Apply filters ke server (Inertia request)
-  const applyFilters = (extra = {}) => {
-    const params = {
-      q,
-      status,
-      timeRange,
-      page: extra.page || 1,
-      ...extra,
+      setUsers(res.data.data)
+      setPageMeta(res.data.meta)
+    } catch (err) {
+      console.error("❌ Error fetching users:", err)
+    } finally {
+      setLoading(false)
     }
-
-    router.get("/admin/users", params, {
-      preserveScroll: true,
-      preserveState: true,
-      replace: true,
-    })
   }
 
+  // =====================================================
+  // 🕒 Auto Search Realtime (Debounce 400ms)
+  // =====================================================
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      fetchUsers()
+    }, 400) // delay 0.4 detik tiap user ngetik agar gak spam request
+    return () => clearTimeout(delay)
+  }, [q, status, timeRange])
+
+  // =====================================================
+  // 🎨 Tampilan Utama
+  // =====================================================
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -84,25 +104,18 @@ export default function ManageUsers() {
           {/* Filter Section */}
           <CardHeader className="relative lg:px-6 w-full">
             <div className="flex flex-wrap items-center gap-2 justify-between w-full">
-              {/* 🔎 Search box */}
+              
+              {/* 🔎 Search Box */}
               <div className="flex items-start justify-start gap-2 w-full md:w-1/3">
                 <div className="relative w-full">
                   <Input
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+                    placeholder="Keta nama atau email..."
                     className="h-8 w-full pl-8 border border-foreground/20 bg-transparent shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
-                    placeholder="Cari nama / email / NIK"
                   />
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
-                <Button
-                  variant="default"
-                  className="h-8 w-28"
-                  onClick={() => applyFilters()}
-                >
-                  Search
-                </Button>
               </div>
 
               {/* 🧭 Filter status dan waktu */}
@@ -110,17 +123,14 @@ export default function ManageUsers() {
                 {/* Status */}
                 <Select
                   value={status}
-                  onValueChange={(val) => {
-                    setStatus(val)
-                    applyFilters({ status: val })
-                  }}
+                  onValueChange={(val) => setStatus(val)}
                 >
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
                     <SelectItem value="all">Semua Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
+                    {/* <SelectItem value="pending">Pending</SelectItem> */}
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="inactive">Inactive</SelectItem>
                   </SelectContent>
@@ -129,10 +139,7 @@ export default function ManageUsers() {
                 {/* Time range */}
                 <Select
                   value={timeRange}
-                  onValueChange={(val) => {
-                    setTimeRange(val)
-                    applyFilters({ timeRange: val })
-                  }}
+                  onValueChange={(val) => setTimeRange(val)}
                 >
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Last 3 months" />
@@ -152,20 +159,28 @@ export default function ManageUsers() {
           <div className="flex flex-col gap-4 lg:py-2 lg:px-2 p-2 md:gap-2 md:py-4 border border-foreground/10 rounded-lg mx-6 overflow-x-auto">
             <h1 className="text-xl font-semibold m-4">Members List</h1>
 
-            <div className="px-4 lg:px-2 w-full overflow-x-auto max-w-full">
-              <div className="min-w-full">
-                <DataTable data={users} columns={getUserColumns()} />
+            {loading && (
+              <p className="text-sm text-muted-foreground text-center">
+                Loading data...
+              </p>
+            )}
+
+            {!loading && (
+              <div className="px-4 lg:px-2 w-full overflow-x-auto max-w-full">
+                <div className="min-w-full">
+                  <DataTable data={users} columns={getUserColumns()} />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* 🧭 Pagination */}
             {pageMeta?.last_page > 1 && (
               <div className="flex justify-between items-center mt-4 px-4 pb-2">
                 <Button
                   variant="outline"
-                  disabled={pageMeta.current_page <= 1}
+                  disabled={pageMeta.current_page <= 1 || loading}
                   onClick={() =>
-                    applyFilters({ page: pageMeta.current_page - 1 })
+                    fetchUsers({ page: pageMeta.current_page - 1 })
                   }
                 >
                   Prev
@@ -178,9 +193,9 @@ export default function ManageUsers() {
 
                 <Button
                   variant="outline"
-                  disabled={pageMeta.current_page >= pageMeta.last_page}
+                  disabled={pageMeta.current_page >= pageMeta.last_page || loading}
                   onClick={() =>
-                    applyFilters({ page: pageMeta.current_page + 1 })
+                    fetchUsers({ page: pageMeta.current_page + 1 })
                   }
                 >
                   Next

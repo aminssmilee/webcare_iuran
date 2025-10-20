@@ -1,8 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\Member;
-// namespace App\Http\Controllers\Member;
-
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -22,28 +20,42 @@ class PaymentController extends Controller
         }
 
         $request->validate([
-            'months'    => ['required','array','min:1'],
-            'months.*'  => ['integer','between:1,12'],
-            'amount'    => ['required','numeric','min:1000'],
-            'note'      => ['nullable','string','max:500'], // (belum disimpan karena kolomnya tidak ada)
-            'proof'     => ['required','file','mimes:jpeg,jpg,png,pdf','max:500'], // KB
+            'months'    => ['required', 'array', 'min:1'],
+            'months.*'  => ['integer', 'between:1,12'],
+            'amount'    => ['required', 'numeric', 'min:1000'],
+            'note'      => ['nullable', 'string', 'max:500'],
+            'proof'     => ['required', 'file', 'mimes:jpeg,jpg,png,pdf', 'max:500'], // KB
         ], [
             'proof.max' => 'Ukuran file maksimal 500KB.',
         ]);
 
-        // Simpan file bukti ke storage/app/public/payment_proofs
+        // Simpan file bukti pembayaran ke storage/app/public/payment_proofs
         $buktiPath = $request->file('proof')->store('payment_proofs', 'public');
 
         $currentYear  = now()->year;
         $jumlahBayar  = (float) $request->amount;
-        $metode       = 'transfer'; // default (sesuai migration), bisa diubah dari request jika diperlukan
-        $status       = 'pending';  // default (sesuai migration)
+        $metode       = 'transfer'; // default
+        $status       = 'pending';  // default
+
+        $alreadyPaidMonths = []; // untuk mencatat bulan yang sudah lunas agar bisa ditampilkan ke user
 
         foreach ($request->months as $m) {
             $m       = (int) $m; // 1..12
-            $periode = sprintf('%04d-%02d', $currentYear, $m); // "YYYY-MM"
+            $periode = sprintf('%04d-%02d', $currentYear, $m); // contoh: 2025-03
 
-            // ambil jika sudah ada, kalau belum buat baru
+            // ✅ Cek apakah bulan ini sudah lunas (status = paid)
+            $alreadyPaid = Payment::where('member_id', $member->id)
+                ->where('periode', $periode)
+                ->where('status', 'paid')
+                ->exists();
+
+            if ($alreadyPaid) {
+                // Simpan ke array untuk pesan error nanti
+                $alreadyPaidMonths[] = $periode;
+                continue; // skip bulan yang sudah lunas
+            }
+
+            // Ambil jika sudah ada data sebelumnya, kalau belum buat baru
             $payment = Payment::firstOrNew([
                 'member_id' => $member->id,
                 'periode'   => $periode,
@@ -57,11 +69,23 @@ class PaymentController extends Controller
                 $payment->id = $id;
             }
 
+            // Simpan data pembayaran
             $payment->jumlah_bayar = $jumlahBayar;
             $payment->status       = $status;    // pending
             $payment->metode       = $metode;    // transfer
-            $payment->bukti        = $buktiPath; // path file
+            $payment->bukti        = $buktiPath; // path bukti file
             $payment->save();
+        }
+
+        // ✅ Jika ada bulan yang sudah lunas, tampilkan pesan error
+        if (!empty($alreadyPaidMonths)) {
+            $monthsList = collect($alreadyPaidMonths)
+                ->map(fn($p) => date('F Y', strtotime($p))) // ubah ke nama bulan (ex: January 2025)
+                ->implode(', ');
+            
+            return back()->withErrors([
+                'months' => "Bulan {$monthsList} sudah dibayar dan tidak dapat dibayar ulang.",
+            ]);
         }
 
         return back()->with('success', 'Pembayaran berhasil disimpan.');

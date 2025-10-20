@@ -85,19 +85,13 @@ export default function PaymentValidation() {
               <div className="flex items-start justify-start gap-2 w-full md:w-1/3">
                 <div className="relative w-full">
                   <Input
-                    className="h-8 w-full pl-8 border border-foreground/20 bg-transparent shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
-                    placeholder="Search by month (e.g. October / 2025-10)"
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") applyFilters()
-                    }}
+                    placeholder="Keta nama atau email..."
+                    className="h-8 w-full pl-8 border border-foreground/20 bg-transparent shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
                   />
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
-                <Button variant="default" className="h-8 w-28" onClick={() => applyFilters()}>
-                  Search
-                </Button>
               </div>
 
               {/* Filters */}

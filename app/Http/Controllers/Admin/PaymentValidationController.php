@@ -97,7 +97,7 @@ class PaymentValidationController extends Controller
                 'id'            => $p->id,
                 'name'          => $user?->name ?? '-',
                 'email'         => $user?->email ?? '-',
-                'idNumber'      => optional($p->member)->nik ?? '-',
+                'id_member'     => $p->member?->id ?? null,
                 'mount'         => $monthLabel,
                 'amount'        => 'Rp ' . number_format((int) $p->jumlah_bayar, 0, ',', '.'),
                 'dueDate'       => null,
