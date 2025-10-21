@@ -1,6 +1,7 @@
 import { GalleryVerticalEnd } from "lucide-react";
 import { RegisterForm } from "@/components/register-form";
-import Image from "/public/img/aerial-view-novel-white-marble-table.jpg";
+import Image from "/public/img/collaborative-process-multicultural-businesspeople-using-laptop-presentation-communication-meeting-brainstorming-ideas-about-project-colleagues-working-plan-success-strategy-modern-office.jpg"
+
 
 
 export default function RegisterPage() {
@@ -10,7 +11,7 @@ export default function RegisterPage() {
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="/" className="flex items-center gap-2 font-medium">
             <img
-              src="/img/collaborative-process-multicultural-businesspeople-using-laptop-presentation-communication-meeting-brainstorming-ideas-about-project-colleagues-working-plan-success-strategy-modern-office.jpg"
+              src="/img/1-asosiasi-teknik-sistem-energi-indonesia.png"
               // alt={activeTeam.name}
               className="size-8 object-contain"
             />
