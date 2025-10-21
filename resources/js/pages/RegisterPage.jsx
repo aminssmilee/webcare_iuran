@@ -1,6 +1,7 @@
 import { GalleryVerticalEnd } from "lucide-react";
 import { RegisterForm } from "@/components/register-form";
-import Image from "/public/img/aerial-view-novel-white-marble-table.jpg";
+import Image from "/public/img/collaborative-process-multicultural-businesspeople-using-laptop-presentation-communication-meeting-brainstorming-ideas-about-project-colleagues-working-plan-success-strategy-modern-office.jpg"
+
 
 
 export default function RegisterPage() {
