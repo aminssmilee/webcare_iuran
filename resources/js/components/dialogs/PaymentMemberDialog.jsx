@@ -34,7 +34,7 @@ const parseRupiahToInt = (formatted) => {
 
 export function PaymentMemberDialog({ open, onOpenChange, children }) {
   // ✅ Ambil data paidMonths dari backend inertia
-  const { paidMonths = [] } = usePage().props 
+  const { paidMonths = [] } = usePage().props
 
   const [selectedMonths, setSelectedMonths] = React.useState([])
   const [amount, setAmount] = React.useState("")
@@ -220,19 +220,17 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
                           onSelect={() => {
                             if (!alreadyPaid) handleToggleMonth(month)
                           }}
-                          className={`flex items-center justify-between ${
-                            alreadyPaid ? "pointer-events-none opacity-50 select-none" : "cursor-pointer"
-                          }`}
+                          className={`flex items-center justify-between ${alreadyPaid ? "pointer-events-none opacity-50 select-none" : "cursor-pointer"
+                            }`}
                         >
                           <div className="flex items-center">
                             <Check
-                              className={`mr-2 h-4 w-4 ${
-                                alreadyPaid
+                              className={`mr-2 h-4 w-4 ${alreadyPaid
                                   ? "opacity-100 text-green-600"
                                   : checked
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              }`}
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
                             />
                             {month}
                           </div>
@@ -277,9 +275,8 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
             <Label>Payment Proof (max 500 KB) <span className="text-red-500">*</span></Label>
             {!proofFile ? (
               <div
-                className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 ${
-                  errors.proof ? "border-red-500" : ""
-                }`}
+                className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 ${errors.proof ? "border-red-500" : ""
+                  }`}
                 onClick={() => document.getElementById("payment-proof")?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
@@ -297,18 +294,18 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
                 />
               </div>
             ) : (
-              <div className="relative flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
-                <div className="flex flex-col">
-                  <Label className="font-semibold text-sm">Uploaded Document</Label>
-                  <span className="text-sm text-green-700">{fileName}</span>
-                </div>
+              <div className="relative flex flex-col items-start justify-between rounded-lg border px-4 py-3">
                 <button
                   type="button"
                   onClick={handleRemoveFile}
-                  className="absolute top-2 right-2 rounded-full p-1 hover:bg-red-100 transition"
+                  className="self-end top-2 right-2 rounded-full px-1 py-1 transition"
                 >
-                  <X className="h-4 w-4 text-red-500" />
+                  <Trash className="h-4 w-4 text-red-500" />
                 </button>
+                <div className="flex flex-row items-center gap-2">
+                  <File className="h-4 w-4 text-green-700" />
+                  <span className="text-sm text-green-700">{fileName}</span>
+                </div>
               </div>
             )}
             {errors.proof && <p className="text-sm text-red-500">{errors.proof}</p>}
@@ -318,17 +315,16 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
           <div className="grid gap-2">
             <Label>Status</Label>
             <div
-              className={`p-2 rounded-md text-sm font-medium ${
-                status === "On-time"
+              className={`p-2 rounded-md text-sm font-medium ${status === "On-time"
                   ? "bg-green-100 text-green-700"
                   : status === "Advance Payment"
-                  ? "bg-blue-100 text-blue-700"
-                  : status === "Late Payment"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : status === "Incomplete"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-gray-100 text-gray-700"
-              }`}
+                    ? "bg-blue-100 text-blue-700"
+                    : status === "Late Payment"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : status === "Incomplete"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-gray-100 text-gray-700"
+                }`}
             >
               {status}
             </div>

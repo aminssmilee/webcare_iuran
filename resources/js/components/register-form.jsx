@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, File } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
 import {
   Select,
@@ -15,13 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-
+import { Doc } from "zod/v4/core";
+import { Progress } from "@/components/ui/progress";
+import { Trash } from "lucide-react";
 
 export function RegisterForm({ className, ...props }) {
   const { props: page } = usePage();
   const flash = page.flash || {};
   const serverErrors = page.errors || {};
+  const [progress, setProgress] = useState(0);
+
 
   const [errors, setErrors] = useState(serverErrors);
   const [submitting, setSubmitting] = useState(false);
@@ -269,9 +272,10 @@ export function RegisterForm({ className, ...props }) {
             className="flex h-32 w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-input bg-background text-muted-foreground hover:bg-muted transition-colors"
           >
             {uploading ? (
-              <div className="flex flex-col items-center gap-2 animate-pulse">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div className="flex flex-col items-center gap-3 w-2/3">
                 <span className="text-sm text-primary">Uploading...</span>
+                <Progress value={progress} className="w-full h-2" />
+                <small className="text-xs text-muted-foreground">{progress}%</small>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center gap-2">
@@ -290,20 +294,18 @@ export function RegisterForm({ className, ...props }) {
             />
           </label>
         ) : (
-          <div className="relative flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
-            <div className="flex flex-col">
-              <Label htmlFor="document" className="font-semibold text-sm">
-                Uploaded Document
-              </Label>
-              <span className="text-sm text-green-700">{fileName}</span>
-            </div>
+          <div className="relative flex flex-col items-start justify-between rounded-lg border px-4 py-3">
             <button
               type="button"
               onClick={handleRemoveFile}
-              className="absolute top-2 right-2 rounded-full p-1 hover:bg-red-100 transition"
+              className="self-end top-2 right-2 rounded-full px-1 py-1 transition"
             >
-              <X className="h-4 w-4 text-red-500" />
+              <Trash className="h-4 w-4 text-red-500" />
             </button>
+            <div className="flex flex-row items-center gap-2">
+              <File className="h-4 w-4 text-green-700" />
+              <span className="text-sm text-green-700">{fileName}</span>
+            </div>
           </div>
         )}
         {errors.dokumen && <p className="text-sm text-red-500">{errors.dokumen}</p>}
@@ -326,8 +328,8 @@ export function RegisterForm({ className, ...props }) {
       <div className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <a href="/member/login" className="underline underline-offset-4 hover:text-primary">
-            Sign up
-          </a>
+          Sign up
+        </a>
       </div>
     </form>
   );
