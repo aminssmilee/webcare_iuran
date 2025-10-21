@@ -454,7 +454,7 @@ export function getPaymentColumns() {
               variant="outline"
               className="w-auto border-yellow-500 text-yellow-500 flex items-center space-x-1"
             >
-              <Loader className="w-3 h-3" />
+              <Loader className="w-3 h-3 animate-spin" />
               <span>{status}</span>
             </Badge>
           )

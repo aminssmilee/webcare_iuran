@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Payment;
+use Inertia\Inertia;
 
 class PaymentController extends Controller
 {
@@ -15,10 +16,12 @@ class PaymentController extends Controller
         $user   = Auth::user();
         $member = $user->member;
 
+        // ✅ Validasi profil
         if (!$member) {
             return back()->withErrors(['member' => 'Profil member belum lengkap.'])->withInput();
         }
 
+        // ✅ Validasi input form
         $request->validate([
             'months'    => ['required', 'array', 'min:1'],
             'months.*'  => ['integer', 'between:1,12'],
@@ -29,40 +32,45 @@ class PaymentController extends Controller
             'proof.max' => 'Ukuran file maksimal 500KB.',
         ]);
 
-        // Simpan file bukti pembayaran ke storage/app/public/payment_proofs
+        // ✅ Simpan bukti pembayaran ke storage/app/public/payment_proofs
         $buktiPath = $request->file('proof')->store('payment_proofs', 'public');
 
+        // Variabel dasar
+        $currentMonth = now()->month;
         $currentYear  = now()->year;
         $jumlahBayar  = (float) $request->amount;
-        $metode       = 'transfer'; // default
-        $status       = 'pending';  // default
+        $metode       = 'transfer';
+        $status       = 'pending';
 
-        $alreadyPaidMonths = []; // untuk mencatat bulan yang sudah lunas agar bisa ditampilkan ke user
+        $alreadyPaidMonths = [];
 
         foreach ($request->months as $m) {
-            $m       = (int) $m; // 1..12
-            $periode = sprintf('%04d-%02d', $currentYear, $m); // contoh: 2025-03
+            $m = (int) $m;
 
-            // ✅ Cek apakah bulan ini sudah lunas (status = paid)
+            // 💡 Logika lintas tahun (jika bulan < sekarang → tahun depan)
+            $selectedYear = $m < $currentMonth ? $currentYear + 1 : $currentYear;
+
+            // Format periode: YYYY-MM
+            $periode = sprintf('%04d-%02d', $selectedYear, $m);
+
+            // 🚫 Cegah duplikasi jika status masih pending atau paid
             $alreadyPaid = Payment::where('member_id', $member->id)
                 ->where('periode', $periode)
-                ->where('status', 'paid')
+                ->whereIn('status', ['paid', 'pending']) // ❗ tambahan utama disini
                 ->exists();
 
             if ($alreadyPaid) {
-                // Simpan ke array untuk pesan error nanti
                 $alreadyPaidMonths[] = $periode;
-                continue; // skip bulan yang sudah lunas
+                continue;
             }
 
-            // Ambil jika sudah ada data sebelumnya, kalau belum buat baru
+            // Ambil atau buat data baru
             $payment = Payment::firstOrNew([
                 'member_id' => $member->id,
                 'periode'   => $periode,
             ]);
 
             if (!$payment->exists) {
-                // generate id string(6) unik
                 do {
                     $id = strtoupper(Str::random(6));
                 } while (Payment::whereKey($id)->exists());
@@ -72,22 +80,54 @@ class PaymentController extends Controller
             // Simpan data pembayaran
             $payment->jumlah_bayar = $jumlahBayar;
             $payment->status       = $status;    // pending
-            $payment->metode       = $metode;    // transfer
-            $payment->bukti        = $buktiPath; // path bukti file
+            $payment->metode       = $metode;
+            $payment->bukti        = $buktiPath;
             $payment->save();
         }
 
-        // ✅ Jika ada bulan yang sudah lunas, tampilkan pesan error
+        // ✅ Jika ada bulan yang sudah dibayar atau pending
         if (!empty($alreadyPaidMonths)) {
             $monthsList = collect($alreadyPaidMonths)
-                ->map(fn($p) => date('F Y', strtotime($p))) // ubah ke nama bulan (ex: January 2025)
+                ->map(fn($p) => date('F Y', strtotime($p)))
                 ->implode(', ');
-            
+
             return back()->withErrors([
-                'months' => "Bulan {$monthsList} sudah dibayar dan tidak dapat dibayar ulang.",
+                'months' => "Bulan {$monthsList} sudah dibayar atau sedang menunggu konfirmasi admin.",
             ]);
         }
 
-        return back()->with('success', 'Pembayaran berhasil disimpan.');
+        return back()->with('success', 'Pembayaran berhasil disimpan dan menunggu konfirmasi admin.');
+    }
+
+    public function index(Request $request)
+    {
+        $query = Payment::with('user')
+            ->when(
+                $request->q,
+                fn($q) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
+                    $u->where('name', 'like', '%' . $request->q . '%')
+                )->orWhere('month_name', 'like', '%' . $request->q . '%')
+            )
+            ->when($request->range, function ($q) use ($request) {
+                $days = match ($request->range) {
+                    '7d' => 7,
+                    '30d' => 30,
+                    '90d' => 90,
+                    default => 90,
+                };
+                $q->where('created_at', '>=', now()->subDays($days));
+            })
+            ->latest()
+            ->get();
+
+        return Inertia::render('MemberPayment', [
+            'user' => Auth::user(),
+            'member' => Auth::user()->member,
+            'payments' => $query,
+            'profileComplete' => Auth::user()->member?->isComplete(),
+        ]);
     }
 }
