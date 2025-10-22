@@ -116,7 +116,6 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
           </div>
 
           {/* NIK */}
-          {/* NIK */}
           <div>
             <Label>NIK</Label>
             <Input

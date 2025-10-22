@@ -7,6 +7,8 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download } from "lucide-react"
 
+
+
 export function MemberCard({ id, name, job }) {
   const cardRef = useRef(null)
   const downloadBtnRef = useRef(null)
@@ -84,6 +86,5 @@ export function MemberCard({ id, name, job }) {
           </CardContent>
         </Card>
       </div>
-    </div>
   )
 }

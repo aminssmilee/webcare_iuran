@@ -16,12 +16,10 @@ class PaymentController extends Controller
         $user   = Auth::user();
         $member = $user->member;
 
-        // ✅ Validasi profil
         if (!$member) {
             return back()->withErrors(['member' => 'Profil member belum lengkap.'])->withInput();
         }
 
-        // ✅ Validasi input form
         $request->validate([
             'months'    => ['required', 'array', 'min:1'],
             'months.*'  => ['integer', 'between:1,12'],
@@ -32,45 +30,48 @@ class PaymentController extends Controller
             'proof.max' => 'Ukuran file maksimal 500KB.',
         ]);
 
-        // ✅ Simpan bukti pembayaran ke storage/app/public/payment_proofs
+        // Simpan file bukti pembayaran ke storage/app/public/payment_proofs
         $buktiPath = $request->file('proof')->store('payment_proofs', 'public');
 
         // Variabel dasar
-        $currentMonth = now()->month;
-        $currentYear  = now()->year;
+        $currentMonth = now()->month;  // bulan saat ini
+        $currentYear  = now()->year;   // tahun saat ini
         $jumlahBayar  = (float) $request->amount;
-        $metode       = 'transfer';
-        $status       = 'pending';
+        $metode       = 'transfer'; // default
+        $status       = 'pending';  // default
 
-        $alreadyPaidMonths = [];
+        $alreadyPaidMonths = []; // untuk mencatat bulan yang sudah lunas agar bisa ditampilkan ke user
 
         foreach ($request->months as $m) {
-            $m = (int) $m;
+            $m = (int) $m; // 1..12
 
-            // 💡 Logika lintas tahun (jika bulan < sekarang → tahun depan)
+            // 💡 Logika tambahan (fleksibel lintas tahun)
+            // Jika bulan yang dipilih < bulan sekarang, maka dianggap tahun depan
             $selectedYear = $m < $currentMonth ? $currentYear + 1 : $currentYear;
 
-            // Format periode: YYYY-MM
+            // Format periode jadi YYYY-MM (contoh: 2025-03 atau 2026-01)
             $periode = sprintf('%04d-%02d', $selectedYear, $m);
 
-            // 🚫 Cegah duplikasi jika status masih pending atau paid
+            // ✅ Cek apakah bulan ini sudah lunas (status = paid)
             $alreadyPaid = Payment::where('member_id', $member->id)
                 ->where('periode', $periode)
-                ->whereIn('status', ['paid', 'pending']) // ❗ tambahan utama disini
+                ->where('status', 'paid')
                 ->exists();
 
             if ($alreadyPaid) {
+                // Simpan ke array untuk pesan error nanti
                 $alreadyPaidMonths[] = $periode;
-                continue;
+                continue; // skip bulan yang sudah lunas
             }
 
-            // Ambil atau buat data baru
+            // Ambil jika sudah ada data sebelumnya, kalau belum buat baru
             $payment = Payment::firstOrNew([
                 'member_id' => $member->id,
                 'periode'   => $periode,
             ]);
 
             if (!$payment->exists) {
+                // generate id string(6) unik
                 do {
                     $id = strtoupper(Str::random(6));
                 } while (Payment::whereKey($id)->exists());
@@ -80,23 +81,23 @@ class PaymentController extends Controller
             // Simpan data pembayaran
             $payment->jumlah_bayar = $jumlahBayar;
             $payment->status       = $status;    // pending
-            $payment->metode       = $metode;
-            $payment->bukti        = $buktiPath;
+            $payment->metode       = $metode;    // transfer
+            $payment->bukti        = $buktiPath; // path bukti file
             $payment->save();
         }
 
-        // ✅ Jika ada bulan yang sudah dibayar atau pending
+        // ✅ Jika ada bulan yang sudah lunas, tampilkan pesan error
         if (!empty($alreadyPaidMonths)) {
             $monthsList = collect($alreadyPaidMonths)
-                ->map(fn($p) => date('F Y', strtotime($p)))
+                ->map(fn($p) => date('F Y', strtotime($p))) // ubah ke nama bulan (ex: January 2025)
                 ->implode(', ');
 
             return back()->withErrors([
-                'months' => "Bulan {$monthsList} sudah dibayar atau sedang menunggu konfirmasi admin.",
+                'months' => "Bulan {$monthsList} sudah dibayar dan tidak dapat dibayar ulang.",
             ]);
         }
 
-        return back()->with('success', 'Pembayaran berhasil disimpan dan menunggu konfirmasi admin.');
+        return back()->with('success', 'Pembayaran berhasil disimpan.');
     }
 
     public function index(Request $request)

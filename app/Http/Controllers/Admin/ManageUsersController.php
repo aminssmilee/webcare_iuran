@@ -62,7 +62,8 @@ class ManageUsersController extends Controller
                 'whatsapp'       => $m?->no_wa ?? '',
                 'education'      => $m?->pendidikan ?? '-',
                 'occupation'     => $m?->pekerjaan ?? '-',
-                'status'         => ucfirst($u->member?->status ?? 'Pending'),
+                // 'status'         => ucfirst($u->member?->status ?? 'Pending'),
+                'status'         => ucfirst($u->status ?? 'Pending'),
                 'created_at'     => $u->created_at?->format('Y-m-d H:i'),
             ];
         });
@@ -114,7 +115,7 @@ class ManageUsersController extends Controller
             ]);
         }
 
-        return back()->with('success', 'User berhasil diperbarui!');
+        return redirect()->back()->with('success', 'User berhasil diperbarui!');
     }
 
     // =====================================================
