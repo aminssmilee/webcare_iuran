@@ -220,9 +220,28 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
                       const idx = toMonthIndex(month)
                       const checked = selectedMonths.includes(idx)
                       return (
-                        <CommandItem key={month} onSelect={() => handleToggleMonth(month)}>
-                          <Check className={`mr-2 h-4 w-4 ${checked ? "opacity-100" : "opacity-0"}`} />
-                          {month}
+                        <CommandItem
+                          key={month}
+                          onSelect={() => {
+                            if (!alreadyPaid) handleToggleMonth(month)
+                          }}
+                          className={`flex items-center justify-between ${alreadyPaid ? "pointer-events-none opacity-50 select-none" : "cursor-pointer"
+                            }`}
+                        >
+                          <div className="flex items-center">
+                            <Check
+                              className={`mr-2 h-4 w-4 ${alreadyPaid
+                                ? "opacity-100 text-green-600"
+                                : checked
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                                }`}
+                            />
+                            {month}
+                          </div>
+                          {alreadyPaid && (
+                            <span className="text-[11px] text-green-600 italic">Paid</span>
+                          )}
                         </CommandItem>
                       )
                     })}
@@ -302,12 +321,14 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
           <div className="grid gap-2">
             <Label>Status</Label>
             <div
-              className={`p-2 rounded-md text-sm font-medium
-              ${status === "On-time" ? "bg-green-100 text-green-700" :
-                  status === "Advance Payment" ? "bg-blue-100 text-blue-700" :
-                    status === "Late Payment" ? "bg-yellow-100 text-yellow-700" :
-                      status === "Incomplete" ? "bg-red-100 text-red-700" :
-                        "bg-gray-100 text-gray-700"}`}
+              className={`p-2 rounded-md text-sm font-medium ${status === "Tepat Waktu"
+                  ? "bg-green-100 text-green-700"
+                  : status === "Pembayaran rapel"
+                    ? "bg-blue-100 text-blue-700"
+                    : status === "Pembayaran terlambat"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-gray-100 text-gray-700" 
+                }`}
             >
               {status}
             </div>

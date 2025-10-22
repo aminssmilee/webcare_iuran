@@ -150,8 +150,8 @@ export function getUserColumns() {
             </Badge>
           )
         }
+      },
     },
-  },
     {
       id: "actions",
       header: "Aksi",
@@ -182,14 +182,13 @@ export function getRegistrationColumns() {
         }
 
         return (
-          <a
-            href={doc}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline"
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => window.open(doc, "_blank")}
           >
-            Lihat
-          </a>
+            Lihat Dokumen
+          </Button>
         );
       },
     },
@@ -213,7 +212,7 @@ export function getRegistrationColumns() {
           )
         }
 
-        
+
         if (status === "Rejected") {
           return (
             <Badge
@@ -440,13 +439,62 @@ export function getPaymentColumns() {
       ),
     },
 
-    // Status
+    //status pembayaran
     {
-      id: "status",
-      accessorKey: "status",
-      header: "Status",
+      id: "payment_status",
+      accessorKey: "payment_status",
+      header: "Status Pembayaran",
       cell: ({ row }) => {
-        const status = row.getValue("status")
+        const status = row.getValue("payment_status")
+
+        if (status === "Tepat Waktu") {
+          return (
+            <Badge
+              variant="outline"
+              className="w-auto border-yellow-500 text-yellow-500 flex items-center space-x-1"
+            >
+              <Loader className="w-3 h-3 animate-spin" />
+              <span>{status}</span>
+            </Badge>
+          )
+        }
+        
+        if (status === "Pembayaran Rapel") { 
+          return (
+            <Badge
+              variant="outline"
+              className="w-auto border-green-500 text-green-500 flex items-center space-x-1"
+            >
+              <Check className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          )
+        }
+
+        if (status === "Pembayaran terlambat") {
+          return (
+            <Badge
+              variant="outline"
+              className="w-auto border-red-500 text-red-500 flex items-center space-x-1"  
+            >   
+              <Info className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          )
+        }
+
+        // default fallback
+        return <Badge variant="default">{status || "-"}</Badge>
+      },
+    },
+
+    // validate_status
+    {
+      id: "vadidate_status",
+      accessorKey: "vadidate_status",
+      header: "Validasi Admin",
+      cell: ({ row }) => {
+        const status = row.getValue("vadidate_status")
 
         if (status === "Pending") {
           return (
@@ -460,7 +508,7 @@ export function getPaymentColumns() {
           )
         }
 
-        if (status === "Completed") {
+        if (status === "Aproved") {
           return (
             <Badge
               variant="outline"
@@ -472,7 +520,7 @@ export function getPaymentColumns() {
           )
         }
 
-        if (status === "Failed") {
+        if (status === "Rejected") {
           return (
             <Badge
               variant="outline"

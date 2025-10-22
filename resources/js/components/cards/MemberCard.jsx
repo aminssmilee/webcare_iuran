@@ -70,21 +70,21 @@ export function MemberCard({ id, name, job }) {
           </CardTitle>
         </CardHeader>
 
-          <CardContent className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="opacity-90">ID Member</span>
-              <span className="font-semibold">{id || "-"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="opacity-90">Nama Lengkap</span>
-              <span className="font-semibold">{name || "-"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="opacity-90">Pekerjaan</span>
-              <span className="font-semibold">{job || "-"}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-  )
+        <CardContent className="space-y-3 text-sm">
+          <div className="flex justify-between">
+            <span className="opacity-90">ID Member</span>
+            <span className="font-semibold">{id || "-"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="opacity-90">Nama Lengkap</span>
+            <span className="font-semibold">{name || "-"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="opacity-90">Pekerjaan</span>
+            <span className="font-semibold">{job || "-"}</span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

@@ -52,34 +52,34 @@ export function RegistrationValidationActionsCell({ user }) {
   const [openReject, setOpenReject] = useState(false)
 
   // ======================
-  //  ✅ Fungsi Approve (lama, tetap dipakai)
+  //   Fungsi Approve (lama, tetap dipakai)
   // ======================
   const handleApprove = () => {
-    console.log("🟢 handleApprove dijalankan untuk:", user)
+    console.log(" handleApprove dijalankan untuk:", user)
 
     Inertia.post(`/admin/registrations/${user.id}/approve`, {}, {
       preserveScroll: true,
-      preserveState: false, // 🚨 WAJIB false supaya flash props dikirim ulang
+      preserveState: false, //  WAJIB false supaya flash props dikirim ulang
       onSuccess: (page) => {
-        console.log("🟢 onSuccess:", page.props)
+        console.log(" onSuccess:", page.props)
         const flash = page.props.flash
         if (flash?.success) {
           alert(flash.success)
         } else if (flash?.error) {
           alert(flash.error)
         } else {
-          alert("✅ Proses selesai tanpa pesan flash")
+          alert("Proses selesai tanpa pesan flash")
         }
       },
       onError: (err) => {
-        console.error("🔴 onError:", err)
+        console.error(" onError:", err)
         alert("Terjadi kesalahan saat approve.")
       },
     })
   }
 
   // ======================
-  //  ✅ Fungsi Reject (diperbaiki + tambahan log)
+  //  Fungsi Reject (diperbaiki + tambahan log)
   // ======================
   const handleReject = (reason) => {
     console.log("🚀 handleReject dipanggil. Reason:", reason)
@@ -181,12 +181,12 @@ export function PaymentValidationActionsCell({ payment }) {
           <DropdownMenuItem onClick={() => handleAction("Reject")}>
             Reject
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAction("Overpaid")}>
+          {/* <DropdownMenuItem onClick={() => handleAction("Overpaid")}>
             Overpaid
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleAction("Expired")}>
             Expired
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
         </DropdownMenuContent>
       </DropdownMenu>
 
