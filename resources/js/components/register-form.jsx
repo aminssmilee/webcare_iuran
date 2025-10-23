@@ -148,9 +148,9 @@ export function RegisterForm({ className, ...props }) {
     >
       {/* Header */}
       <div className="flex flex-col items-center gap-1 text-center">
-        <h1 className="text-2xl font-bold">Create a new account</h1>
+        <h1 className="text-2xl font-bold">Buat Akun Baru</h1>
         <p className="text-sm text-muted-foreground">
-          Fill in your details to register a new account
+          Isi data Anda untuk mendaftar akun baru
         </p>
       </div>
 
@@ -158,12 +158,12 @@ export function RegisterForm({ className, ...props }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Username */}
         <div className="grid gap-2">
-          <Label htmlFor="username">Username</Label>
+          <Label htmlFor="username">Nama Lengkap</Label>
           <Input
             id="username"
             name="nama_lengkap"
             type="text"
-            placeholder="Your username"
+            placeholder="Nama lengkap Anda"
             className={errClass("nama_lengkap")}
             onChange={clearErrOnChange("nama_lengkap")}
           />
@@ -179,7 +179,7 @@ export function RegisterForm({ className, ...props }) {
             id="email"
             name="email"
             type="email"
-            placeholder="you@gmail.com"
+            placeholder="contoh@gmail.com"
             className={errClass("email")}
             onChange={clearErrOnChange("email")}
           />
@@ -190,13 +190,13 @@ export function RegisterForm({ className, ...props }) {
 
         {/* Password */}
         <div className="grid gap-2 relative">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Kata Sandi</Label>
           <div className="relative">
             <Input
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Enter password"
+              placeholder="Masukkan kata sandi"
               className={errClass("password") + " pr-10"}
               onChange={clearErrOnChange("password")}
             />
@@ -215,13 +215,13 @@ export function RegisterForm({ className, ...props }) {
 
         {/* Confirm Password */}
         <div className="grid gap-2 relative">
-          <Label htmlFor="password_confirmation">Confirm Password</Label>
+          <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi</Label>
           <div className="relative">
             <Input
               id="password_confirmation"
               name="password_confirmation"
               type={showConfirm ? "text" : "password"}
-              placeholder="Repeat password"
+              placeholder="Ulangi kata sandi"
               className={errClass("password_confirmation") + " pr-10"}
               onChange={clearErrOnChange("password_confirmation")}
             />
@@ -243,7 +243,7 @@ export function RegisterForm({ className, ...props }) {
 
       {/* ================== ROLE ================== */}
       <div className="grid gap-2">
-        <Label htmlFor="role">Role</Label>
+        <Label htmlFor="role">Peran</Label>
         <Select
           name="role"
           onValueChange={(value) => {
@@ -252,11 +252,11 @@ export function RegisterForm({ className, ...props }) {
           }}
         >
           <SelectTrigger id="role" className={cn(errClass("role"), "w-full")}>
-            <SelectValue placeholder="Select your account type" />
+            <SelectValue placeholder="Pilih jenis akun Anda" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="institution">Institution</SelectItem>
-            <SelectItem value="member">Member</SelectItem>
+            <SelectItem value="institution">Instansi</SelectItem>
+            <SelectItem value="member">Anggota</SelectItem>
           </SelectContent>
         </Select>
         <input type="hidden" id="role-hidden" name="role" />
@@ -265,7 +265,7 @@ export function RegisterForm({ className, ...props }) {
 
       {/* ================== UPLOAD FILE ================== */}
       <div className="grid gap-2">
-        <Label htmlFor="document">Upload Your Document</Label>
+        <Label htmlFor="document">Unggah Dokumen Anda</Label>
         {!fileName ? (
           <label
             htmlFor="document"
@@ -273,15 +273,15 @@ export function RegisterForm({ className, ...props }) {
           >
             {uploading ? (
               <div className="flex flex-col items-center gap-3 w-2/3">
-                <span className="text-sm text-primary">Uploading...</span>
+                <span className="text-sm text-primary">Sedang mengunggah...</span>
                 <Progress value={progress} className="w-full h-2" />
                 <small className="text-xs text-muted-foreground">{progress}%</small>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center gap-2">
                 <Upload className="h-4 w-4" />
-                <span className="text-sm">Upload a document (PDF)</span>
-                <small className="text-xs text-muted-foreground">Max 2MB</small>
+                <span className="text-sm">Unggah dokumen (PDF)</span>
+                <small className="text-xs text-muted-foreground">Maks 2MB</small>
               </div>
             )}
             <Input
@@ -317,18 +317,18 @@ export function RegisterForm({ className, ...props }) {
         {submitting ? (
           <>
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Processing...
+            Memproses...
           </>
         ) : (
-          "Register"
+          "Daftar"
         )}
       </Button>
 
       {/* Footer */}
       <div className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        Sudah punya akun?{" "}
         <a href="/member/login" className="underline underline-offset-4 hover:text-primary">
-          Sign up
+          Masuk
         </a>
       </div>
     </form>

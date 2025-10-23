@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
 import { Check, Upload, X } from "lucide-react"
-import { router } from "@inertiajs/react"
+import { router, usePage } from "@inertiajs/react" // ✅ ambil data dari props inertia
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -20,7 +20,6 @@ const MONTHS = [
 const toMonthIndex = (name) => MONTHS.indexOf(name) + 1 // 1..12
 const toLabel = (m) => MONTHS[m - 1] || ""
 
-// Rupiah helpers
 const formatRupiah = (value) => {
   const number = String(value).replace(/\D/g, "")
   if (!number) return ""
@@ -34,13 +33,16 @@ const parseRupiahToInt = (formatted) => {
 }
 
 export function PaymentMemberDialog({ open, onOpenChange, children }) {
-  const [selectedMonths, setSelectedMonths] = React.useState([]) // [1..12]
-  const [amount, setAmount] = React.useState("") // formatted string
+  // ✅ Ambil data paidMonths dari backend inertia
+  const { paidMonths = [] } = usePage().props
+
+  const [selectedMonths, setSelectedMonths] = React.useState([])
+  const [amount, setAmount] = React.useState("")
   const [note, setNote] = React.useState("")
   const [status, setStatus] = React.useState("Pending")
   const [statusMessage, setStatusMessage] = React.useState("")
   const [proofFile, setProofFile] = React.useState(null)
-  const [fileName, setFileName] = React.useState("") // tambahan
+  const [fileName, setFileName] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
   const [errors, setErrors] = React.useState({})
 
@@ -48,12 +50,14 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
 
   const handleToggleMonth = (monthName) => {
     const idx = toMonthIndex(monthName)
+    // Abaikan klik jika sudah dibayar
+    if (paidMonths.includes(idx)) return
     setSelectedMonths((prev) =>
       prev.includes(idx) ? prev.filter((m) => m !== idx) : [...prev, idx]
     )
   }
 
-  // === File handlers (tanpa alert, tampilkan error di bawah field) ===
+  // === File handler ===
   const validateFile = (file) => {
     if (!file) return { valid: false, message: "Bukti pembayaran wajib diupload." }
     const okType = /^(image\/(png|jpeg|jpg)|application\/pdf)$/i.test(file.type)
@@ -96,7 +100,7 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     setFileName("")
   }
 
-  // === Status otomatis berdasarkan pilihan bulan ===
+  // === Status otomatis ===
   React.useEffect(() => {
     if (selectedMonths.length === 0) {
       setStatus("Complete your payment confirmation")
@@ -105,7 +109,6 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     }
     const minIdx = Math.min(...selectedMonths)
     const maxIdx = Math.max(...selectedMonths)
-
     if (selectedMonths.every((m) => m === currentMonth)) {
       setStatus("On-time")
       setStatusMessage("Payment is on time for the current month.")
@@ -122,11 +125,10 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     }
   }, [selectedMonths, currentMonth])
 
-  // Reset form ketika modal dibuka
   React.useEffect(() => {
     if (open) {
       setSelectedMonths([])
-      setAmount("") 
+      setAmount("")
       setNote("")
       setStatus("Pending")
       setStatusMessage("")
@@ -136,7 +138,6 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     }
   }, [open])
 
-  // === Validasi sebelum submit (tanpa alert) ===
   const validateBeforeSubmit = () => {
     const e = {}
     if (selectedMonths.length === 0) e.months = "Pilih minimal 1 bulan."
@@ -155,27 +156,21 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
   const handleSubmit = (e) => {
     e?.preventDefault?.()
     setErrors({})
-
     const eLocal = validateBeforeSubmit()
     if (Object.keys(eLocal).length) {
       setErrors(eLocal)
       return
     }
-
     setSubmitting(true)
-
-    // Kirim FormData
     const fd = new FormData()
     selectedMonths.forEach((m) => fd.append("months[]", String(m)))
-    fd.append("amount", String(parseRupiahToInt(amount))) // angka murni
+    fd.append("amount", String(parseRupiahToInt(amount)))
     fd.append("note", note || "")
     fd.append("proof", proofFile)
-
     router.post("/member/payments", fd, {
       forceFormData: true,
       preserveScroll: true,
       onError: (serverErr) => {
-        // Error validasi dari backend (Inertia) akan mendarat di sini
         setErrors(serverErr || {})
         setSubmitting(false)
       },
@@ -189,7 +184,6 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Kalau control modal dari parent, DialogTrigger optional */}
       {children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
 
       <DialogContent className="max-w-xs lg:max-w-md rounded-lg" aria-describedby={undefined}>
@@ -219,6 +213,7 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
                     {MONTHS.map((month) => {
                       const idx = toMonthIndex(month)
                       const checked = selectedMonths.includes(idx)
+                      const alreadyPaid = paidMonths.includes(idx)
                       return (
                         <CommandItem
                           key={month}
@@ -278,10 +273,10 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
           {/* Payment Proof */}
           <div className="grid gap-2">
             <Label>Payment Proof (max 500 KB) <span className="text-red-500">*</span></Label>
-
             {!proofFile ? (
               <div
-                className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 ${errors.proof ? "border-red-500" : ""}`}
+                className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 ${errors.proof ? "border-red-500" : ""
+                  }`}
                 onClick={() => document.getElementById("payment-proof")?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
@@ -299,25 +294,24 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
                 />
               </div>
             ) : (
-              <div className="relative flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-3">
-                <div className="flex flex-col">
-                  <Label className="font-semibold text-sm">Uploaded Document</Label>
-                  <span className="text-sm text-green-700">{fileName}</span>
-                </div>
+              <div className="relative flex flex-col items-start justify-between rounded-lg border px-4 py-3">
                 <button
                   type="button"
                   onClick={handleRemoveFile}
-                  className="absolute top-2 right-2 rounded-full p-1 hover:bg-red-100 transition"
+                  className="self-end top-2 right-2 rounded-full px-1 py-1 transition"
                 >
-                  <X className="h-4 w-4 text-red-500" />
+                  <Trash className="h-4 w-4 text-red-500" />
                 </button>
+                <div className="flex flex-row items-center gap-2">
+                  <File className="h-4 w-4 text-green-700" />
+                  <span className="text-sm text-green-700">{fileName}</span>
+                </div>
               </div>
             )}
-
             {errors.proof && <p className="text-sm text-red-500">{errors.proof}</p>}
           </div>
 
-          {/* Status (auto) */}
+          {/* Status */}
           <div className="grid gap-2">
             <Label>Status</Label>
             <div
