@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 // app/Models/Payment.php
-    
+
 class Payment extends Model
 {
     protected $table = 'payments';
@@ -23,6 +23,8 @@ class Payment extends Model
         'status',         // pending|paid|rejected
         'metode',         // cash|transfer
         'bukti',          // path file
+        'payment_status', // Pending|Completed|Failed
+        'note',           // nullable text
     ];
 
     protected $casts = [
@@ -33,5 +35,7 @@ class Payment extends Model
     {
         return $this->belongsTo(\App\Models\Member::class, 'member_id', 'id');
     }
+    protected $attributes = [
+        'payment_status' => 'Pending',
+    ];
 }
-

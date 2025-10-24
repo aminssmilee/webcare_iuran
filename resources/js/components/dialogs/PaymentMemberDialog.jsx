@@ -12,6 +12,9 @@ import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
 import { Check, Upload, X } from "lucide-react"
 import { router } from "@inertiajs/react"
 
+// ===========================================================
+// 🗓️ Konstanta & Helper Function
+// ===========================================================
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
@@ -28,24 +31,31 @@ const formatRupiah = (value) => {
     style: "currency", currency: "IDR", minimumFractionDigits: 0,
   }).format(parseInt(number, 10))
 }
+
 const parseRupiahToInt = (formatted) => {
   const raw = String(formatted).replace(/[^\d]/g, "")
   return raw ? parseInt(raw, 10) : 0
 }
 
-export function PaymentMemberDialog({ open, onOpenChange, children }) {
+// ===========================================================
+// 💰 Komponen Utama PaymentMemberDialog
+// ===========================================================
+export function PaymentMemberDialog({ open, onOpenChange, children, paidMonths = [] }) {
   const [selectedMonths, setSelectedMonths] = React.useState([]) // [1..12]
   const [amount, setAmount] = React.useState("") // formatted string
   const [note, setNote] = React.useState("")
   const [status, setStatus] = React.useState("Pending")
   const [statusMessage, setStatusMessage] = React.useState("")
   const [proofFile, setProofFile] = React.useState(null)
-  const [fileName, setFileName] = React.useState("") // tambahan
+  const [fileName, setFileName] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
   const [errors, setErrors] = React.useState({})
 
   const currentMonth = new Date().getMonth() + 1 // 1..12
 
+  // =======================================================
+  // 🧩 Handler untuk pilih bulan
+  // =======================================================
   const handleToggleMonth = (monthName) => {
     const idx = toMonthIndex(monthName)
     setSelectedMonths((prev) =>
@@ -53,7 +63,9 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     )
   }
 
-  // === File handlers (tanpa alert, tampilkan error di bawah field) ===
+  // =======================================================
+  // 📂 File upload handlers
+  // =======================================================
   const validateFile = (file) => {
     if (!file) return { valid: false, message: "Bukti pembayaran wajib diupload." }
     const okType = /^(image\/(png|jpeg|jpg)|application\/pdf)$/i.test(file.type)
@@ -96,7 +108,9 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     setFileName("")
   }
 
-  // === Status otomatis berdasarkan pilihan bulan ===
+  // =======================================================
+  // 🔄 Update status otomatis berdasarkan pilihan bulan
+  // =======================================================
   React.useEffect(() => {
     if (selectedMonths.length === 0) {
       setStatus("Complete your payment confirmation")
@@ -111,22 +125,32 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
       setStatusMessage("Payment is on time for the current month.")
     } else if (selectedMonths.every((m) => m > currentMonth)) {
       setStatus("Advance Payment")
-      setStatusMessage(`User is paying ${selectedMonths.length} month(s) in advance starting from ${toLabel(minIdx)}.`)
+      setStatusMessage(
+        `User is paying ${selectedMonths.length} month(s) in advance starting from ${toLabel(minIdx)}.`
+      )
     } else if (selectedMonths.every((m) => m < currentMonth)) {
       setStatus("Late Payment")
-      setStatusMessage(`User is late by ${selectedMonths.length} month(s). Last paid month was ${toLabel(maxIdx)}.`)
+      setStatusMessage(
+        `User is late by ${selectedMonths.length} month(s). Last paid month was ${toLabel(maxIdx)}.`
+      )
     } else {
       const lateCount = selectedMonths.filter((m) => m < currentMonth).length
       setStatus("Incomplete")
-      setStatusMessage(`Mixed selection: ${lateCount} late month(s) and ${selectedMonths.length - lateCount} future month(s).`)
+      setStatusMessage(
+        `Mixed selection: ${lateCount} late month(s) and ${
+          selectedMonths.length - lateCount
+        } future month(s).`
+      )
     }
   }, [selectedMonths, currentMonth])
 
-  // Reset form ketika modal dibuka
+  // =======================================================
+  // 🔁 Reset form setiap kali modal dibuka
+  // =======================================================
   React.useEffect(() => {
     if (open) {
       setSelectedMonths([])
-      setAmount("") 
+      setAmount("")
       setNote("")
       setStatus("Pending")
       setStatusMessage("")
@@ -136,7 +160,9 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     }
   }, [open])
 
-  // === Validasi sebelum submit (tanpa alert) ===
+  // =======================================================
+  // ✅ Validasi sebelum submit
+  // =======================================================
   const validateBeforeSubmit = () => {
     const e = {}
     if (selectedMonths.length === 0) e.months = "Pilih minimal 1 bulan."
@@ -152,6 +178,9 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     return e
   }
 
+  // =======================================================
+  // 🚀 Submit data
+  // =======================================================
   const handleSubmit = (e) => {
     e?.preventDefault?.()
     setErrors({})
@@ -164,10 +193,9 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
 
     setSubmitting(true)
 
-    // Kirim FormData
     const fd = new FormData()
     selectedMonths.forEach((m) => fd.append("months[]", String(m)))
-    fd.append("amount", String(parseRupiahToInt(amount))) // angka murni
+    fd.append("amount", String(parseRupiahToInt(amount)))
     fd.append("note", note || "")
     fd.append("proof", proofFile)
 
@@ -175,7 +203,6 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
       forceFormData: true,
       preserveScroll: true,
       onError: (serverErr) => {
-        // Error validasi dari backend (Inertia) akan mendarat di sini
         setErrors(serverErr || {})
         setSubmitting(false)
       },
@@ -187,9 +214,11 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     })
   }
 
+  // =======================================================
+  // 🖼️ Render UI
+  // =======================================================
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Kalau control modal dari parent, DialogTrigger optional */}
       {children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
 
       <DialogContent className="max-w-xs lg:max-w-md rounded-lg" aria-describedby={undefined}>
@@ -198,7 +227,7 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          {/* Month Period */}
+          {/* Bulan Pembayaran */}
           <div className="grid gap-2">
             <Label>Month Period <span className="text-red-500">*</span></Label>
             <Popover>
@@ -206,10 +235,16 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
                 <Button
                   type="button"
                   variant="outline"
-                  className={`w-full justify-between text-sm font-normal py-2 ${errors.months ? "border-red-500" : ""}`}
+                  className={`w-full justify-between text-sm font-normal py-2 ${
+                    errors.months ? "border-red-500" : ""
+                  }`}
                 >
                   {selectedMonths.length > 0
-                    ? selectedMonths.slice().sort((a, b) => a - b).map(toLabel).join(", ")
+                    ? selectedMonths
+                        .slice()
+                        .sort((a, b) => a - b)
+                        .map(toLabel)
+                        .join(", ")
                     : "Select months"}
                 </Button>
               </PopoverTrigger>
@@ -219,27 +254,33 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
                     {MONTHS.map((month) => {
                       const idx = toMonthIndex(month)
                       const checked = selectedMonths.includes(idx)
+                      const isAlreadyPaid = paidMonths.includes(idx)
+
                       return (
                         <CommandItem
                           key={month}
                           onSelect={() => {
-                            if (!alreadyPaid) handleToggleMonth(month)
+                            if (!isAlreadyPaid) handleToggleMonth(month)
                           }}
-                          className={`flex items-center justify-between ${alreadyPaid ? "pointer-events-none opacity-50 select-none" : "cursor-pointer"
-                            }`}
+                          className={`flex items-center justify-between ${
+                            isAlreadyPaid
+                              ? "pointer-events-none opacity-50 select-none"
+                              : "cursor-pointer"
+                          }`}
                         >
                           <div className="flex items-center">
                             <Check
-                              className={`mr-2 h-4 w-4 ${alreadyPaid
-                                ? "opacity-100 text-green-600"
-                                : checked
+                              className={`mr-2 h-4 w-4 ${
+                                isAlreadyPaid
+                                  ? "opacity-100 text-green-600"
+                                  : checked
                                   ? "opacity-100"
                                   : "opacity-0"
-                                }`}
+                              }`}
                             />
                             {month}
                           </div>
-                          {alreadyPaid && (
+                          {isAlreadyPaid && (
                             <span className="text-[11px] text-green-600 italic">Paid</span>
                           )}
                         </CommandItem>
@@ -252,7 +293,7 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
             {errors.months && <p className="text-red-500 text-xs">{errors.months}</p>}
           </div>
 
-          {/* Amount */}
+          {/* Nominal */}
           <div className="grid gap-2">
             <Label>Amount <span className="text-red-500">*</span></Label>
             <Input
@@ -265,7 +306,7 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
             {errors.amount && <p className="text-red-500 text-xs">{errors.amount}</p>}
           </div>
 
-          {/* Note */}
+          {/* Catatan */}
           <div className="grid gap-2">
             <Label>Note</Label>
             <Textarea
@@ -275,13 +316,17 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
             />
           </div>
 
-          {/* Payment Proof */}
+          {/* Bukti Pembayaran */}
           <div className="grid gap-2">
-            <Label>Payment Proof (max 500 KB) <span className="text-red-500">*</span></Label>
+            <Label>
+              Payment Proof (max 500 KB) <span className="text-red-500">*</span>
+            </Label>
 
             {!proofFile ? (
               <div
-                className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 ${errors.proof ? "border-red-500" : ""}`}
+                className={`border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 ${
+                  errors.proof ? "border-red-500" : ""
+                }`}
                 onClick={() => document.getElementById("payment-proof")?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
@@ -317,18 +362,19 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
             {errors.proof && <p className="text-sm text-red-500">{errors.proof}</p>}
           </div>
 
-          {/* Status (auto) */}
+          {/* Status Pembayaran */}
           <div className="grid gap-2">
             <Label>Status</Label>
             <div
-              className={`p-2 rounded-md text-sm font-medium ${status === "Tepat Waktu"
+              className={`p-2 rounded-md text-sm font-medium ${
+                status === "On-time"
                   ? "bg-green-100 text-green-700"
-                  : status === "Pembayaran rapel"
-                    ? "bg-blue-100 text-blue-700"
-                    : status === "Pembayaran terlambat"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-gray-100 text-gray-700" 
-                }`}
+                  : status === "Advance Payment"
+                  ? "bg-blue-100 text-blue-700"
+                  : status === "Late Payment"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-gray-100 text-gray-700"
+              }`}
             >
               {status}
             </div>

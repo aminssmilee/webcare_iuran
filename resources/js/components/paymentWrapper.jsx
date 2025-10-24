@@ -10,6 +10,10 @@ export function PaymentWrapper({ profileComplete }) {
   const { props } = usePage()
   const user = props.auth?.user || {}
   const member = props.member || null
+  const payments = props.payments || [] // ✅ tambahkan
+
+  // ambil semua bulan yang sudah dibayar dari data
+  const paidMonths = payments.map(p => p.month_number || p.month || null).filter(Boolean)
 
   const [openPayment, setOpenPayment] = React.useState(false)
   const [openProfile, setOpenProfile] = React.useState(false)
@@ -35,10 +39,13 @@ export function PaymentWrapper({ profileComplete }) {
         Pay This Month
       </Button>
 
-      {/* Modal Payment */}
-      <PaymentMemberDialog open={openPayment} onOpenChange={setOpenPayment} />
+      {/* ✅ kirim paidMonths ke dialog */}
+      <PaymentMemberDialog
+        open={openPayment}
+        onOpenChange={setOpenPayment}
+        paidMonths={paidMonths}
+      />
 
-      {/* Modal Edit Profile */}
       <EditProfileDialog
         open={openProfile}
         onOpenChange={setOpenProfile}

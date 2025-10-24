@@ -3,7 +3,13 @@ import { Inertia } from "@inertiajs/inertia"
 import { usePage } from "@inertiajs/react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 import { DataTable } from "@/components/data-table/DataTable"
 import { getPaymentColumns } from "@/components/data-table/table-colums"
 import { Search, LogOut } from "lucide-react"
@@ -17,7 +23,9 @@ export default function MemberPayment() {
   const { props } = usePage()
   const { user, member, payments, profileComplete } = props
 
-  // console.log("Payments dari Laravel:", payments)
+  // 🧩 Debug: Pastikan data payments dari Laravel muncul
+  console.log("🧾 Payments dari server:", payments)
+
   const [query, setQuery] = useState("")
   const [timeRange, setTimeRange] = useState("90d")
   const [filteredPayments, setFilteredPayments] = useState(payments || [])
@@ -26,36 +34,33 @@ export default function MemberPayment() {
 
   // 🔍 Filter client-side
   useEffect(() => {
-  if (!payments) return
+    if (!payments) return
 
-  const q = query.trim().toLowerCase()
-  let filtered = payments
+    const q = query.trim().toLowerCase()
+    let filtered = payments
 
-  // 🔍 Fitur pencarian
-  if (q !== "") {
-    filtered = filtered.filter(p =>
-      (p.month && p.month.toLowerCase().includes(q)) ||
-      (p.amount && p.amount.toLowerCase().includes(q)) ||
-      (p.dueDate && p.dueDate.toLowerCase().includes(q))
-    )
-  }
+    // 🔍 Fitur pencarian berdasarkan mount, amount, dueDate
+    if (q !== "") {
+      filtered = filtered.filter(
+        (p) =>
+          (p.mount && p.mount.toLowerCase().includes(q)) ||
+          (p.amount && p.amount.toLowerCase().includes(q)) ||
+          (p.dueDate && p.dueDate.toLowerCase().includes(q))
+      )
+    }
 
-  // 🔄 Filter by range (7d, 30d, 90d) – opsional
-  if (timeRange) {
-    const now = new Date()
-    const cutoff = new Date()
-    if (timeRange === "7d") cutoff.setDate(now.getDate() - 7)
-    if (timeRange === "30d") cutoff.setDate(now.getDate() - 30)
-    if (timeRange === "90d") cutoff.setDate(now.getDate() - 90)
+    // 🔄 Filter by range (7d, 30d, 90d)
+    if (timeRange) {
+      const now = new Date()
+      const cutoff = new Date()
+      if (timeRange === "7d") cutoff.setDate(now.getDate() - 7)
+      if (timeRange === "30d") cutoff.setDate(now.getDate() - 30)
+      if (timeRange === "90d") cutoff.setDate(now.getDate() - 90)
+      // optional: kalau mau filter berdasarkan createdAt, tambahkan disini
+    }
 
-    // NOTE: kalau tidak ada field `created_at`, skip aja bagian ini
-    // filtered = filtered.filter(p => new Date(p.created_at) >= cutoff)
-  }
-
-  setFilteredPayments(filtered)
-}, [query, timeRange, payments])
-
-
+    setFilteredPayments(filtered)
+  }, [query, timeRange, payments])
 
   // 🔄 Logout handler
   function handleLogout() {
@@ -76,7 +81,11 @@ export default function MemberPayment() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
         {/* LEFT COLUMN */}
         <div className="flex flex-col gap-6">
-          <MemberCard id={member?.id || "-"} name={user?.name || "-"} job={member?.pekerjaan || "-"} />
+          <MemberCard
+            id={member?.id || "-"}
+            name={user?.name || "-"}
+            job={member?.pekerjaan || "-"}
+          />
           <ProfileInfo user={user} member={member} onEdit={() => setOpenEdit(true)} />
         </div>
 
@@ -118,13 +127,19 @@ export default function MemberPayment() {
             </div>
 
             <div className="px-4 lg:px-2">
+              {/* ✅ Table sekarang sudah membaca payment_status dengan benar */}
               <DataTable data={filteredPayments} columns={getPaymentColumns()} />
             </div>
           </div>
         </div>
       </div>
 
-      <EditProfileDialog open={openEdit} onOpenChange={setOpenEdit} member={member} user={user} />
+      <EditProfileDialog
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+        member={member}
+        user={user}
+      />
     </div>
   )
 }
