@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
+    /**
+     * Simpan pembayaran baru oleh member
+     */
     public function store(Request $request)
     {
         $user   = Auth::user();
@@ -21,6 +24,7 @@ class PaymentController extends Controller
             return back()->withErrors(['member' => 'Profil member belum lengkap.'])->withInput();
         }
 
+        // 🧾 Validasi input
         $request->validate([
             'months'    => ['required', 'array', 'min:1'],
             'months.*'  => ['integer', 'between:1,12'],
@@ -31,14 +35,14 @@ class PaymentController extends Controller
             'proof.max' => 'Ukuran file maksimal 500KB.',
         ]);
 
-        // Simpan file bukti pembayaran
+        // 📂 Simpan bukti pembayaran ke storage/public/payment_proofs
         $buktiPath = $request->file('proof')->store('payment_proofs', 'public');
 
         $currentMonth = now()->month;
         $currentYear  = now()->year;
         $jumlahBayar  = (float) $request->amount;
         $metode       = 'transfer';
-        $status       = 'pending'; // status validasi admin default
+        $status       = 'pending'; // default: menunggu validasi admin
 
         $alreadyPaidMonths = [];
 
@@ -47,7 +51,7 @@ class PaymentController extends Controller
             $selectedYear = $m < $currentMonth ? $currentYear + 1 : $currentYear;
             $periode = sprintf('%04d-%02d', $selectedYear, $m);
 
-            // Cek jika bulan sudah dibayar dan disetujui (paid)
+            // ⛔ Cek apakah sudah dibayar (status 'paid')
             $alreadyPaid = Payment::where('member_id', $member->id)
                 ->where('periode', $periode)
                 ->where('status', 'paid')
@@ -58,7 +62,7 @@ class PaymentController extends Controller
                 continue;
             }
 
-            // 🔍 Tentukan status pembayaran otomatis (Tepat Waktu / Rapel / Terlambat)
+            // 🧠 Tentukan status otomatis
             if ($m == $currentMonth) {
                 $paymentStatus = "Tepat Waktu";
             } elseif ($m > $currentMonth) {
@@ -67,7 +71,7 @@ class PaymentController extends Controller
                 $paymentStatus = "Pembayaran Terlambat";
             }
 
-            // Ambil atau buat data baru
+            // 🆕 Ambil atau buat data baru
             $payment = Payment::firstOrNew([
                 'member_id' => $member->id,
                 'periode'   => $periode,
@@ -80,16 +84,17 @@ class PaymentController extends Controller
                 $payment->id = $id;
             }
 
-            // Simpan data
+            // 💾 Simpan data pembayaran
             $payment->jumlah_bayar   = $jumlahBayar;
             $payment->metode         = $metode;
             $payment->bukti          = $buktiPath;
-            $payment->status         = $status;          // Validasi admin: Pending
-            $payment->payment_status = $paymentStatus;   // Otomatis: Tepat Waktu / Rapel / Terlambat
+            $payment->status         = $status;
+            $payment->payment_status = $paymentStatus;
             $payment->note           = $request->note;
             $payment->save();
         }
 
+        // ⚠️ Jika ada bulan yang sudah dibayar
         if (!empty($alreadyPaidMonths)) {
             $monthsList = collect($alreadyPaidMonths)
                 ->map(fn($p) => date('F Y', strtotime($p)))
@@ -103,36 +108,42 @@ class PaymentController extends Controller
         return back()->with('success', 'Pembayaran berhasil disimpan dan menunggu validasi admin.');
     }
 
+    /**
+     * Tampilkan daftar pembayaran member
+     */
     public function index(Request $request)
     {
-        $payments = Payment::where('member_id', Auth::user()->member->id)
+        $member = Auth::user()->member;
+
+        // 🧩 Ambil semua pembayaran milik member
+        $payments = Payment::where('member_id', $member->id)
             ->orderByDesc('created_at')
-            ->get()
-            ->map(function ($p) {
-                return [
-                    'id' => $p->id,
-                    'mount' => date('F Y', strtotime($p->periode)),
-                    'amount' => 'Rp ' . number_format($p->jumlah_bayar, 0, ',', '.'),
-                    'paidAt' => optional($p->created_at)->format('d M Y H:i'),
-                    'dueDate' => date('t M Y', strtotime($p->periode)),
-                    'paymentProof' => $p->bukti ? asset('storage/' . $p->bukti) : null,
-                    'note' => $p->note ?? '-',
+            ->get([
+                'id', 'periode', 'jumlah_bayar', 'bukti',
+                'status', 'note', 'payment_status', 'created_at'
+            ]);
 
-                    // 🟢 INI BAGIAN PENTING — pastikan diambil dari model
-                    'payment_status' => $p->getAttribute('payment_status') ?? 'Pending',
+        // 🔄 Ubah format data untuk dikirim ke frontend (Inertia)
+        $mapped = $payments->map(function ($p) {
+            return [
+                'id'              => $p->id,
+                'month'           => date('F Y', strtotime($p->periode)),
+                'amount'          => 'Rp ' . number_format($p->jumlah_bayar, 0, ',', '.'),
+                'paidAt'          => optional($p->created_at)->format('d M Y H:i'),
+                'dueDate'         => date('t M Y', strtotime($p->periode)),
+                'paymentProof'    => $p->bukti ? asset('storage/' . $p->bukti) : null,
+                'note'            => $p->note ?? '-',
+                'payment_status'  => $p->payment_status ?? 'Pending',
+                'status'          => ucfirst($p->status ?? 'Pending'),
+            ];
+        });
 
-                    'status' => ucfirst($p->status ?? 'Pending'),
-                ];
-            });
-
-        // 🧩 Debug log di Laravel log file (storage/logs/laravel.log)
-        Log::info('📦 PAYMENT DEBUG DATA:', $payments->take(3)->toArray());
-
+        // 🖥️ Kirim ke Inertia
         return Inertia::render('MemberPayment', [
-            'user' => Auth::user(),
-            'member' => Auth::user()->member,
-            'payments' => $payments,
-            'profileComplete' => Auth::user()->member?->isComplete(),
+            'user'            => Auth::user(),
+            'member'          => $member,
+            'payments'        => $mapped,
+            'profileComplete' => $member?->isComplete(),
         ]);
     }
 }

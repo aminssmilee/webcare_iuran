@@ -25,6 +25,8 @@ export default function MemberPayment() {
 
   // 🧩 Debug: Pastikan data payments dari Laravel muncul
   console.log("🧾 Payments dari server:", payments)
+  console.log(payments)
+
 
   const [query, setQuery] = useState("")
   const [timeRange, setTimeRange] = useState("90d")

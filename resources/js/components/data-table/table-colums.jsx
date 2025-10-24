@@ -394,7 +394,7 @@ export function getPaymentColumns() {
       header: "Status Pembayaran",
       cell: ({ row }) => {
         const status = row.getValue("payment_status") || "-"
-        console.log("DEBUG PAYMENT STATUS:", status)
+        
 
         // 🟡 Tepat Waktu
         if (status === "Tepat Waktu") {
