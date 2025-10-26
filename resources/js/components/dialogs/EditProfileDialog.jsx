@@ -20,6 +20,8 @@ import {
 import { router } from "@inertiajs/react"
 
 export function EditProfileDialog({ open, onOpenChange, member, user }) {
+  const isInstitution = user?.role === "institution"
+
   const [data, setData] = useState({
     name: "",
     nik: "",
@@ -36,7 +38,6 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
   // Prefill saat modal dibuka
   useEffect(() => {
     if (!open) {
-      // bersihkan error ketika modal ditutup
       setErrors({})
       return
     }
@@ -58,11 +59,14 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
     setErrors({})
     const eLocal = {}
 
+    // ===============================
+    // 🔎 VALIDASI DINAMIS BERDASARKAN ROLE
+    // ===============================
     if (!data.name) eLocal.name = "Nama wajib diisi."
     if (!data.nik) eLocal.nik = "NIK wajib diisi."
     else if (!/^[0-9]{16}$/.test(data.nik)) eLocal.nik = "NIK harus 16 digit."
     if (!data.tgl_lahir) eLocal.tgl_lahir = "Tanggal lahir wajib diisi."
-    if (!data.jenis_kelamin) eLocal.jenis_kelamin = "Jenis kelamin wajib dipilih."
+    if (!isInstitution && !data.jenis_kelamin) eLocal.jenis_kelamin = "Jenis kelamin wajib dipilih."
     if (!data.alamat) eLocal.alamat = "Alamat wajib diisi."
     if (!data.no_wa) eLocal.no_wa = "Nomor WhatsApp wajib diisi."
     else if (!/^08[0-9]{8,13}$/.test(data.no_wa)) eLocal.no_wa = "Nomor WhatsApp tidak valid."
@@ -71,8 +75,6 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
 
     if (Object.keys(eLocal).length) {
       setErrors(eLocal)
-      const firstKey = Object.keys(eLocal)[0]
-      e.currentTarget.querySelector(`[name="${firstKey}"]`)?.focus()
       return
     }
 
@@ -81,14 +83,12 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
     router.post("/member/profile/update", data, {
       preserveScroll: true,
       onError: (serverErrors) => {
-        // error validasi dari backend (Inertia) ditampilkan di bawah field
         setErrors(serverErrors || {})
         setSubmitting(false)
       },
       onSuccess: () => {
         setSubmitting(false)
-        onOpenChange(false) // tutup modal
-        // opsi: reload sebagian props kalau perlu:
+        onOpenChange(false)
         router.reload({ only: ["member", "user"] })
       },
       onFinish: () => setSubmitting(false),
@@ -99,7 +99,9 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]" aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle>Edit Profil</DialogTitle>
+          <DialogTitle>
+            Edit Profil {isInstitution ? "Institusi" : "Anggota"}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
@@ -122,16 +124,13 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
               name="nik"
               value={data.nik}
               onChange={(e) => {
-                // hanya izinkan mengetik jika NIK sebelumnya kosong
-                if (!member?.nik) {
-                  setData({ ...data, nik: e.target.value })
-                }
+                if (!member?.nik) setData({ ...data, nik: e.target.value })
               }}
               placeholder="Masukkan NIK"
-              readOnly={!!member?.nik} // kalau sudah ada → kunci input
+              readOnly={!!member?.nik}
               className={`${member?.nik
-                  ? "bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
-                  : "bg-white dark:bg-gray-900"
+                ? "bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
+                : "bg-white dark:bg-gray-900"
                 } ${errors.nik ? "border-red-500" : ""}`}
             />
             {member?.nik ? (
@@ -139,26 +138,12 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
                 NIK sudah terisi dan tidak dapat diubah.
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                Masukkan NIK Anda (16 digit).
-              </p>
+              <p className="text-xs text-muted-foreground">Masukkan NIK Anda (16 digit).</p>
             )}
             {errors.nik && <p className="text-red-500 text-sm">{errors.nik}</p>}
           </div>
 
-          {/* <div>
-            <Label>NIK</Label>
-            <Input
-              name="nik"
-              value={data.nik}
-              readOnly
-              className={`bg-gray-100 dark:bg-gray-800 cursor-not-allowed ${errors.nik ? "border-red-500" : ""
-                }`}
-            />
-            {errors.nik && <p className="text-red-500 text-sm">{errors.nik}</p>}
-          </div> */}
-
-          {/* Tanggal Lahir */}
+          {/* Tanggal Lahir (tetap untuk semua) */}
           <div>
             <Label>Tanggal Lahir</Label>
             <Input
@@ -171,25 +156,27 @@ export function EditProfileDialog({ open, onOpenChange, member, user }) {
             {errors.tgl_lahir && <p className="text-red-500 text-sm">{errors.tgl_lahir}</p>}
           </div>
 
-          {/* Jenis Kelamin */}
-          <div>
-            <Label>Jenis Kelamin</Label>
-            <Select
-              value={data.jenis_kelamin}
-              onValueChange={(val) => setData({ ...data, jenis_kelamin: val })}
-            >
-              <SelectTrigger className={errors.jenis_kelamin ? "border-red-500" : ""}>
-                <SelectValue placeholder="Pilih jenis kelamin" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="L">Laki-laki</SelectItem>
-                <SelectItem value="P">Perempuan</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.jenis_kelamin && (
-              <p className="text-red-500 text-sm">{errors.jenis_kelamin}</p>
-            )}
-          </div>
+          {/* Jenis Kelamin (khusus member perorangan) */}
+          {!isInstitution && (
+            <div>
+              <Label>Jenis Kelamin</Label>
+              <Select
+                value={data.jenis_kelamin}
+                onValueChange={(val) => setData({ ...data, jenis_kelamin: val })}
+              >
+                <SelectTrigger className={errors.jenis_kelamin ? "border-red-500" : ""}>
+                  <SelectValue placeholder="Pilih jenis kelamin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="L">Laki-laki</SelectItem>
+                  <SelectItem value="P">Perempuan</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.jenis_kelamin && (
+                <p className="text-red-500 text-sm">{errors.jenis_kelamin}</p>
+              )}
+            </div>
+          )}
 
           {/* Alamat */}
           <div>
