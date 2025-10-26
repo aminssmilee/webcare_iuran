@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\DashboardController;
 // use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\Events\Verified;
+use App\Http\Controllers\Admin\FeeController;
 
 
 // ===================================
@@ -141,6 +142,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         ->name('admin.payment.reject');
     Route::post('/payment-validation/{id}/overpaid', [PaymentValidationController::class, 'overpaid']);
     Route::post('/payment-validation/{id}/expired', [PaymentValidationController::class, 'expired']);
+
+    // 🧾 Manajemen Iuran
+    Route::get('/fees', [FeeController::class, 'index'])->name('admin.fees');
+    Route::post('/fees', [FeeController::class, 'store'])->name('admin.fees.store');
 
     // 🧾 Laporan
     Route::get('/reports', fn() => Inertia::render('Reports'))->name('admin.reports');

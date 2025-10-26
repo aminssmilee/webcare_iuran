@@ -7,14 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Payment;
+use App\Models\Fee;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    /**
-     * Simpan pembayaran baru oleh member
-     */
     public function store(Request $request)
     {
         $user   = Auth::user();
@@ -24,126 +21,156 @@ class PaymentController extends Controller
             return back()->withErrors(['member' => 'Profil member belum lengkap.'])->withInput();
         }
 
-        // 🧾 Validasi input
         $request->validate([
-            'months'    => ['required', 'array', 'min:1'],
-            'months.*'  => ['integer', 'between:1,12'],
-            'amount'    => ['required', 'numeric', 'min:1000'],
-            'note'      => ['nullable', 'string', 'max:500'],
-            'proof'     => ['required', 'file', 'mimes:jpeg,jpg,png,pdf', 'max:500'],
-        ], [
-            'proof.max' => 'Ukuran file maksimal 500KB.',
+            'months' => ['required', 'array', 'min:1'],
+            'proof'  => ['required', 'file', 'mimes:jpeg,jpg,png,pdf', 'max:500'],
+            'note'   => ['nullable', 'string', 'max:500'],
         ]);
 
-        // 📂 Simpan bukti pembayaran ke storage/public/payment_proofs
         $buktiPath = $request->file('proof')->store('payment_proofs', 'public');
+        $currentYear = now()->year;
 
-        $currentMonth = now()->month;
-        $currentYear  = now()->year;
-        $jumlahBayar  = (float) $request->amount;
-        $metode       = 'transfer';
-        $status       = 'pending'; // default: menunggu validasi admin
+        // ✅ Mapping role user → tipe fee
+        $memberType = match ($user->role) {
+            'institution' => 'institusi',
+            'member'      => 'perorangan',
+            default       => 'perorangan',
+        };
 
-        $alreadyPaidMonths = [];
+        // ✅ Ambil fee berdasarkan role user & tahun
+        $fee = Fee::where('member_type', $memberType)
+            ->where('tahun', $currentYear)
+            ->first();
 
-        foreach ($request->months as $m) {
-            $m = (int) $m;
-            $selectedYear = $m < $currentMonth ? $currentYear + 1 : $currentYear;
-            $periode = sprintf('%04d-%02d', $selectedYear, $m);
-
-            // ⛔ Cek apakah sudah dibayar (status 'paid')
-            $alreadyPaid = Payment::where('member_id', $member->id)
-                ->where('periode', $periode)
-                ->where('status', 'paid')
-                ->exists();
-
-            if ($alreadyPaid) {
-                $alreadyPaidMonths[] = $periode;
-                continue;
-            }
-
-            // 🧠 Tentukan status otomatis
-            if ($m == $currentMonth) {
-                $paymentStatus = "Tepat Waktu";
-            } elseif ($m > $currentMonth) {
-                $paymentStatus = "Pembayaran Rapel";
-            } else {
-                $paymentStatus = "Pembayaran Terlambat";
-            }
-
-            // 🆕 Ambil atau buat data baru
-            $payment = Payment::firstOrNew([
-                'member_id' => $member->id,
-                'periode'   => $periode,
-            ]);
-
-            if (!$payment->exists) {
-                do {
-                    $id = strtoupper(Str::random(6));
-                } while (Payment::whereKey($id)->exists());
-                $payment->id = $id;
-            }
-
-            // 💾 Simpan data pembayaran
-            $payment->jumlah_bayar   = $jumlahBayar;
-            $payment->metode         = $metode;
-            $payment->bukti          = $buktiPath;
-            $payment->status         = $status;
-            $payment->payment_status = $paymentStatus;
-            $payment->note           = $request->note;
-            $payment->save();
+        if (!$fee) {
+            return back()->withErrors(['fee' => 'Data iuran untuk tahun ini belum diatur oleh admin.']);
         }
 
-        // ⚠️ Jika ada bulan yang sudah dibayar
-        if (!empty($alreadyPaidMonths)) {
-            $monthsList = collect($alreadyPaidMonths)
-                ->map(fn($p) => date('F Y', strtotime($p)))
-                ->implode(', ');
+        // 🧮 Hitung total pembayaran berdasarkan jumlah bulan yang dipilih
+        $selectedMonths = array_map('intval', $request->months);
+        sort($selectedMonths);
+        $jumlahBulan = count($selectedMonths);
+        $nominalPerBulan = $fee->nominal / 12;
+        $jumlahBayar = $jumlahBulan * $nominalPerBulan;
 
+        // 🕒 Tentukan periode awal–akhir
+        $periodeAwal  = sprintf('%04d-%02d', $currentYear, $selectedMonths[0]);
+        $periodeAkhir = sprintf('%04d-%02d', $currentYear, end($selectedMonths));
+
+        // ============================================================
+        // 🚫 Cegah duplikasi pembayaran bulan yang sama
+        // ============================================================
+        $paidMonths = Payment::where('member_id', $member->id)
+            ->whereIn('status', ['paid', 'pending']) // jangan boleh bayar ulang meskipun pending
+            ->get()
+            ->flatMap(function ($p) {
+                $start = (int) date('n', strtotime($p->periode_awal));
+                $end   = (int) date('n', strtotime($p->periode_akhir));
+                return range($start, $end);
+            })
+            ->unique()
+            ->toArray();
+
+        $duplikat = array_intersect($selectedMonths, $paidMonths);
+
+        if (!empty($duplikat)) {
+            $bulanTerdeteksi = collect($duplikat)->map(fn($m) => date('F', mktime(0, 0, 0, $m, 1)))->implode(', ');
             return back()->withErrors([
-                'months' => "Bulan {$monthsList} sudah dibayar dan tidak dapat dibayar ulang.",
+                'months' => "Beberapa bulan sudah dibayar atau masih menunggu validasi admin: {$bulanTerdeteksi}."
             ]);
         }
+
+        // ============================================================
+        // 🧾 Simpan pembayaran baru
+        // ============================================================
+        Payment::create([
+            'id'             => strtoupper(Str::random(6)),
+            'member_id'      => $member->id,
+            'periode'        => null,
+            'periode_awal'   => $periodeAwal,
+            'periode_akhir'  => $periodeAkhir,
+            'jumlah_bayar'   => $jumlahBayar,
+            'metode'         => 'transfer',
+            'bukti'          => $buktiPath,
+            'status'         => 'pending',
+            'payment_status' => 'Tepat Waktu',
+            'note'           => $request->note,
+        ]);
 
         return back()->with('success', 'Pembayaran berhasil disimpan dan menunggu validasi admin.');
     }
 
-    /**
-     * Tampilkan daftar pembayaran member
-     */
+    // ============================================================
+    // 📊 Halaman utama daftar pembayaran
+    // ============================================================
     public function index(Request $request)
     {
-        $member = Auth::user()->member;
+        $user = Auth::user();
+        $member = $user->member;
+        $currentYear = now()->year;
 
-        // 🧩 Ambil semua pembayaran milik member
-        $payments = Payment::where('member_id', $member->id)
+        // Tentukan tipe member dari role
+        $memberType = match ($user->role) {
+            'institution' => 'institusi',
+            'member'      => 'perorangan',
+            default       => 'perorangan',
+        };
+
+        // Ambil data fee sesuai tipe dan tahun berjalan
+        $fee = Fee::where('member_type', $memberType)
+            ->where('tahun', $currentYear)
+            ->first();
+
+        // Ambil data pembayaran member (jika sudah ada)
+        $payments = Payment::where('member_id', $member->id ?? null)
             ->orderByDesc('created_at')
-            ->get([
-                'id', 'periode', 'jumlah_bayar', 'bukti',
-                'status', 'note', 'payment_status', 'created_at'
-            ]);
+            ->get();
 
-        // 🔄 Ubah format data untuk dikirim ke frontend (Inertia)
+        // Mapping data pembayaran ke bentuk lebih mudah dibaca frontend
         $mapped = $payments->map(function ($p) {
             return [
-                'id'              => $p->id,
-                'month'           => date('F Y', strtotime($p->periode)),
-                'amount'          => 'Rp ' . number_format($p->jumlah_bayar, 0, ',', '.'),
-                'paidAt'          => optional($p->created_at)->format('d M Y H:i'),
-                'dueDate'         => date('t M Y', strtotime($p->periode)),
-                'paymentProof'    => $p->bukti ? asset('storage/' . $p->bukti) : null,
-                'note'            => $p->note ?? '-',
-                'payment_status'  => $p->payment_status ?? 'Pending',
-                'status'          => ucfirst($p->status ?? 'Pending'),
+                'id' => $p->id,
+                'month' => $p->periode_awal && $p->periode_akhir
+                    ? date('F Y', strtotime($p->periode_awal)) . ' - ' . date('F Y', strtotime($p->periode_akhir))
+                    : ($p->periode_awal
+                        ? date('F Y', strtotime($p->periode_awal))
+                        : '-'),
+                'amount' => 'Rp ' . number_format($p->jumlah_bayar, 0, ',', '.'),
+                'status' => ucfirst($p->status),
+                'paymentProof' => $p->bukti ? asset('storage/' . $p->bukti) : null,
             ];
         });
 
-        // 🖥️ Kirim ke Inertia
+        // ✅ Ambil semua bulan yang sudah dibayar (status = paid/pending)
+        $paidMonths = Payment::where('member_id', $member->id ?? null)
+            ->whereIn('status', ['paid', 'pending'])
+            ->get()
+            ->flatMap(function ($p) {
+                $start = (int) date('n', strtotime($p->periode_awal));
+                $end   = (int) date('n', strtotime($p->periode_akhir));
+                return range($start, $end);
+            })
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // === ✅ Struktur fee yang dikirim ke frontend ===
+        $formattedFee = $fee
+            ? [
+                'nominal_tahunan'   => (float) $fee->nominal,
+                'nominal_per_bulan' => floor($fee->nominal / 12), // dibulatkan ke bawah agar angka utuh
+                'tahun'             => $fee->tahun,
+                'member_type'       => $fee->member_type,
+            ]
+            : null;
+
+        // === Return ke halaman Inertia ===
         return Inertia::render('MemberPayment', [
-            'user'            => Auth::user(),
-            'member'          => $member,
-            'payments'        => $mapped,
-            'profileComplete' => $member?->isComplete(),
+            'user'       => $user,
+            'member'     => $member,
+            'payments'   => $mapped,
+            'fee'        => $formattedFee,
+            'paidMonths' => $paidMonths, // ✅ dikirim ke React
         ]);
     }
 }

@@ -19,6 +19,8 @@ class Payment extends Model
         'id',
         'member_id',
         'periode',        // 'YYYY-MM'
+        'periode_awal',   // 'YYYY-MM'
+        'periode_akhir',  // 'YYYY-MM'
         'jumlah_bayar',   // decimal(12,2)
         'status',         // pending|paid|rejected
         'metode',         // cash|transfer
