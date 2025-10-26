@@ -6,7 +6,10 @@ import {
 } from "./table-action"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Check, Info, Loader } from "lucide-react"
+// import { Check, Info, Loader } from "lucide-react"
+// import { Check, Archive, AlertCircle, Loader } from "lucide-react"
+import { Check, Archive, AlertCircle, Loader, Info } from "lucide-react"
+
 
 // ========================================================
 // 📋 MANAGE USER TABLE COLUMNS
@@ -394,23 +397,9 @@ export function getPaymentColumns() {
       header: "Status Pembayaran",
       cell: ({ row }) => {
         const status = row.getValue("payment_status") || "-"
-        
 
-        // 🟡 Tepat Waktu
-        if (status === "Tepat Waktu") {
-          return (
-            <Badge
-              variant="outline"
-              className="border-yellow-500 text-yellow-500 bg-yellow-50 flex items-center gap-1"
-            >
-              <Loader className="w-3 h-3 animate-spin" />
-              <span>{status}</span>
-            </Badge>
-          )
-        }
-
-        // 🟢 Pembayaran Rapel (bayar untuk bulan depan)
-        if (status === "Pembayaran Rapel") {
+        // 🟢 Rapel Tepat Waktu
+        if (status.startsWith("Rapel") && !status.includes("Terlambat")) {
           return (
             <Badge
               variant="outline"
@@ -422,20 +411,59 @@ export function getPaymentColumns() {
           )
         }
 
-        // 🔴 Pembayaran Terlambat (bayar untuk bulan sebelumnya)
+        // 🔴 Rapel Terlambat
+        if (status.startsWith("Rapel") && status.includes("Terlambat")) {
+          return (
+            <Badge
+              variant="outline"
+              className="border-red-500 text-red-600 bg-red-50 flex items-center gap-1"
+            >
+              <AlertCircle className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          )
+        }
+
+        // 🟢 Tepat Waktu
+        if (status === "Tepat Waktu") {
+          return (
+            <Badge
+              variant="outline"
+              className="border-green-500 text-green-600 bg-green-50 flex items-center gap-1"
+            >
+              <Check className="w-3 h-3" />
+              <span>{status}</span>
+            </Badge>
+          )
+        }
+
+        // 🔴 Terlambat
         if (status === "Pembayaran Terlambat") {
           return (
             <Badge
               variant="outline"
               className="border-red-500 text-red-600 bg-red-50 flex items-center gap-1"
             >
-              <Info className="w-3 h-3" />
+              <AlertCircle className="w-3 h-3" />
               <span>{status}</span>
             </Badge>
           )
         }
 
-        // 🟣 Default: kalau belum ditentukan
+        // 🟡 Pembayaran di Awal (Bulan Depan)
+        if (status === "Pembayaran Di Awal (Bulan Depan)") {
+          return (
+            <Badge
+              variant="outline"
+              className="border-yellow-500 text-yellow-600 bg-yellow-50 flex items-center gap-1"
+            >
+              <Loader className="w-3 h-3 animate-spin" />
+              <span>{status}</span>
+            </Badge>
+          )
+        }
+
+        // ⚪ Default
         return (
           <Badge
             variant="outline"
