@@ -109,8 +109,8 @@ export default function PaymentValidation() {
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
                     <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Failed">Failed</SelectItem>
+                    <SelectItem value="Completed">Approved</SelectItem>
+                    <SelectItem value="Failed">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
 

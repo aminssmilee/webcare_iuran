@@ -1,11 +1,16 @@
 // columns.js
-import { UserActionsCell, RegistrationValidationActionsCell, PaymentValidationActionsCell } from "./table-action";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Check, AlertTriangle, Info, Loader } from "lucide-react";
+import {
+  UserActionsCell,
+  RegistrationValidationActionsCell,
+  PaymentValidationActionsCell,
+} from "./table-action"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Check, Info, Loader } from "lucide-react"
 
-
-//  Manage User
+// ========================================================
+// 📋 MANAGE USER TABLE COLUMNS
+// ========================================================
 export function getUserColumns() {
   return [
     {
@@ -39,9 +44,7 @@ export function getUserColumns() {
         )
       },
     },
-
     { id: "roles", accessorKey: "roles", header: "Type Anggota" },
-
     {
       id: "nik",
       accessorKey: "nik",
@@ -53,7 +56,7 @@ export function getUserColumns() {
     {
       id: "birthPlaceDate",
       accessorKey: "birthPlaceDate",
-      header: "TTL", // kalau mau tetap "Birth Place / Date" silakan ganti
+      header: "TTL",
       cell: ({ row }) => (
         <span className="text-sm">{row.getValue("birthPlaceDate") || "-"}</span>
       ),
@@ -80,10 +83,8 @@ export function getUserColumns() {
       header: "No WhatsApp",
       cell: ({ row }) => {
         const wa = row.getValue("whatsapp")
-        if (!wa) {
-          return <span className="text-sm text-muted-foreground">-</span>
-        }
-        // normalisasi ke format wa.me (62…)
+        if (!wa) return <span className="text-sm text-muted-foreground">-</span>
+
         const digits = String(wa).replace(/\D/g, "")
         const e164 =
           digits.startsWith("62")
@@ -91,6 +92,7 @@ export function getUserColumns() {
             : digits.startsWith("0")
               ? `62${digits.slice(1)}`
               : `62${digits}`
+
         return (
           <a
             href={`https://wa.me/${e164}`}
@@ -139,7 +141,6 @@ export function getUserColumns() {
         }
 
         if (status === "Active") {
-          // ganti Approved
           return (
             <Badge
               variant="outline"
@@ -150,6 +151,8 @@ export function getUserColumns() {
             </Badge>
           )
         }
+
+        return <Badge variant="secondary">{status || "-"}</Badge>
       },
     },
     {
@@ -160,26 +163,22 @@ export function getUserColumns() {
   ]
 }
 
-//  Registration Validation
+// ========================================================
+// 🧾 REGISTRATION VALIDATION TABLE COLUMNS
+// ========================================================
 export function getRegistrationColumns() {
   return [
     { id: "name", accessorKey: "name", header: "Nama" },
     { id: "email", accessorKey: "email", header: "Email" },
     { id: "roles", accessorKey: "roles", header: "Type Anggota" },
-    // { id: "idNumber", accessorKey: "idNumber", header: "ID Anggota" },
     { id: "submittedAt", accessorKey: "submittedAt", header: "Tanggal Pendaftaran" },
     {
       id: "dokumen",
       accessorKey: "dokumen",
       header: "Dokumen",
       cell: ({ row }) => {
-        // Gunakan row.original supaya ambil langsung dari data asli inertia
-        const doc = row.original.dokumen;
-        console.log("Dokumen path row:", doc);
-
-        if (!doc) {
-          return <span className="text-gray-400">No file</span>;
-        }
+        const doc = row.original.dokumen
+        if (!doc) return <span className="text-gray-400">No file</span>
 
         return (
           <Button
@@ -189,13 +188,12 @@ export function getRegistrationColumns() {
           >
             Lihat Dokumen
           </Button>
-        );
+        )
       },
     },
-
     {
       id: "validationStatus",
-      accessorKey: "validationStatus", // pastikan sama dengan data field
+      accessorKey: "validationStatus",
       header: "Status Validasi",
       cell: ({ row }) => {
         const status = row.getValue("validationStatus")
@@ -212,14 +210,13 @@ export function getRegistrationColumns() {
           )
         }
 
-
         if (status === "Rejected") {
           return (
             <Badge
               variant="outline"
               className="border-red-500 text-red-600 bg-red-50 flex items-center gap-1"
             >
-              <Check className="w-3 h-3" />
+              <Info className="w-3 h-3" />
               <span>{status}</span>
             </Badge>
           )
@@ -232,12 +229,19 @@ export function getRegistrationColumns() {
         )
       },
     },
-
-    { id: "actions", header: "Aksi", cell: ({ row }) => <RegistrationValidationActionsCell user={row.original} /> },
-  ];
+    {
+      id: "actions",
+      header: "Aksi",
+      cell: ({ row }) => (
+        <RegistrationValidationActionsCell user={row.original} />
+      ),
+    },
+  ]
 }
 
-//  Payment Validation
+// ========================================================
+// 💰 PAYMENT VALIDATION TABLE COLUMNS
+// ========================================================
 export function getPaymentValidationColumns() {
   return [
     { id: "id_member", accessorKey: "id_member", header: "ID Member" },
@@ -245,38 +249,14 @@ export function getPaymentValidationColumns() {
     { id: "email", accessorKey: "email", header: "Email" },
     { id: "mount", accessorKey: "mount", header: "Periode Bulan" },
     { id: "amount", accessorKey: "amount", header: "Jumlah Pembayaran" },
-
-    // Kolom tanggal pembayaran
     {
       id: "paidAt",
       accessorKey: "paidAt",
       header: "Tanggal Pembayaran",
-      cell: ({ row }) => {
-        const date = row.getValue("paidAt")
-        return date ? (
-          <span className="text-sm">{date}</span>
-        ) : (
-          <span className="text-sm text-muted-foreground">-</span>
-        )
-      },
+      cell: ({ row }) => (
+        <span className="text-sm">{row.getValue("paidAt") || "-"}</span>
+      ),
     },
-
-    // Kolom tenggat (sementara tidak ada datanya)
-    // {
-    //   id: "dueDate",
-    //   accessorKey: "dueDate",
-    //   header: "Tenggat",
-    //   cell: ({ row }) => {
-    //     const date = row.getValue("dueDate")
-    //     return date ? (
-    //       <span className="text-sm">{date}</span>
-    //     ) : (
-    //       <span className="text-sm text-muted-foreground">-</span>
-    //     )
-    //   },
-    // },
-
-    // Kolom bukti bayar
     {
       id: "paymentProof",
       accessorKey: "paymentProof",
@@ -295,18 +275,6 @@ export function getPaymentValidationColumns() {
         )
       },
     },
-
-    // Kolom keterangan tambahan (note)
-    // {
-    //   id: "note",
-    //   accessorKey: "note",
-    //   header: "Keterangan",
-    //   cell: ({ row }) => (
-    //     <span className="text-sm">{row.getValue("note") || "-"}</span>
-    //   ),
-    // },
-
-    // Kolom status pembayaran (warna + ikon)
     {
       id: "status",
       accessorKey: "status",
@@ -326,26 +294,27 @@ export function getPaymentValidationColumns() {
           )
         }
 
-        if (status === "Completed") {
+        if (["Completed"].includes(status)) {
+
           return (
             <Badge
               variant="outline"
               className="border-green-500 text-green-500 flex items-center gap-1"
             >
               <Check className="w-3 h-3" />
-              <span>{status}</span>
+              <span>Approved</span>
             </Badge>
           )
         }
 
-        if (status === "Failed") {
+        if (["Failed", "failed"].includes(status)) {
           return (
             <Badge
               variant="outline"
               className="border-red-500 text-red-500 flex items-center gap-1"
             >
               <Info className="w-3 h-3" />
-              <span>{status}</span>
+              <span>Rejected</span>
             </Badge>
           )
         }
@@ -353,8 +322,6 @@ export function getPaymentValidationColumns() {
         return <Badge variant="secondary">{status}</Badge>
       },
     },
-
-    // Kolom aksi: approve/reject
     {
       id: "actions",
       header: "Aksi",
@@ -365,57 +332,42 @@ export function getPaymentValidationColumns() {
   ]
 }
 
-//  Payment List
+// ========================================================
+// 📅 PAYMENT LIST TABLE COLUMNS
+// ========================================================
 export function getPaymentColumns() {
   return [
     { id: "mount", accessorKey: "mount", header: "Periode Bulan" },
-
     { id: "amount", accessorKey: "amount", header: "Jumlah" },
-
     {
       id: "paidAt",
       accessorKey: "paidAt",
       header: "Tanggal Pembayaran",
-      cell: ({ row }) => {
-        const date = row.getValue("paidAt")
-        return date ? (
-          <span className="text-sm">{date}</span>
-        ) : (
-          <span className="text-sm text-muted-foreground">-</span>
-        )
-      },
+      cell: ({ row }) => (
+        <span className="text-sm">{row.getValue("paidAt") || "-"}</span>
+      ),
     },
-
     {
       id: "dueDate",
       accessorKey: "dueDate",
       header: "Tenggat",
-      cell: ({ row }) => {
-        const date = row.getValue("dueDate")
-        return date ? (
-          <span className="text-sm">{date}</span>
-        ) : (
-          <span className="text-sm text-muted-foreground">-</span>
-        )
-      },
+      cell: ({ row }) => (
+        <span className="text-sm">{row.getValue("dueDate") || "-"}</span>
+      ),
     },
-
-    // Bukti bayar
     {
       id: "paymentProof",
       accessorKey: "paymentProof",
       header: "Bukti Bayar",
       cell: ({ row }) => {
         const doc = row.getValue("paymentProof")
-        if (!doc) {
-          return <span className="text-sm text-muted-foreground">-</span>
-        }
+        if (!doc) return <span className="text-sm text-muted-foreground">-</span>
 
-        // Support path relatif (mis. "/storage/payments/xxx.pdf")
         const href =
           typeof doc === "string" && doc.startsWith("http")
             ? doc
-            : `${window.location.origin}${String(doc).startsWith("/") ? "" : "/"}${doc}`
+            : `${window.location.origin}${String(doc).startsWith("/") ? "" : "/"
+            }${doc}`
 
         return (
           <Button
@@ -428,8 +380,6 @@ export function getPaymentColumns() {
         )
       },
     },
-
-    // Keterangan
     {
       id: "note",
       accessorKey: "note",
@@ -438,32 +388,33 @@ export function getPaymentColumns() {
         <span className="text-sm">{row.getValue("note") || "-"}</span>
       ),
     },
-
-    //status pembayaran
     {
       id: "payment_status",
       accessorKey: "payment_status",
       header: "Status Pembayaran",
       cell: ({ row }) => {
-        const status = row.getValue("payment_status")
+        const status = row.getValue("payment_status") || "-"
+        
 
+        // 🟡 Tepat Waktu
         if (status === "Tepat Waktu") {
           return (
             <Badge
               variant="outline"
-              className="w-auto border-yellow-500 text-yellow-500 flex items-center space-x-1"
+              className="border-yellow-500 text-yellow-500 bg-yellow-50 flex items-center gap-1"
             >
               <Loader className="w-3 h-3 animate-spin" />
               <span>{status}</span>
             </Badge>
           )
         }
-        
-        if (status === "Pembayaran Rapel") { 
+
+        // 🟢 Pembayaran Rapel (bayar untuk bulan depan)
+        if (status === "Pembayaran Rapel") {
           return (
             <Badge
               variant="outline"
-              className="w-auto border-green-500 text-green-500 flex items-center space-x-1"
+              className="border-green-500 text-green-600 bg-green-50 flex items-center gap-1"
             >
               <Check className="w-3 h-3" />
               <span>{status}</span>
@@ -471,36 +422,42 @@ export function getPaymentColumns() {
           )
         }
 
-        if (status === "Pembayaran terlambat") {
+        // 🔴 Pembayaran Terlambat (bayar untuk bulan sebelumnya)
+        if (status === "Pembayaran Terlambat") {
           return (
             <Badge
               variant="outline"
-              className="w-auto border-red-500 text-red-500 flex items-center space-x-1"  
-            >   
+              className="border-red-500 text-red-600 bg-red-50 flex items-center gap-1"
+            >
               <Info className="w-3 h-3" />
               <span>{status}</span>
             </Badge>
           )
         }
 
-        // default fallback
-        return <Badge variant="default">{status || "-"}</Badge>
+        // 🟣 Default: kalau belum ditentukan
+        return (
+          <Badge
+            variant="outline"
+            className="border-gray-400 text-gray-600 bg-gray-50 flex items-center gap-1"
+          >
+            <span>{status}</span>
+          </Badge>
+        )
       },
     },
-
-    // validate_status
     {
-      id: "vadidate_status",
-      accessorKey: "vadidate_status",
+      id: "status",
+      accessorKey: "status",
       header: "Validasi Admin",
       cell: ({ row }) => {
-        const status = row.getValue("vadidate_status")
+        const status = row.getValue("status")
 
         if (status === "Pending") {
           return (
             <Badge
               variant="outline"
-              className="w-auto border-yellow-500 text-yellow-500 flex items-center space-x-1"
+              className="border-yellow-500 text-yellow-500 flex items-center gap-1"
             >
               <Loader className="w-3 h-3 animate-spin" />
               <span>{status}</span>
@@ -508,31 +465,32 @@ export function getPaymentColumns() {
           )
         }
 
-        if (status === "Aproved") {
+        // if (status === "Approved") {
+        if (["Completed"].includes(status)) {
+
           return (
             <Badge
               variant="outline"
-              className="w-auto border-green-500 text-green-500 flex items-center space-x-1"
+              className="border-green-500 text-green-500 flex items-center gap-1"
             >
               <Check className="w-3 h-3" />
-              <span>{status}</span>
+              <span>Approved</span>
             </Badge>
           )
         }
 
-        if (status === "Rejected") {
+        if (["Failed", "failed"].includes(status)) {
           return (
             <Badge
               variant="outline"
-              className="w-auto border-red-500 text-red-500 flex items-center space-x-1"
+              className="border-red-500 text-red-600 bg-red-50 flex items-center gap-1"
             >
               <Info className="w-3 h-3" />
-              <span>{status}</span>
+              <span>Rejected</span>
             </Badge>
           )
         }
 
-        // default fallback
         return <Badge variant="default">{status || "-"}</Badge>
       },
     },

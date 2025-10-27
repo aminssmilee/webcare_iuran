@@ -62,13 +62,14 @@ class MemberController extends Controller
                     : null;
 
                 return [
-                    'mount'        => $labelBulan ?? $periode,          // <— kolom "Month Period"
-                    'amount'       => $amount,                           // Rp 50.000
-                    'dueDate'      => $dueDate,                          // "31 Jan 2025"
+                    'mount'        => $labelBulan ?? $periode,
+                    'amount'       => $amount,
+                    'dueDate'      => $dueDate,
                     'paidAt'       => optional($p->created_at)->format('d M Y H:i'),
-                    'paymentProof' => $proof,                             // URL bukti
-                    'note'         => null,                               // belum ada kolom di DB → tampil "-"
-                    'status'       => $status,                            // Pending/Completed/Failed
+                    'paymentProof' => $proof,
+                    'note'         => $p->note ?? '-',                 // ✅ tampilkan note jika ada
+                    'status'       => $status,
+                    'payment_status' => $p->payment_status ?? '-',     // ✅ tambahkan ini
                 ];
             });
 
