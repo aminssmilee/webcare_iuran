@@ -22,6 +22,8 @@ import { SectionCards } from "@/components/section-cards"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { router } from "@inertiajs/react"
 
+
+
 export default function Dashboard() {
   // Ambil data dari server
   const { props } = usePage()
@@ -53,7 +55,7 @@ export default function Dashboard() {
         {/* Main content */}
         <div className="flex flex-1 flex-col">
           <CardHeader className="relative">
-            {/* Toggle Range */}
+            {/* Toggle Rentang Waktu */}
             <div className="absolute right-6 top-4">
               <ToggleGroup
                 type="single"
@@ -62,7 +64,7 @@ export default function Dashboard() {
                   if (v && v !== timeRange) {
                     setTimeRange(v)
                     router.visit(`/admin/dashboard?range=${v}`, {
-                      preserveState: true,   // biar sidebar dll tidak reload
+                      preserveState: true,   // agar sidebar dll tidak reload
                       preserveScroll: true,
                       replace: true,         // update URL tanpa reload penuh
                     })
@@ -71,16 +73,18 @@ export default function Dashboard() {
                 variant="outline"
                 className="hidden md:flex"
               >
-                <ToggleGroupItem value="90d" className="h-8 px-2.5">Last 3 months</ToggleGroupItem>
-                <ToggleGroupItem value="30d" className="h-8 px-2.5">Last 30 days</ToggleGroupItem>
-                <ToggleGroupItem value="7d" className="h-8 px-2.5">Last 7 days</ToggleGroupItem>
+                <ToggleGroupItem value="90d" className="h-8 px-2.5">3 Bulan Terakhir</ToggleGroupItem>
+                <ToggleGroupItem value="30d" className="h-8 px-2.5">30 Hari Terakhir</ToggleGroupItem>
+                <ToggleGroupItem value="7d" className="h-8 px-2.5">7 Hari Terakhir</ToggleGroupItem>
               </ToggleGroup>
 
-              {/* Select (mobile) */}
-              <Select value={timeRange} onValueChange={(v) => {
-                if (v && v !== timeRange) {
-                  setTimeRange(v)
-                  router.visit(`/admin/dashboard?range=${v}`, {
+              {/* Pilihan (Mobile) */}
+              <Select
+                value={timeRange}
+                onValueChange={(v) => {
+                  if (v && v !== timeRange) {
+                    setTimeRange(v)
+                    router.visit(`/admin/dashboard?range=${v}`, {
                       preserveState: true,
                       preserveScroll: true,
                       replace: true,
@@ -89,22 +93,22 @@ export default function Dashboard() {
                 }}
               >
                 <SelectTrigger className="md:hidden flex w-40">
-                  <SelectValue placeholder="Select range" />
+                  <SelectValue placeholder="Pilih rentang waktu" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="90d">Last 3 months</SelectItem>
-                  <SelectItem value="30d">Last 30 days</SelectItem>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
+                  <SelectItem value="90d">3 Bulan Terakhir</SelectItem>
+                  <SelectItem value="30d">30 Hari Terakhir</SelectItem>
+                  <SelectItem value="7d">7 Hari Terakhir</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </CardHeader>
 
           <div className="flex flex-col gap-4 py-4 md:py-6">
-            {/* Cards Statistik */}
+            {/* Kartu Statistik */}
             <SectionCards metrics={metrics} />
 
-            {/* Chart */}
+            {/* Grafik */}
             <div className="px-4 lg:px-6">
               <ChartAreaInteractive timeRange={timeRange} data={chart} />
             </div>

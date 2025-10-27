@@ -52,18 +52,22 @@ export default function MemberPayment() {
       )
     }
 
-    // 🔄 Filter by range (7d, 30d, 90d)
-    if (timeRange) {
-      const now = new Date()
-      const cutoff = new Date()
-      if (timeRange === "7d") cutoff.setDate(now.getDate() - 7)
-      if (timeRange === "30d") cutoff.setDate(now.getDate() - 30)
-      if (timeRange === "90d") cutoff.setDate(now.getDate() - 90)
-      // optional: kalau mau filter berdasarkan createdAt, tambahkan disini
-    }
+  // 🔄 Filter by range (7d, 30d, 90d) – opsional
+  if (timeRange) {
+    const now = new Date()
+    const cutoff = new Date()
+    if (timeRange === "7d") cutoff.setDate(now.getDate() - 7)
+    if (timeRange === "30d") cutoff.setDate(now.getDate() - 30)
+    if (timeRange === "90d") cutoff.setDate(now.getDate() - 90)
 
-    setFilteredPayments(filtered)
-  }, [query, timeRange, payments])
+    // NOTE: kalau tidak ada field `created_at`, skip aja bagian ini
+    // filtered = filtered.filter(p => new Date(p.created_at) >= cutoff)
+  }
+
+  setFilteredPayments(filtered)
+}, [query, timeRange, payments])
+
+
 
   // 🔄 Logout handler
   function handleLogout() {
@@ -74,26 +78,26 @@ export default function MemberPayment() {
   return (
     <div className="flex flex-1 flex-col px-6 pt-10 lg:px-18 lg:py-20 gap-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-xl lg:text-2xl font-bold ml-2">Member Information</h1>
+        <h1 className="text-xl lg:text-2xl font-bold ml-2">Informasi Anggota</h1>
         <Button variant="link" onClick={handleLogout} disabled={loggingOut}>
           <LogOut className="h-4 w-4 mr-2" />
-          {loggingOut ? "Logging out..." : "Logout"}
+          {loggingOut ? "Memproses..." : "Keluar"}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-        {/* LEFT COLUMN */}
+        {/* KOLOM KIRI */}
         <div className="flex flex-col gap-6">
           <MemberCard
             id={member?.id || "-"}
             name={user?.name || "-"}
             job={member?.pekerjaan || "-"}
           />
-          <MemberAnnouncement announcements={announcements} />
           <ProfileInfo user={user} member={member} onEdit={() => setOpenEdit(true)} />
+          <MemberAnnouncement announcements={announcements} />
         </div>
 
-        {/* RIGHT COLUMN */}
+        {/* KOLOM KANAN */}
         <div className="col-span-2 flex flex-col border border-foreground/10 rounded-lg">
           <CardHeader className="lg:px-6 w-full flex flex-col gap-2">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 w-full">
@@ -103,7 +107,7 @@ export default function MemberPayment() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="h-8 w-full pl-8 border border-foreground/20 bg-transparent shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
-                    placeholder="Cari disini..."
+                    placeholder="Cari di sini..."
                   />
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
@@ -111,13 +115,13 @@ export default function MemberPayment() {
 
               <div className="flex items-center gap-2">
                 <Select value={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="flex w-40" aria-label="Select a value">
-                    <SelectValue placeholder="Last 3 months" />
+                  <SelectTrigger className="flex w-40" aria-label="Pilih rentang waktu">
+                    <SelectValue placeholder="3 bulan terakhir" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="90d">Last 3 months</SelectItem>
-                    <SelectItem value="30d">Last 30 days</SelectItem>
-                    <SelectItem value="7d">Last 7 days</SelectItem>
+                    <SelectItem value="90d">3 bulan terakhir</SelectItem>
+                    <SelectItem value="30d">30 hari terakhir</SelectItem>
+                    <SelectItem value="7d">7 hari terakhir</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -126,7 +130,7 @@ export default function MemberPayment() {
 
           <div className="flex flex-col gap-4 p-4 md:gap-2 md:py-2">
             <div className="flex items-center justify-between p-4">
-              <h1 className="text-xl font-semibold">Payment List</h1>
+              <h1 className="text-xl font-semibold">Daftar Pembayaran</h1>
               <PaymentWrapper profileComplete={profileComplete} />
             </div>
 
@@ -145,5 +149,6 @@ export default function MemberPayment() {
         user={user}
       />
     </div>
+
   )
 }
