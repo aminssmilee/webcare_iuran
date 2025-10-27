@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail   // ✅ ubah bari
         'role',
         'status',
         'dokumen',
+        'email_verified_at',
     ];
 
     /**

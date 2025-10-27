@@ -5,22 +5,19 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Member;
+use App\Models\EmailOtp;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-// use Illuminate\Support\Facades\Storage;
-// use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\URL;
+use App\Mail\OtpMail;
 
 class RegisterController extends Controller
 {
     public function store(Request $request)
     {
-        // 🧩 Debug (optional): pastikan file sampai
         if (!$request->hasFile('dokumen')) {
-            dd('❌ File tidak terkirim ke server', $request->allFiles());
+            return back()->withErrors(['dokumen' => 'File dokumen wajib diupload.']);
         }
 
         try {
@@ -36,66 +33,70 @@ class RegisterController extends Controller
                 'password' => 'required|string|min:6|confirmed',
                 'role' => 'required|in:institution,member',
                 'dokumen'  => 'required|file|mimes:pdf|max:2048',
-            ], [
-                'email.regex'      => 'Email harus minimal 8 karakter dan menggunakan domain @gmail.com.',
-                'email.unique'     => 'Email ini sudah terdaftar.',
-                'dokumen.required' => 'Dokumen wajib diupload.',
-                'dokumen.mimes'    => 'Dokumen harus berformat PDF.',
-                'dokumen.max'      => 'Ukuran dokumen maksimal 2MB.',
-                'role.required'    => 'Silakan pilih jenis akun Anda.',
-                'role.in'          => 'Role tidak valid.',
             ]);
 
-            // ✅ Simpan file dokumen ke storage
+            // ✅ Simpan dokumen
             $path = $request->file('dokumen')->store('dokumen', 'public');
 
-            // ✅ Tentukan role berdasarkan input
-            // Institution akan otomatis jadi "admin" jika mau diatur begitu
-            $userRole = $validated['role'];
-
-            // ✅ Simpan user baru
+            // ✅ Buat user baru (belum aktif & belum verifikasi)
             $user = User::create([
                 'id'       => (string) Str::uuid(),
                 'name'     => $validated['nama_lengkap'],
                 'email'    => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role'     => $userRole,
+                'role'     => $validated['role'],
                 'status'   => 'pending',
                 'dokumen'  => $path,
             ]);
 
-            // ✅ Simpan ke tabel member (kalau role member)
-            // if ($userRole === 'member') {
-            //     Member::create([
-            //         'id'           => strtoupper(Str::random(6)),
-            //         'user_id'      => $user->id,
-            //         'nama_lengkap' => $validated['nama_lengkap'],
-            //     ]);
-            // }
+            // ==============================
+            // 🔐 OTP VERIFICATION SYSTEM
+            // ==============================
 
-            // ✅ Kirim email verifikasi
-            $verifyUrl = URL::temporarySignedRoute(
-                'verification.verify',
-                now()->addMinutes(60),
-                ['id' => $user->id, 'hash' => sha1($user->email)]
-            );
+            // 1️⃣ Hapus OTP lama yang belum kadaluarsa (hindari spam)
+            EmailOtp::where('user_id', $user->id)
+                ->where('is_used', false)
+                ->delete();
 
-            Mail::to($user->email)->send(new \App\Mail\VerifyEmailCustom($user, $verifyUrl));
+            // 2️⃣ Cek cooldown (boleh kirim OTP lagi setelah 30 detik)
+            $lastOtp = EmailOtp::where('user_id', $user->id)
+                ->where('created_at', '>', now()->subSeconds(30))
+                ->first();
 
+            if ($lastOtp) {
+                return back()->withErrors([
+                    'otp' => 'Tunggu 30 detik sebelum meminta OTP baru.'
+                ]);
+            }
 
-            // ✅ Redirect ke halaman notifikasi verifikasi
-            return redirect()->route('verification.notice')
-                ->with('success', 'Registrasi berhasil! Silakan cek email kamu untuk verifikasi.');
+            // 3️⃣ Generate kode OTP 6 digit
+            $otpCode = random_int(100000, 999999);
+
+            // 4️⃣ Simpan ke database (hash, bukan plaintext)
+            EmailOtp::create([
+                'user_id'    => $user->id,
+                'otp_hash'   => Hash::make($otpCode),
+                'channel'    => 'email',
+                'purpose'    => 'register',
+                'expires_at' => now()->addMinutes(10),
+                'is_used'    => false,
+            ]);
+
+            // 5️⃣ Kirim email OTP (kode asli dikirim via Mail)
+            Mail::to($user->email)->send(new OtpMail($otpCode));
+
+            // 6️⃣ Arahkan ke halaman verifikasi OTP
+            return redirect()
+                ->route('otp.verify.page', ['email' => $user->email])
+                ->with('success', 'Registrasi berhasil! Silakan cek email kamu untuk kode OTP verifikasi.');
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
+
         } catch (\Exception $e) {
-            dd([
-                '💥 Error message' => $e->getMessage(),
-                '📂 File' => $e->getFile(),
-                '📍 Line' => $e->getLine(),
-            ]);
+            Log::error('💥 Gagal registrasi user: ' . $e->getMessage());
+
+            return back()->with('error', 'Terjadi kesalahan pada sistem. Silakan coba lagi.');
         }
-            Log::error('Gagal registrasi user: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat registrasi. Silakan coba lagi.');
-        }   
+    }
 }

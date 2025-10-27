@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\Events\Verified;
 use App\Http\Controllers\Admin\FeeController;
 use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Auth\OtpVerificationController;
 
 
 // ===================================
@@ -56,6 +57,12 @@ Route::middleware('guest')->prefix('member')->group(function () {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])
         ->name('password.update');
 });
+
+// ===================================
+// OTP Verification Routes
+// ===================================
+Route::get('/verify-otp', [OtpVerificationController::class, 'show'])->name('otp.verify.page');
+Route::post('/verify-otp', [OtpVerificationController::class, 'verify'])->name('otp.verify.submit');
 
 // ===================================
 // 📧 Email Verification Routes
