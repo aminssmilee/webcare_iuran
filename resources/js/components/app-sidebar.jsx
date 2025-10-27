@@ -14,6 +14,8 @@ import {
   LayoutDashboardIcon,
   UsersRound,
   DollarSign,
+  Megaphone,
+  
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -30,6 +32,7 @@ import {
 // import { BarChart2 } from "lucide-react"
 // import { Settings } from "lucide-react"
 import { BadgeDollarSign } from "lucide-react";
+// import { Announcement } from "lucide-react";
 
 
 const Logo = "/img/1-asosiasi-teknik-sistem-energi-indonesia.png"
@@ -162,6 +165,12 @@ const data = {
       url: "/admin/fee-settings",
       icon: BadgeDollarSign, // gunakan ikon setting dari lucide-react
     },
+    {
+      name: "Pengumuman",
+      url: "/admin/announcements",
+      icon: Megaphone, // gunakan ikon setting dari lucide-react
+    },
+    
 
     // {
     //   name: "Kelola Pembayaran",

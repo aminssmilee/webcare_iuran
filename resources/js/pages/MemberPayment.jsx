@@ -18,10 +18,11 @@ import { MemberCard } from "@/components/cards/MemberCard"
 import ProfileInfo from "@/components/cards/ProfileInfo"
 import { EditProfileDialog } from "@/components/dialogs/EditProfileDialog"
 import { PaymentWrapper } from "@/components/paymentWrapper"
+import { MemberAnnouncement } from "@/components/MemberAnnouncement"
 
 export default function MemberPayment() {
   const { props } = usePage()
-  const { user, member, payments, profileComplete } = props
+  const { user, member, payments, profileComplete, announcements } = props
 
   // 🧩 Debug: Pastikan data payments dari Laravel muncul
   console.log("🧾 Payments dari server:", payments)
@@ -88,6 +89,7 @@ export default function MemberPayment() {
             name={user?.name || "-"}
             job={member?.pekerjaan || "-"}
           />
+          <MemberAnnouncement announcements={announcements} />
           <ProfileInfo user={user} member={member} onEdit={() => setOpenEdit(true)} />
         </div>
 

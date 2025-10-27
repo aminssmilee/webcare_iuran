@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\Events\Verified;
 use App\Http\Controllers\Admin\FeeController;
+use App\Http\Controllers\Admin\AnnouncementController;
 
 
 // ===================================
@@ -146,6 +147,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // 🧾 Manajemen Iuran
     Route::get('/fee-settings', [FeeController::class, 'index'])->name('admin.fees.settings');
     Route::post('/fee-settings', [FeeController::class, 'store'])->name('admin.fees.settings.store');
+
+    // 📢 Pengumuman
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('admin.announcements');
+    Route::post('/announcements', [AnnouncementController::class, 'store']);
+    Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy']);
 
     // 🧾 Laporan
     Route::get('/reports', fn() => Inertia::render('Reports'))->name('admin.reports');

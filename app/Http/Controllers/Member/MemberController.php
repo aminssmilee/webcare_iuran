@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Payment;
-use App\Models\Fee; // ✅ tambahkan model Fee
+use App\Models\Fee;
+use App\Models\Announcement;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
@@ -23,7 +24,8 @@ class MemberController extends Controller
                 'user' => $user,
                 'member' => null,
                 'payments' => [],
-                'fee' => null, // biar tidak error di React
+                'fee' => null,
+                'announcements' => [], // ✅ tambahkan agar tidak error di React
             ]);
         }
 
@@ -39,7 +41,6 @@ class MemberController extends Controller
             ->where('tahun', $currentYear)
             ->first();
 
-        // ✅ Bentuk data fee agar konsisten untuk React
         $feeData = $fee ? [
             'tahun' => $fee->tahun,
             'member_type' => $fee->member_type,
@@ -52,6 +53,7 @@ class MemberController extends Controller
             'nominal_per_bulan' => 0,
         ];
 
+        // ✅ Ambil bulan yang sudah dibayar
         $paidMonths = Payment::where('member_id', $member->id ?? null)
             ->where('status', 'paid')
             ->get()
@@ -64,8 +66,7 @@ class MemberController extends Controller
             ->values()
             ->toArray();
 
-
-        // ✅ Ambil daftar pembayaran
+        // ✅ Daftar pembayaran
         $rows = Payment::where('member_id', $member->id)
             ->orderByDesc('created_at')
             ->get()
@@ -108,12 +109,19 @@ class MemberController extends Controller
                 ];
             });
 
+        // ✅ Ambil pengumuman terbaru (misal 5 terakhir)
+        $announcements = Announcement::orderByDesc('publish_date')
+            ->take(5)
+            ->get(['id', 'title', 'content', 'publish_date']);
+
+        // ✅ Render ke React
         return Inertia::render('MemberPayment', [
-            'user'     => $user,
-            'member'   => $member,
-            'payments' => $rows,
-            'fee'      => $feeData, // ✅ dikirim ke React
-            'paidMonths' => $paidMonths,
+            'user'          => $user,
+            'member'        => $member,
+            'payments'      => $rows,
+            'fee'           => $feeData,
+            'paidMonths'    => $paidMonths,
+            'announcements' => $announcements, // ✅ kirim ke frontend
         ]);
     }
 
