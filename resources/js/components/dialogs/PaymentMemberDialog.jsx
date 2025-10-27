@@ -1,7 +1,12 @@
 "use client"
 import * as React from "react"
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Command, CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command"
-import { Check, Upload, Trash, File } from "lucide-react"
+import { Check, Upload, Trash, File, Loader2, CheckCircle2 } from "lucide-react"
 import { router, usePage } from "@inertiajs/react"
 import { ScrollDialogContent } from "@/components/ui/scroll-dialog-content"
 
@@ -43,6 +48,9 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
   const [submitting, setSubmitting] = React.useState(false)
   const [errors, setErrors] = React.useState({})
   const fileInputRef = React.useRef(null)
+
+  const [loadingModal, setLoadingModal] = React.useState(false)
+  const [successModal, setSuccessModal] = React.useState(false)
 
   const totalToPay = selectedMonths.length * perMonth
   const currentMonth = new Date().getMonth() + 1
@@ -153,7 +161,39 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
   // =======================================================
   // 🚀 Submit
   // =======================================================
-  const handleSubmit = (e) => {
+  // const handleSubmit = (e) => {
+  //   e.preventDefault()
+  //   const eLocal = {}
+  //   if (selectedMonths.length === 0) eLocal.months = "Pilih minimal 1 bulan."
+  //   if (!proofFile) eLocal.proof = "Bukti pembayaran wajib diunggah."
+  //   if (Object.keys(eLocal).length) {
+  //     setErrors(eLocal)
+  //     return
+  //   }
+
+  //   setSubmitting(true)
+  //   const fd = new FormData()
+  //   selectedMonths.forEach((m) => fd.append("months[]", String(m)))
+  //   fd.append("note", note || "")
+  //   fd.append("proof", proofFile)
+
+  //   router.post("/member/payments", fd, {
+  //     forceFormData: true,
+  //     preserveScroll: true,
+  //     onError: (serverErr) => {
+  //       setErrors(serverErr || {})
+  //       setSubmitting(false)
+  //     },
+  //     onSuccess: () => {
+  //       setSubmitting(false)
+  //       onOpenChange(false)
+  //       router.reload({ only: ["paidMonths"] }) // reload daftar bulan yang sudah dibayar
+  //     },
+  //     onFinish: () => setSubmitting(false),
+  //   })
+  // }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const eLocal = {}
     if (selectedMonths.length === 0) eLocal.months = "Pilih minimal 1 bulan."
@@ -164,6 +204,8 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     }
 
     setSubmitting(true)
+    setLoadingModal(true) // tampilkan modal loading
+
     const fd = new FormData()
     selectedMonths.forEach((m) => fd.append("months[]", String(m)))
     fd.append("note", note || "")
@@ -172,15 +214,28 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
     router.post("/member/payments", fd, {
       forceFormData: true,
       preserveScroll: true,
+
       onError: (serverErr) => {
         setErrors(serverErr || {})
         setSubmitting(false)
+        setLoadingModal(false)
       },
+
       onSuccess: () => {
-        setSubmitting(false)
-        onOpenChange(false)
-        router.reload({ only: ["paidMonths"] }) // reload daftar bulan yang sudah dibayar
+        // simulasi loading 2 detik, lalu tampilkan modal sukses
+        setTimeout(() => {
+          setLoadingModal(false)
+          setSuccessModal(true)
+
+          // otomatis tutup modal sukses setelah 2,5 detik
+          setTimeout(() => {
+            setSuccessModal(false)
+            onOpenChange(false) // tutup dialog utama
+            router.reload({ only: ["paidMonths", "payments"] })
+          }, 2500)
+        }, 1500)
       },
+
       onFinish: () => setSubmitting(false),
     })
   }
@@ -292,15 +347,15 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
                               if (!alreadyPaid) handleToggleMonth(month)
                             }}
                             className={`flex items-center justify-between ${alreadyPaid
-                                ? "bg-muted/30 text-green-700 pointer-events-none select-none"
-                                : "cursor-pointer"
+                              ? "bg-muted/30 text-green-700 pointer-events-none select-none"
+                              : "cursor-pointer"
                               }`}
                           >
                             <div className="flex items-center">
                               <Check
                                 className={`mr-2 h-4 w-4 ${checked || alreadyPaid
-                                    ? "opacity-100 text-green-600"
-                                    : "opacity-0"
+                                  ? "opacity-100 text-green-600"
+                                  : "opacity-0"
                                   }`}
                               />
                               {month}
@@ -410,13 +465,54 @@ export function PaymentMemberDialog({ open, onOpenChange, children }) {
 
             {/* Tombol */}
             <DialogFooter className="flex-col gap-2 lg:flex-row">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={submitting}
+              >
                 Batal
               </Button>
               <Button type="submit" disabled={submitting}>
                 {submitting ? "Menyimpan..." : "Bayar Sekarang"}
               </Button>
             </DialogFooter>
+
+            {/* 🔄 Modal Loading */}
+            <Dialog open={loadingModal} onOpenChange={setLoadingModal}>
+              <DialogContent className="sm:max-w-[350px] text-center py-8 animate-fade-in">
+                <DialogHeader>
+                  <DialogTitle className="flex flex-col items-center justify-center gap-3">
+                    <Loader2 className="animate-spin text-blue-500 w-10 h-10" />
+                    <span className="text-lg font-semibold text-blue-700">
+                      Memproses Pembayaran...
+                    </span>
+                  </DialogTitle>
+                </DialogHeader>
+                <p className="text-sm text-muted-foreground">
+                  Mohon tunggu, sistem sedang memproses pembayaran Anda.
+                </p>
+              </DialogContent>
+            </Dialog>
+
+            {/* ✅ Modal Sukses */}
+            <Dialog open={successModal} onOpenChange={setSuccessModal}>
+              <DialogContent className="sm:max-w-[400px] text-center py-8 animate-fade-in">
+                <DialogHeader>
+                  <DialogTitle className="flex flex-col items-center justify-center gap-3">
+                    <div className="w-16 h-16 rounded-full border-4 border-green-200 flex items-center justify-center">
+                      <CheckCircle2 className="text-green-500 w-10 h-10 animate-bounce" />
+                    </div>
+                    <span className="text-xl font-semibold text-green-700">
+                      Pembayaran Berhasil 🎉
+                    </span>
+                  </DialogTitle>
+                </DialogHeader>
+                <p className="text-sm text-muted-foreground">
+                  Bukti pembayaran berhasil dikirim. Tunggu konfirmasi dari admin.
+                </p>
+              </DialogContent>
+            </Dialog>
           </form>
         )}
       </ScrollDialogContent>

@@ -144,8 +144,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/payment-validation/{id}/expired', [PaymentValidationController::class, 'expired']);
 
     // 🧾 Manajemen Iuran
-    Route::get('/fees', [FeeController::class, 'index'])->name('admin.fees');
-    Route::post('/fees', [FeeController::class, 'store'])->name('admin.fees.store');
+    Route::get('/fee-settings', [FeeController::class, 'index'])->name('admin.fees.settings');
+    Route::post('/fee-settings', [FeeController::class, 'store'])->name('admin.fees.settings.store');
 
     // 🧾 Laporan
     Route::get('/reports', fn() => Inertia::render('Reports'))->name('admin.reports');

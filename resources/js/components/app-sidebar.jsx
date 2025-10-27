@@ -13,6 +13,7 @@ import {
   User2Icon,
   LayoutDashboardIcon,
   UsersRound,
+  DollarSign,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -26,6 +27,9 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+// import { BarChart2 } from "lucide-react"
+// import { Settings } from "lucide-react"
+import { BadgeDollarSign } from "lucide-react";
 
 
 const Logo = "/img/1-asosiasi-teknik-sistem-energi-indonesia.png"
@@ -153,6 +157,12 @@ const data = {
       url: "/admin/users",
       icon: UsersRound,
     },
+    {
+      name: "Pengaturan Iuran",
+      url: "/admin/fee-settings",
+      icon: BadgeDollarSign, // gunakan ikon setting dari lucide-react
+    },
+
     // {
     //   name: "Kelola Pembayaran",
     //   url: "/admin/payments",

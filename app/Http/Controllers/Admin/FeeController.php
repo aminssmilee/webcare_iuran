@@ -13,7 +13,7 @@ class FeeController extends Controller
     {
         $fees = Fee::orderByDesc('tahun')->get();
 
-        return Inertia::render('Admin/FeePage', [
+        return Inertia::render('FeeSettings', [
             'fees' => $fees
         ]);
     }
