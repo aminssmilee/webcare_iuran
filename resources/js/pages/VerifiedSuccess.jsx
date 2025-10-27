@@ -10,7 +10,7 @@ export default function VerifiedSuccess({ message }) {
       <Card className="max-w-md w-full text-center p-10 rounded-2xl shadow-md bg-white">
         <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
         <h1 className="text-2xl font-semibold mb-2 text-gray-800">
-          Verifikasi Email Berhasil 🎉
+          Verifikasi Email Berhasil !
         </h1>
         <p className="text-gray-600 mb-6">
           {message || "Email kamu berhasil diverifikasi! Akunmu sekarang aktif."}

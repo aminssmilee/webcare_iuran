@@ -106,7 +106,7 @@ export default function RegistValidation() {
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
                   <BreadcrumbLink href="/admin/pending-registrations">
-                    Member Registration Validation
+                    Validasi Pendaftaran Member
                   </BreadcrumbLink>
                 </BreadcrumbItem>
               </BreadcrumbList>
@@ -116,56 +116,56 @@ export default function RegistValidation() {
 
         {/* Main */}
         <div className="flex flex-1 flex-col">
-          {/* Filter Section */}
+          {/* Bagian Filter */}
           <CardHeader className="relative lg:px-6 w-full">
             <div className="flex flex-wrap items-center gap-2 justify-between w-full">
-              {/* Search */}
+              {/* Pencarian */}
               <div className="flex items-start justify-start gap-2 w-full md:w-1/3">
                 <div className="relative w-full">
                   <Input
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    placeholder="Keta nama atau email..."
+                    placeholder="Cari nama atau email..."
                     className="h-8 w-full pl-8 border border-foreground/20 bg-transparent shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background"
                   />
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
 
-              {/* Filters */}
+              {/* Filter */}
               <div className="flex items-center gap-2">
-                {/* Status Filter */}
+                {/* Filter Status */}
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="active">Approved</SelectItem>
-                    {/* <SelectItem value="inactive">Inactive</SelectItem> */}
+                    <SelectItem value="all">Semua</SelectItem>
+                    <SelectItem value="pending">Menunggu</SelectItem>
+                    <SelectItem value="active">Disetujui</SelectItem>
+                    {/* <SelectItem value="inactive">Tidak Aktif</SelectItem> */}
                   </SelectContent>
                 </Select>
 
-                {/* Time Range Filter */}
+                {/* Filter Rentang Waktu */}
                 <Select value={timeRange} onValueChange={setTimeRange}>
                   <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Range" />
+                    <SelectValue placeholder="Rentang Waktu" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="7d">Last 7 days</SelectItem>
-                    <SelectItem value="30d">Last 30 days</SelectItem>
-                    <SelectItem value="90d">Last 3 months</SelectItem>
-                    <SelectItem value="all">All time</SelectItem>
+                    <SelectItem value="7d">7 Hari Terakhir</SelectItem>
+                    <SelectItem value="30d">30 Hari Terakhir</SelectItem>
+                    <SelectItem value="90d">3 Bulan Terakhir</SelectItem>
+                    <SelectItem value="all">Sepanjang Waktu</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </CardHeader>
 
-          {/* Table Section */}
+          {/* Bagian Tabel */}
           <div className="flex flex-col gap-4 p-4 border border-foreground/10 rounded-lg mx-4 overflow-x-auto">
-            <h1 className="text-xl font-semibold mb-2">User Registrations</h1>
+            <h1 className="text-xl font-semibold mb-2">Daftar Pendaftaran Pengguna</h1>
             <div className="w-full min-w-full">
               <DataTable data={filteredData} columns={getRegistrationColumns()} />
             </div>

@@ -104,7 +104,7 @@ export default function ManageUsers() {
           {/* Filter Section */}
           <CardHeader className="relative lg:px-6 w-full">
             <div className="flex flex-wrap items-center gap-2 justify-between w-full">
-              
+
               {/* 🔎 Search Box */}
               <div className="flex items-start justify-start gap-2 w-full md:w-1/3">
                 <div className="relative w-full">
@@ -119,36 +119,49 @@ export default function ManageUsers() {
               </div>
 
               {/* 🧭 Filter status dan waktu */}
-              <div className="flex items-center gap-2">
-                {/* Status */}
-                <Select
-                  value={status}
-                  onValueChange={(val) => setStatus(val)}
+              <div className="absolute right-6 top-4">
+                <ToggleGroup
+                  type="single"
+                  value={timeRange}
+                  onValueChange={(v) => {
+                    if (v && v !== timeRange) {
+                      setTimeRange(v)
+                      router.visit(`/admin/dashboard?range=${v}`, {
+                        preserveState: true,   // agar sidebar dll tidak reload
+                        preserveScroll: true,
+                        replace: true,         // update URL tanpa reload penuh
+                      })
+                    }
+                  }}
+                  variant="outline"
+                  className="hidden md:flex"
                 >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="all">Semua Status</SelectItem>
-                    {/* <SelectItem value="pending">Pending</SelectItem> */}
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <ToggleGroupItem value="90d" className="h-8 px-2.5">3 Bulan Terakhir</ToggleGroupItem>
+                  <ToggleGroupItem value="30d" className="h-8 px-2.5">30 Hari Terakhir</ToggleGroupItem>
+                  <ToggleGroupItem value="7d" className="h-8 px-2.5">7 Hari Terakhir</ToggleGroupItem>
+                </ToggleGroup>
 
-                {/* Time range */}
+                {/* Pilihan (Mobile) */}
                 <Select
                   value={timeRange}
-                  onValueChange={(val) => setTimeRange(val)}
+                  onValueChange={(v) => {
+                    if (v && v !== timeRange) {
+                      setTimeRange(v)
+                      router.visit(`/admin/dashboard?range=${v}`, {
+                        preserveState: true,
+                        preserveScroll: true,
+                        replace: true,
+                      })
+                    }
+                  }}
                 >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Last 3 months" />
+                  <SelectTrigger className="md:hidden flex w-40">
+                    <SelectValue placeholder="Pilih rentang waktu" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="90d">Last 3 months</SelectItem>
-                    <SelectItem value="30d">Last 30 days</SelectItem>
-                    <SelectItem value="7d">Last 7 days</SelectItem>
-                    <SelectItem value="all">All time</SelectItem>
+                    <SelectItem value="90d">3 Bulan Terakhir</SelectItem>
+                    <SelectItem value="30d">30 Hari Terakhir</SelectItem>
+                    <SelectItem value="7d">7 Hari Terakhir</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

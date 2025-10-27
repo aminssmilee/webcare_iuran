@@ -155,10 +155,10 @@ export function RegisterForm({ className, ...props }) {
       </div>
 
       {/* ================== FIELD SECTION ================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 space-y-2">
         {/* Username */}
         <div className="grid gap-2">
-          <Label htmlFor="username">Nama Lengkap</Label>
+          <Label htmlFor="username">Nama Lengkap *</Label>
           <Input
             id="username"
             name="nama_lengkap"
@@ -174,7 +174,7 @@ export function RegisterForm({ className, ...props }) {
 
         {/* Email */}
         <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Email *</Label>
           <Input
             id="email"
             name="email"
@@ -190,7 +190,7 @@ export function RegisterForm({ className, ...props }) {
 
         {/* Password */}
         <div className="grid gap-2 relative">
-          <Label htmlFor="password">Kata Sandi</Label>
+          <Label htmlFor="password">Kata Sandi *</Label>
           <div className="relative">
             <Input
               id="password"
@@ -215,7 +215,7 @@ export function RegisterForm({ className, ...props }) {
 
         {/* Confirm Password */}
         <div className="grid gap-2 relative">
-          <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi</Label>
+          <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi *</Label>
           <div className="relative">
             <Input
               id="password_confirmation"
@@ -242,7 +242,7 @@ export function RegisterForm({ className, ...props }) {
       </div>
 
       {/* ================== ROLE ================== */}
-      <div className="grid gap-2">
+      {/* <div className="grid gap-2">
         <Label htmlFor="role">Peran</Label>
         <Select
           name="role"
@@ -261,11 +261,11 @@ export function RegisterForm({ className, ...props }) {
         </Select>
         <input type="hidden" id="role-hidden" name="role" />
         {errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
-      </div>
+      </div> */}
 
       {/* ================== UPLOAD FILE ================== */}
       <div className="grid gap-2">
-        <Label htmlFor="document">Unggah Dokumen Anda</Label>
+        <Label htmlFor="document">Unggah Dokumen *</Label>
         {!fileName ? (
           <label
             htmlFor="document"
