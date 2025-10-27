@@ -1,31 +1,22 @@
-"use client";
+"use client"
 
-import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Check } from "lucide-react";
-import { router } from "@inertiajs/react"; // ✅ Ubah ini
+import React, { useState } from "react"
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Check } from "lucide-react"
+import { router } from "@inertiajs/react"
 
 export default function RoleRegisterDialog({ open, onClose }) {
-  const [selected, setSelected] = useState("");
+  const [selected, setSelected] = useState("")
 
   const handleNext = () => {
     if (selected !== "") {
-      // Navigasi dulu, baru tutup dialog
-      router.visit("/member/register", {
-        onSuccess: () => {
-          onClose(); // Tutup dialog setelah navigasi berhasil
-        },
-      });
-      
-      // Atau jika ingin kirim data role:
-      // router.visit("/member/register", {
-      //   data: { role: selected },
-      //   onSuccess: () => onClose(),
-      // });
+      router.visit(`/member/register?role=${selected}`, {
+        onSuccess: () => onClose(),
+      })
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -44,47 +35,47 @@ export default function RoleRegisterDialog({ open, onClose }) {
           onValueChange={setSelected}
           className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8"
         >
-          {/* Client */}
+          {/* Instansi */}
           <label
-            htmlFor="client"
+            htmlFor="institution"
             className={`flex items-center justify-between border border-muted-foreground/50 p-8 rounded-lg cursor-pointer transition-colors hover:bg-background/10 ${
-              selected === "client"
-                ? "border-muted-foreground bg-background dark:text-white text-foreground"
+              selected === "institution"
+                ? "border-primary bg-background"
                 : "border-border bg-background/5"
             }`}
           >
             <span className="text-md font-normal">Saya dari Instansi</span>
-            <RadioGroupItem id="client" value="client" className="peer sr-only" />
+            <RadioGroupItem id="institution" value="institution" className="peer sr-only" />
             <span
               className={`w-5 h-5 flex items-center justify-center border border-muted-foreground/50 rounded ${
-                selected === "client"
-                  ? "border-muted-foreground bg-background dark:text-white text-foreground"
+                selected === "institution"
+                  ? "border-primary bg-primary text-white"
                   : "border-border"
               }`}
             >
-              {selected === "client" && <Check size={14} />}
+              {selected === "institution" && <Check size={14} />}
             </span>
           </label>
 
-          {/* Creator */}
+          {/* Perorangan */}
           <label
-            htmlFor="creator"
+            htmlFor="member"
             className={`flex items-center justify-between border border-muted-foreground/50 p-8 rounded-lg cursor-pointer transition-colors hover:bg-background/10 ${
-              selected === "creator"
-                ? "border-muted-foreground bg-background dark:text-white text-foreground"
-                : "border-border bg-background/5 dark:text-white text-foreground"
+              selected === "member"
+                ? "border-primary bg-background"
+                : "border-border bg-background/5"
             }`}
           >
-            <span className="text-md font-normal">Saya bukan dari Instansi</span>
-            <RadioGroupItem id="creator" value="creator" className="peer sr-only" />
+            <span className="text-md font-normal">Saya bukan dari Instansi (Perorangan)</span>
+            <RadioGroupItem id="member" value="member" className="peer sr-only" />
             <span
               className={`w-5 h-5 flex items-center justify-center border border-muted-foreground/50 rounded ${
-                selected === "creator"
-                  ? " border-muted-foreground bg-background dark:text-white text-foreground"
+                selected === "member"
+                  ? "border-primary bg-primary text-white"
                   : "border-border"
               }`}
             >
-              {selected === "creator" && <Check size={14} />}
+              {selected === "member" && <Check size={14} />}
             </span>
           </label>
         </RadioGroup>
@@ -101,5 +92,5 @@ export default function RoleRegisterDialog({ open, onClose }) {
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

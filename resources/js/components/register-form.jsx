@@ -6,40 +6,33 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Loader2, File } from "lucide-react";
-import { Eye, EyeOff } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Doc } from "zod/v4/core";
+import { Upload, Loader2, File, Trash, Eye, EyeOff } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Trash } from "lucide-react";
 
 export function RegisterForm({ className, ...props }) {
   const { props: page } = usePage();
   const flash = page.flash || {};
   const serverErrors = page.errors || {};
-  const [progress, setProgress] = useState(0);
-
 
   const [errors, setErrors] = useState(serverErrors);
   const [submitting, setSubmitting] = useState(false);
   const [fileName, setFileName] = useState(null);
-  const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // 🔔 Show flash success (after redirect)
+  // Ambil role dari URL (client = instansi, creator = perorangan)
+  const urlParams = new URLSearchParams(window.location.search);
+  const roleParam = urlParams.get("role"); // client / creator
+
+  // 🔔 Tampilkan alert jika register sukses
   useEffect(() => {
     if (flash.success) alert(flash.success);
   }, [flash.success]);
 
-  // ✅ Validasi sebelum kirim form
+  // 🔍 Validasi sebelum submit
   function validateBeforeSubmit(form) {
     const e = {};
     const nama = (form.get("nama_lengkap") || "").trim();
@@ -64,21 +57,24 @@ export function RegisterForm({ className, ...props }) {
     if (!file || !file.size)
       e.dokumen = "Dokumen wajib diupload (PDF maksimal 2MB).";
     else {
-      if (file.type !== "application/pdf") e.dokumen = "Dokumen harus PDF.";
+      if (file.type !== "application/pdf") e.dokumen = "Dokumen harus berupa PDF.";
       if (file.size > 2 * 1024 * 1024) e.dokumen = "Maksimal 2MB.";
     }
 
     return e;
   }
 
-  // ✅ Submit ke server via Inertia router
+  // 🚀 Submit ke server
   function handleSubmit(ev) {
     ev.preventDefault();
     setErrors({});
 
     const form = new FormData(ev.target);
 
-    // tambahkan file manual agar pasti terkirim
+    // tambahkan role dari URL
+    form.append("role", roleParam || "");
+
+    // tambahkan file manual
     if (file) form.set("dokumen", file);
 
     const localErr = validateBeforeSubmit(form);
@@ -101,7 +97,6 @@ export function RegisterForm({ className, ...props }) {
     });
   }
 
-  // ✅ Helpers
   const errClass = (key) =>
     errors[key] ? "border-red-500 focus-visible:ring-red-500" : "";
 
@@ -112,12 +107,11 @@ export function RegisterForm({ className, ...props }) {
       return rest;
     });
 
-  // ✅ File upload handling
+  // 📎 Handle upload dokumen
   function handleFileChange(e) {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
-    // Validasi langsung di frontend
     if (selectedFile.type !== "application/pdf") {
       setErrors({ dokumen: "Dokumen harus berupa PDF." });
       return;
@@ -127,7 +121,7 @@ export function RegisterForm({ className, ...props }) {
       return;
     }
 
-    setFile(selectedFile); // simpan file ke state
+    setFile(selectedFile);
     setFileName(selectedFile.name);
     setUploading(false);
     clearErrOnChange("dokumen")();
@@ -138,7 +132,7 @@ export function RegisterForm({ className, ...props }) {
     document.getElementById("document").value = "";
   }
 
-  // ✅ Render
+  // 🧩 UI
   return (
     <form
       onSubmit={handleSubmit}
@@ -154,9 +148,9 @@ export function RegisterForm({ className, ...props }) {
         </p>
       </div>
 
-      {/* ================== FIELD SECTION ================== */}
+      {/* ================== FIELD ================== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Username */}
+        {/* Nama */}
         <div className="grid gap-2">
           <Label htmlFor="username">Nama Lengkap</Label>
           <Input
@@ -213,7 +207,7 @@ export function RegisterForm({ className, ...props }) {
           )}
         </div>
 
-        {/* Confirm Password */}
+        {/* Konfirmasi Password */}
         <div className="grid gap-2 relative">
           <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi</Label>
           <div className="relative">
@@ -241,31 +235,38 @@ export function RegisterForm({ className, ...props }) {
         </div>
       </div>
 
-      {/* ================== ROLE ================== */}
-      <div className="grid gap-2">
-        <Label htmlFor="role">Peran</Label>
-        <Select
-          name="role"
-          onValueChange={(value) => {
-            clearErrOnChange("role")();
-            document.getElementById("role-hidden").value = value;
-          }}
-        >
-          <SelectTrigger id="role" className={cn(errClass("role"), "w-full")}>
-            <SelectValue placeholder="Pilih jenis akun Anda" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="institution">Instansi</SelectItem>
-            <SelectItem value="member">Anggota</SelectItem>
-          </SelectContent>
-        </Select>
-        <input type="hidden" id="role-hidden" name="role" />
-        {errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
-      </div>
+      {/* ================== CATATAN ROLE ================== */}
+      {roleParam === "institution" && (
+        <div className="rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm text-blue-800">
+          <strong>Catatan:</strong> Anggota <b>Institusi</b> wajib mengunggah salah satu
+          dari dokumen berikut:
+          <ul className="list-disc list-inside mt-1">
+            <li>SK Pendirian Prodi</li>
+            <li>Akta Pendirian Perusahaan</li>
+            <li>Akta Pendirian Perkumpulan</li>
+          </ul>
+        </div>
+      )}
+
+      {roleParam === "member" && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+          <strong>Catatan:</strong> Anggota <b>Perorangan</b> wajib mengunggah salah satu
+          dari dokumen berikut:
+          <ul className="list-disc list-inside mt-1">
+            <li>KTP</li>
+            <li>SIM</li>
+            <li>Kartu Mahasiswa</li>
+          </ul>
+        </div>
+      )}
 
       {/* ================== UPLOAD FILE ================== */}
       <div className="grid gap-2">
-        <Label htmlFor="document">Unggah Dokumen Anda</Label>
+        <Label htmlFor="document">
+          {roleParam === "client"
+            ? "Unggah Dokumen Institusi"
+            : "Unggah Dokumen Identitas"}
+        </Label>
         {!fileName ? (
           <label
             htmlFor="document"
@@ -309,7 +310,6 @@ export function RegisterForm({ className, ...props }) {
           </div>
         )}
         {errors.dokumen && <p className="text-sm text-red-500">{errors.dokumen}</p>}
-        {errors.error && <p className="text-sm text-red-500">{errors.error}</p>}
       </div>
 
       {/* ================== SUBMIT ================== */}
@@ -327,7 +327,10 @@ export function RegisterForm({ className, ...props }) {
       {/* Footer */}
       <div className="text-center text-sm text-muted-foreground">
         Sudah punya akun?{" "}
-        <a href="/member/login" className="underline underline-offset-4 hover:text-primary">
+        <a
+          href="/member/login"
+          className="underline underline-offset-4 hover:text-primary"
+        >
           Masuk
         </a>
       </div>
