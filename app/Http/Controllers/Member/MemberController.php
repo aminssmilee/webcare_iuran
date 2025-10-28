@@ -18,6 +18,7 @@ class MemberController extends Controller
     {
         $user = $request->user()->loadMissing('member');
         $member = $user->member;
+        
 
         if (!$member) {
             return Inertia::render('MemberPayment', [

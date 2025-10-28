@@ -43,6 +43,7 @@ export default function ProfileInfo({ user, member, onEdit }) {
     whatsapp: member?.no_wa || "-",
     education: member?.pendidikan || "-",
     occupation: member?.pekerjaan || "-",
+    role: user?.role || "-",
   }
 
   const statusClasses =
@@ -90,6 +91,7 @@ export default function ProfileInfo({ user, member, onEdit }) {
         <Detail label="No WhatsApp" value={mergedData.whatsapp} />
         <Detail label="Pendidikan" value={mergedData.education} />
         <Detail label="Pekerjaan" value={mergedData.occupation} />
+        <Detail label="Jenis Akun" value={mergedData.role} />
       </div>
     </Card>
   )

@@ -7,9 +7,7 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download } from "lucide-react"
 
-
-
-export function MemberCard({ id, name, job }) {
+export function MemberCard({ id, name, job, role }) {
   const cardRef = useRef(null)
   const downloadBtnRef = useRef(null)
 
@@ -18,7 +16,6 @@ export function MemberCard({ id, name, job }) {
     const btn = downloadBtnRef.current
     if (!element) return
 
-    // 🚫 Sembunyikan tombol sebelum screenshot
     if (btn) btn.style.display = "none"
 
     const canvas = await html2canvas(element, {
@@ -27,7 +24,6 @@ export function MemberCard({ id, name, job }) {
       backgroundColor: null,
     })
 
-    // ✅ Kembalikan tombol setelah selesai
     if (btn) btn.style.display = "flex"
 
     const imgData = canvas.toDataURL("image/png")
@@ -59,7 +55,7 @@ export function MemberCard({ id, name, job }) {
         size="icon"
         className="absolute top-2 right-2 bg-transparent hover:text-black hover:bg-transparent text-white z-10 shadow-none border-none focus:outline-none"
       >
-        <Download className="h-5 w-5 " />
+        <Download className="h-5 w-5" />
       </Button>
 
       {/* Isi Kartu */}
@@ -68,6 +64,15 @@ export function MemberCard({ id, name, job }) {
           <CardTitle className="text-lg font-semibold text-white drop-shadow-md">
             Member Card
           </CardTitle>
+          <div className="flex justify-between">
+            <span className="font-semibold capitalize">
+              {role === "institution"
+                ? "Institusi"
+                : role === "member"
+                  ? "Perorangan"
+                  : "-"}
+            </span>
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-3 text-sm">
@@ -86,5 +91,5 @@ export function MemberCard({ id, name, job }) {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
