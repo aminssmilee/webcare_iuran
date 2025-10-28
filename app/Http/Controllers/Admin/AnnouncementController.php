@@ -44,3 +44,6 @@ class AnnouncementController extends Controller
         return back()->with('success', 'Pengumuman berhasil dihapus.');
     }
 }
+
+
+// End of file

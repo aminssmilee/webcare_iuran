@@ -51,3 +51,6 @@ class OtpVerificationController extends Controller
             ->with('success', 'Verifikasi berhasil! Silakan login.');
     }
 }
+
+
+// End of file

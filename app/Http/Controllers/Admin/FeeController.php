@@ -39,3 +39,5 @@ class FeeController extends Controller
         return back()->with('success', 'Data iuran berhasil disimpan.');
     }
 }
+
+// End of file
