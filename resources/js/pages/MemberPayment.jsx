@@ -129,7 +129,7 @@ export default function MemberPayment() {
             </div>
 
             <div className="px-4 lg:px-2">
-              {/* ✅ Table sekarang sudah membaca payment_status dengan benar */}
+              {/*  Table sekarang sudah membaca payment_status dengan benar */}
               <DataTable data={filteredPayments} columns={getPaymentColumns()} />
             </div>
           </div>
