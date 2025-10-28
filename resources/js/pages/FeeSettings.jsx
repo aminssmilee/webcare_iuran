@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { usePage, router } from "@inertiajs/react"
+import { usePage } from "@inertiajs/react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   SidebarInset,
@@ -14,41 +14,29 @@ import {
   BreadcrumbList,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import { CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "sonner"
+import { DataTable } from "@/components/data-table/DataTable"
+import { getFeeSettingTables } from "@/components/data-table/table-colums"
+import { FeeEditDialog } from "@/components/dialogs/FeeSettingDialog"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { router } from "@inertiajs/react"
 
 export default function FeeSettings() {
+  const [open, setOpen] = useState(false)
   const { props } = usePage()
   const { fees = [] } = props
 
-  const [memberType, setMemberType] = useState("perorangan")
-  const [tahun, setTahun] = useState(new Date().getFullYear())
-  const [nominal, setNominal] = useState("")
-  const [submitting, setSubmitting] = useState(false)
+  const columns = getFeeSettingTables()
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setSubmitting(true)
+  const data = Array.isArray(fees)
+    ? fees.map((fee) => ({
+      tahun: fee.tahun,
+      member_type: fee.member_type,
+      nominal_tahunan: `Rp ${Number(fee.nominal).toLocaleString("id-ID")}`,
+      nominal_bulanan: `Rp ${(fee.nominal / 12).toLocaleString("id-ID")}`,
+    }))
+    : []
 
-    router.post("/admin/fee-settings", 
-      { member_type: memberType, tahun, nominal },
-      {
-        onSuccess: () => {
-          toast.success("✅ Data iuran berhasil disimpan")
-          setNominal("")
-          setSubmitting(false)
-          router.reload({ only: ["fees"] })
-        },
-        onError: () => {
-          toast.error("Gagal menyimpan data, periksa input Anda.")
-          setSubmitting(false)
-        },
-      }
-    )
-  }
 
   return (
     <SidebarProvider>
@@ -71,102 +59,76 @@ export default function FeeSettings() {
           </div>
         </header>
 
-        {/* Content */}
-        <div className="flex flex-col flex-1 p-6 space-y-6">
-          <CardHeader className="pb-0">
-            <h1 className="text-2xl font-semibold text-gray-800">Pengaturan Besaran Iuran</h1>
-            <p className="text-sm text-muted-foreground">
-              Admin dapat menyesuaikan nominal iuran tahunan untuk setiap tipe anggota dan tahun.
-            </p>
-          </CardHeader>
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col p-4 gap-4">
+          <div className="flex justify-end gap-4">
+            <Select
+            // value={timeRange}
+            // onValueChange={(v) => {
+            //   if (v && v !== timeRange) {
+            //     setTimeRange(v)
+            //     router.visit(`/admin/dashboard?range=${v}`, {
+            //       preserveState: true,
+            //       preserveScroll: true,
+            //       replace: true,
+            //     })
+            //   }
+            // }}
+            >
+              <SelectTrigger className="flex w-40">
+                <SelectValue placeholder="Tipe anggota" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="perorangan">Perorangan</SelectItem>
+                <SelectItem value="institusi">Institusi</SelectItem>
+              </SelectContent>
+            </Select>
 
-          {/* Form */}
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white border rounded-xl shadow-sm p-6 space-y-4"
-          >
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Tipe Anggota</label>
-                <Select value={memberType} onValueChange={setMemberType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih tipe anggota" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="perorangan">Perorangan</SelectItem>
-                    <SelectItem value="institusi">Institusi</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <Select
+            // value={timeRange}
+            // onValueChange={(v) => {
+            //   if (v && v !== timeRange) {
+            //     setTimeRange(v)
+            //     router.visit(`/admin/dashboard?range=${v}`, {
+            //       preserveState: true,
+            //       preserveScroll: true,
+            //       replace: true,
+            //     })
+            //   }
+            // }}
+            >
+              <SelectTrigger className="flex w-40">
+                <SelectValue placeholder="Rentang waktu" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="2020">2020</SelectItem>
+                <SelectItem value="2021">2021</SelectItem>
+                <SelectItem value="2022">2022</SelectItem>
+                <SelectItem value="2023">2023</SelectItem>
+                <SelectItem value="2024">2024</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Tahun</label>
-                <Input
-                  type="number"
-                  value={tahun}
-                  onChange={(e) => setTahun(e.target.value)}
-                  className="w-full"
-                  min="2020"
-                  max="2100"
-                  required
-                />
-              </div>
+            <Button variant="default" onClick={() => setOpen(true)} className="self-end gap-2 w-auto mx-6">
+              Perbarui Nominal
+            </Button>
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Nominal Tahunan (Rp)</label>
-                <Input
-                  type="number"
-                  value={nominal}
-                  onChange={(e) => setNominal(e.target.value)}
-                  placeholder="Masukkan nominal tahunan"
-                  required
-                />
-              </div>
+          <div className="flex flex-col gap-4 lg:py-2 lg:px-2 p-2 md:gap-2 md:py-4 border border-foreground/10 rounded-lg mx-6 overflow-x-auto">
+            <div className="flex items-center justify-between p-4">
+              <h1 className="text-xl font-semibold">
+                Pembaruan Nominal Iuran
+              </h1>
             </div>
 
-            <div className="flex justify-end">
-              <Button type="submit" disabled={submitting}>
-                {submitting ? "Menyimpan..." : "Simpan Pengaturan"}
-              </Button>
+            <div className="px-4 lg:px-2">
+              <DataTable data={data} columns={columns} />
             </div>
-          </form>
-
-          {/* Table Data */}
-          <div className="border rounded-xl bg-white shadow-sm overflow-hidden">
-            <table className="min-w-full text-sm border-collapse">
-              <thead className="bg-gray-100 text-gray-700">
-                <tr>
-                  <th className="p-3 text-left">Tahun</th>
-                  <th className="p-3 text-left">Tipe Member</th>
-                  <th className="p-3 text-left">Nominal Tahunan</th>
-                  <th className="p-3 text-left">Nominal Bulanan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {fees.length > 0 ? (
-                  fees.map((fee, idx) => (
-                    <tr key={idx} className="border-t hover:bg-gray-50 transition">
-                      <td className="p-3">{fee.tahun}</td>
-                      <td className="p-3 capitalize">{fee.member_type}</td>
-                      <td className="p-3 font-medium">
-                        Rp {Number(fee.nominal).toLocaleString("id-ID")}
-                      </td>
-                      <td className="p-3 text-gray-600">
-                        Rp {(fee.nominal / 12).toLocaleString("id-ID")}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" className="text-center text-gray-500 p-4">
-                      Belum ada data iuran tersimpan.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </div>
         </div>
+
+        {/* Dialog Edit */}
+        <FeeEditDialog open={open} onOpenChange={setOpen} />
       </SidebarInset>
     </SidebarProvider>
   )

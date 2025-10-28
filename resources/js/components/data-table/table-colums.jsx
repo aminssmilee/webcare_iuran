@@ -3,6 +3,7 @@ import {
   UserActionsCell,
   RegistrationValidationActionsCell,
   PaymentValidationActionsCell,
+  FeeSettingActionsCell,
 } from "./table-action"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,7 +13,7 @@ import { Check, Archive, AlertCircle, Loader, Info } from "lucide-react"
 
 
 // ========================================================
-// 📋 MANAGE USER TABLE COLUMNS
+//  MANAGE USER TABLE COLUMNS
 // ========================================================
 export function getUserColumns() {
   return [
@@ -167,7 +168,7 @@ export function getUserColumns() {
 }
 
 // ========================================================
-// 🧾 REGISTRATION VALIDATION TABLE COLUMNS
+//  REGISTRATION VALIDATION TABLE COLUMNS
 // ========================================================
 export function getRegistrationColumns() {
   return [
@@ -243,7 +244,7 @@ export function getRegistrationColumns() {
 }
 
 // ========================================================
-// 💰 PAYMENT VALIDATION TABLE COLUMNS
+//  PAYMENT VALIDATION TABLE COLUMNS
 // ========================================================
 export function getPaymentValidationColumns() {
   return [
@@ -336,7 +337,7 @@ export function getPaymentValidationColumns() {
 }
 
 // ========================================================
-// 📅 PAYMENT LIST TABLE COLUMNS
+//  PAYMENT LIST TABLE COLUMNS
 // ========================================================
 export function getPaymentColumns() {
   return [
@@ -521,6 +522,25 @@ export function getPaymentColumns() {
 
         return <Badge variant="default">{status || "-"}</Badge>
       },
+    },
+  ]
+}
+
+// ========================================================
+// FEE SETTING TABLE COLUMNS
+// ========================================================
+export  function getFeeSettingTables(){
+  return [
+    { id: "tahun", accessorKey: "tahun", header: "Tahun" },
+    { id: "member_type", accessorKey: "member_type", header: "Tipe Member" },
+    { id:"nominal_tahunan", accessorKey: "nominal_tahunan", header: "Nominal Tahunan (Rp)" },
+    { id: "nominal_bulanan", accessorKey: "nominal_bulanan", header: "Nominal Bulanan (Rp)" },
+    {
+      id: "actions",
+      header: "Aksi",
+      cell: ({ row }) => (
+        <FeeSettingActionsCell payment={row.original} />
+      ),
     },
   ]
 }

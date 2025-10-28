@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { router } from "@inertiajs/react"
-import { useState } from "react"
 
 export function DeleteUserDialog({ user, open, onOpenChange }) {
   const [loading, setLoading] = useState(false)

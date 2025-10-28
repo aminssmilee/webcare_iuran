@@ -95,41 +95,49 @@ export default function PaymentValidation() {
               </div>
 
               {/* Filters */}
-              <div className="flex items-center gap-2">
-                {/* Status Filter */}
-                <Select
-                  value={status}
-                  onValueChange={(val) => {
-                    setStatus(val)
-                    applyFilters({ status: val })
+              <div className="absolute right-6 top-4">
+                <ToggleGroup
+                  type="single"
+                  value={timeRange}
+                  onValueChange={(v) => {
+                    if (v && v !== timeRange) {
+                      setTimeRange(v)
+                      router.visit(`/admin/dashboard?range=${v}`, {
+                        preserveState: true,   // agar sidebar dll tidak reload
+                        preserveScroll: true,
+                        replace: true,         // update URL tanpa reload penuh
+                      })
+                    }
                   }}
+                  variant="outline"
+                  className="hidden md:flex"
                 >
-                  <SelectTrigger className="flex w-40">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Completed">Approved</SelectItem>
-                    <SelectItem value="Failed">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <ToggleGroupItem value="90d" className="h-8 px-2.5 font-normal">3 Bulan Terakhir</ToggleGroupItem>
+                  <ToggleGroupItem value="30d" className="h-8 px-2.5 font-normal">30 Hari Terakhir</ToggleGroupItem>
+                  <ToggleGroupItem value="7d" className="h-8 px-2.5 font-normal">7 Hari Terakhir</ToggleGroupItem>
+                </ToggleGroup>
 
-                {/* Time Range Filter */}
+                {/* Pilihan (Mobile) */}
                 <Select
                   value={timeRange}
-                  onValueChange={(val) => {
-                    setTimeRange(val)
-                    applyFilters({ timeRange: val })
+                  onValueChange={(v) => {
+                    if (v && v !== timeRange) {
+                      setTimeRange(v)
+                      router.visit(`/admin/dashboard?range=${v}`, {
+                        preserveState: true,
+                        preserveScroll: true,
+                        replace: true,
+                      })
+                    }
                   }}
                 >
-                  <SelectTrigger className="flex w-40">
-                    <SelectValue placeholder="Range" />
+                  <SelectTrigger className="md:hidden flex w-40">
+                    <SelectValue placeholder="Pilih rentang waktu" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="7d">Last 7 days</SelectItem>
-                    <SelectItem value="30d">Last 30 days</SelectItem>
-                    <SelectItem value="90d">Last 3 months</SelectItem>
-                    <SelectItem value="all">All time</SelectItem>
+                    <SelectItem value="90d">3 Bulan Terakhir</SelectItem>
+                    <SelectItem value="30d">30 Hari Terakhir</SelectItem>
+                    <SelectItem value="7d">7 Hari Terakhir</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

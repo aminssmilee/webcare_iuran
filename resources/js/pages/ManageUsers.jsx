@@ -137,9 +137,9 @@ export default function ManageUsers() {
                   variant="outline"
                   className="hidden md:flex"
                 >
-                  <ToggleGroupItem value="90d" className="h-8 px-2.5">3 Bulan Terakhir</ToggleGroupItem>
-                  <ToggleGroupItem value="30d" className="h-8 px-2.5">30 Hari Terakhir</ToggleGroupItem>
-                  <ToggleGroupItem value="7d" className="h-8 px-2.5">7 Hari Terakhir</ToggleGroupItem>
+                  <ToggleGroupItem value="90d" className="h-8 px-2.5 font-normal">3 Bulan Terakhir</ToggleGroupItem>
+                  <ToggleGroupItem value="30d" className="h-8 px-2.5 font-normal">30 Hari Terakhir</ToggleGroupItem>
+                  <ToggleGroupItem value="7d" className="h-8 px-2.5 font-normal">7 Hari Terakhir</ToggleGroupItem>
                 </ToggleGroup>
 
                 {/* Pilihan (Mobile) */}
