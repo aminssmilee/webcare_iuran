@@ -9,38 +9,76 @@ return new class extends Migration
 {
     private function uniqueExists(string $table, string $indexName): bool
     {
-        return DB::table('information_schema.STATISTICS')
-            ->whereRaw('TABLE_SCHEMA = DATABASE()')
-            ->where('TABLE_NAME', $table)
-            ->where('INDEX_NAME', $indexName)
-            ->exists();
+        $driver = config('database.default');
+
+        if ($driver === 'mysql') {
+            $result = DB::select("
+                SELECT COUNT(*) as count
+                FROM information_schema.STATISTICS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = ?
+                  AND INDEX_NAME = ?
+            ", [$table, $indexName]);
+            return $result[0]->count > 0;
+        }
+
+        if ($driver === 'pgsql') {
+            $result = DB::select("
+                SELECT COUNT(*) as count
+                FROM pg_indexes
+                WHERE tablename = ?
+                  AND indexname = ?
+            ", [$table, $indexName]);
+            return $result[0]->count > 0;
+        }
+
+        // Default fallback (anggap belum ada)
+        return false;
     }
 
     private function foreignKeyExists(string $constraintName): bool
     {
-        // Nama constraint FK unik per schema
-        return DB::table('information_schema.REFERENTIAL_CONSTRAINTS')
-            ->whereRaw('CONSTRAINT_SCHEMA = DATABASE()')
-            ->where('CONSTRAINT_NAME', $constraintName)
-            ->exists();
+        $driver = config('database.default');
+
+        if ($driver === 'mysql') {
+            $result = DB::select("
+                SELECT COUNT(*) as count
+                FROM information_schema.REFERENTIAL_CONSTRAINTS
+                WHERE CONSTRAINT_SCHEMA = DATABASE()
+                  AND CONSTRAINT_NAME = ?
+            ", [$constraintName]);
+            return $result[0]->count > 0;
+        }
+
+        if ($driver === 'pgsql') {
+            $result = DB::select("
+                SELECT COUNT(*) as count
+                FROM information_schema.table_constraints
+                WHERE constraint_type = 'FOREIGN KEY'
+                  AND constraint_name = ?
+            ", [$constraintName]);
+            return $result[0]->count > 0;
+        }
+
+        return false;
     }
 
     public function up(): void
     {
-        // 1) UNIQUE (member_id, periode) — tambah hanya jika belum ada
+        // 1️⃣ Tambahkan UNIQUE hanya jika belum ada
         if (! $this->uniqueExists('payments', 'payments_member_periode_unique')) {
             Schema::table('payments', function (Blueprint $table) {
                 $table->unique(['member_id', 'periode'], 'payments_member_periode_unique');
             });
         }
 
-        // 2) FK member_id -> members(id) — tambah hanya jika belum ada
+        // 2️⃣ Tambahkan FOREIGN KEY hanya jika belum ada
         if (! $this->foreignKeyExists('payments_member_id_foreign')) {
             Schema::table('payments', function (Blueprint $table) {
-                // Pastikan tipe kolom sama: members.id & payments.member_id = VARCHAR(6)
                 $table->foreign('member_id', 'payments_member_id_foreign')
-                      ->references('id')->on('members')
-                      ->cascadeOnDelete();
+                    ->references('id')
+                    ->on('members')
+                    ->cascadeOnDelete();
             });
         }
     }
@@ -48,11 +86,17 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('payments', function (Blueprint $table) {
-            // Hapus FK jika ada
-            try { $table->dropForeign('payments_member_id_foreign'); } catch (\Throwable $e) {}
+            try {
+                $table->dropForeign('payments_member_id_foreign');
+            } catch (\Throwable $e) {
+                // Ignore
+            }
 
-            // Hapus UNIQUE jika ada
-            try { $table->dropUnique('payments_member_periode_unique'); } catch (\Throwable $e) {}
+            try {
+                $table->dropUnique('payments_member_periode_unique');
+            } catch (\Throwable $e) {
+                // Ignore
+            }
         });
     }
 };
