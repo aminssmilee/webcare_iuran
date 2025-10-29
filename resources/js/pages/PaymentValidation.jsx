@@ -35,8 +35,8 @@ export default function PaymentValidation() {
   const initialPayments = Array.isArray(props.payments?.data)
     ? props.payments.data
     : Array.isArray(props.payments)
-    ? props.payments
-    : []
+      ? props.payments
+      : []
   const initialMeta = props.payments?.meta ?? {}
 
   // =======================
@@ -47,7 +47,7 @@ export default function PaymentValidation() {
   const [pageSize, setPageSize] = useState(initialMeta.per_page || 10)
   const [q, setQ] = useState(props.filters?.q || "")
   const [status, setStatus] = useState(props.filters?.status || "Pending")
-  const [timeRange, setTimeRange] = useState(props.filters?.timeRange || "90d")
+  const [timeRange, setTimeRange] = useState(props.filters?.timeRange || "all")
   const [loading, setLoading] = useState(false)
 
   const columns = getPaymentValidationColumns()
@@ -128,6 +128,7 @@ export default function PaymentValidation() {
               {/* Filters */}
               <div className="absolute right-6 top-4 flex gap-2 items-center">
                 {/* Filter waktu */}
+                {/* Filter waktu */}
                 <ToggleGroup
                   type="single"
                   value={timeRange}
@@ -140,6 +141,7 @@ export default function PaymentValidation() {
                   variant="outline"
                   className="hidden md:flex"
                 >
+                  <ToggleGroupItem value="all" className="h-8 px-2.5 font-normal">Semua</ToggleGroupItem>
                   <ToggleGroupItem value="90d" className="h-8 px-2.5 font-normal">3 Bulan</ToggleGroupItem>
                   <ToggleGroupItem value="30d" className="h-8 px-2.5 font-normal">30 Hari</ToggleGroupItem>
                   <ToggleGroupItem value="7d" className="h-8 px-2.5 font-normal">7 Hari</ToggleGroupItem>
@@ -159,6 +161,7 @@ export default function PaymentValidation() {
                     <SelectValue placeholder="Pilih rentang waktu" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
+                    <SelectItem value="all">Semua</SelectItem>
                     <SelectItem value="90d">3 Bulan Terakhir</SelectItem>
                     <SelectItem value="30d">30 Hari Terakhir</SelectItem>
                     <SelectItem value="7d">7 Hari Terakhir</SelectItem>

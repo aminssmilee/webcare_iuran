@@ -15,26 +15,37 @@ class DashboardController extends Controller
     public function index()
     {
         // ==============================
-        // 0️⃣ RANGE WAKTU
+        // 0️⃣ RANGE WAKTU (support "all")
         // ==============================
-        $range = request('range', '90d');
-        $days  = $range === '7d' ? 7 : ($range === '30d' ? 30 : 90);
+        $range = request('range', 'all');
 
-        $now       = Carbon::now();
-        $start     = $now->copy()->subDays($days)->startOfDay();
-        $prevStart = $start->copy()->subDays($days);
-        $prevEnd   = $start->copy()->subSecond();
+        // Jika "all" → tampilkan semua data (tanpa batas tanggal)
+        if ($range === 'all') {
+            $start = null;
+            $now = Carbon::now();
+            $days = null;
+            $prevStart = null;
+            $prevEnd = null;
+        } else {
+            $days = $range === '7d' ? 7 : ($range === '30d' ? 30 : 90);
+            $now = Carbon::now();
+            $start = $now->copy()->subDays($days)->startOfDay();
+            $prevStart = $start->copy()->subDays($days);
+            $prevEnd = $start->copy()->subSecond();
+        }
 
         // ==============================
         // 1️⃣ REVENUE (TOTAL PEMBAYARAN LUNAS)
         // ==============================
-        $rev     = (float) Payment::where('status', 'paid')
-            ->whereBetween('created_at', [$start, $now])
+        $rev = (float) Payment::where('status', 'paid')
+            ->when($start, fn($q) => $q->whereBetween('created_at', [$start, $now]))
             ->sum('jumlah_bayar');
 
-        $revPrev = (float) Payment::where('status', 'paid')
-            ->whereBetween('created_at', [$prevStart, $prevEnd])
-            ->sum('jumlah_bayar');
+        $revPrev = $start
+            ? (float) Payment::where('status', 'paid')
+                ->whereBetween('created_at', [$prevStart, $prevEnd])
+                ->sum('jumlah_bayar')
+            : 0;
 
         $revDiff = $rev - $revPrev;
         $revDiffPct = $revPrev > 0 ? (($rev - $revPrev) / $revPrev) * 100 : log1p($rev) * 5;
@@ -44,8 +55,15 @@ class DashboardController extends Controller
         // ==============================
         // 2️⃣A ANGGOTA NON INSTANSI (role = member)
         // ==============================
-        $newMembers     = (int) User::where('role', 'member')->whereBetween('created_at', [$start, $now])->count();
-        $newMembersPrev = (int) User::where('role', 'member')->whereBetween('created_at', [$prevStart, $prevEnd])->count();
+        $newMembers = (int) User::where('role', 'member')
+            ->when($start, fn($q) => $q->whereBetween('created_at', [$start, $now]))
+            ->count();
+
+        $newMembersPrev = $start
+            ? (int) User::where('role', 'member')
+                ->whereBetween('created_at', [$prevStart, $prevEnd])
+                ->count()
+            : 0;
 
         $newMembersDiff = $newMembers - $newMembersPrev;
         $newMembersDiffPct = $newMembersPrev > 0
@@ -57,8 +75,15 @@ class DashboardController extends Controller
         // ==============================
         // 2️⃣B ANGGOTA INSTANSI (role = institution)
         // ==============================
-        $newInstitutions     = (int) User::where('role', 'institution')->whereBetween('created_at', [$start, $now])->count();
-        $newInstitutionsPrev = (int) User::where('role', 'institution')->whereBetween('created_at', [$prevStart, $prevEnd])->count();
+        $newInstitutions = (int) User::where('role', 'institution')
+            ->when($start, fn($q) => $q->whereBetween('created_at', [$start, $now]))
+            ->count();
+
+        $newInstitutionsPrev = $start
+            ? (int) User::where('role', 'institution')
+                ->whereBetween('created_at', [$prevStart, $prevEnd])
+                ->count()
+            : 0;
 
         $newInstitutionsDiff = $newInstitutions - $newInstitutionsPrev;
         $newInstitutionsDiffPct = $newInstitutionsPrev > 0
@@ -67,17 +92,14 @@ class DashboardController extends Controller
         $newInstitutionsDiffPct = max(min($newInstitutionsDiffPct, 100), -100);
         $newInstitutionsTrend = $newInstitutionsDiffPct >= 0 ? 'up' : 'down';
 
-        // ===================================================
-        // 3️⃣ ACTIVE ACCOUNTS (status = 'diterima' di tabel members)
-        // ===================================================
-
-        // Semua akun aktif (member & institution)
+        // ==============================
+        // 3️⃣ ACTIVE ACCOUNTS (status = 'diterima')
+        // ==============================
         $activeAll = (int) DB::table('members')
             ->join('users', 'members.user_id', '=', 'users.id')
             ->where('members.status', 'diterima')
             ->count();
 
-        // Aktif berdasarkan role
         $activeMembers = (int) DB::table('members')
             ->join('users', 'members.user_id', '=', 'users.id')
             ->where('users.role', 'member')
@@ -90,22 +112,24 @@ class DashboardController extends Controller
             ->where('members.status', 'diterima')
             ->count();
 
-        // Bandingkan dengan periode sebelumnya (berdasarkan updated_at)
-        $activeMembersPrev = (int) DB::table('members')
-            ->join('users', 'members.user_id', '=', 'users.id')
-            ->where('users.role', 'member')
-            ->where('members.status', 'diterima')
-            ->whereBetween('members.updated_at', [$prevStart, $prevEnd])
-            ->count();
+        $activeMembersPrev = $start
+            ? (int) DB::table('members')
+                ->join('users', 'members.user_id', '=', 'users.id')
+                ->where('users.role', 'member')
+                ->where('members.status', 'diterima')
+                ->whereBetween('members.updated_at', [$prevStart, $prevEnd])
+                ->count()
+            : 0;
 
-        $activeInstitutionsPrev = (int) DB::table('members')
-            ->join('users', 'members.user_id', '=', 'users.id')
-            ->where('users.role', 'institution')
-            ->where('members.status', 'diterima')
-            ->whereBetween('members.updated_at', [$prevStart, $prevEnd])
-            ->count();
+        $activeInstitutionsPrev = $start
+            ? (int) DB::table('members')
+                ->join('users', 'members.user_id', '=', 'users.id')
+                ->where('users.role', 'institution')
+                ->where('members.status', 'diterima')
+                ->whereBetween('members.updated_at', [$prevStart, $prevEnd])
+                ->count()
+            : 0;
 
-        // Hitung % perubahan
         $activeMembersDiffPct = $activeMembersPrev > 0
             ? (($activeMembers - $activeMembersPrev) / $activeMembersPrev) * 100
             : ($activeMembers > 0 ? 100 : 0);
@@ -114,57 +138,77 @@ class DashboardController extends Controller
             ? (($activeInstitutions - $activeInstitutionsPrev) / $activeInstitutionsPrev) * 100
             : ($activeInstitutions > 0 ? 100 : 0);
 
-        // Trend naik/turun
         $activeMembersTrend = $activeMembersDiffPct >= 0 ? 'up' : 'down';
         $activeInstitutionsTrend = $activeInstitutionsDiffPct >= 0 ? 'up' : 'down';
 
         // ==============================
-        // 4️⃣ GROWTH RATE (proxy dari revenue)
+        // 4️⃣ GROWTH RATE
         // ==============================
         $growthRate = (
-            ($revDiffPct * 0.6) +          // 60% bobot dari pendapatan
-            ($newMembersDiffPct * 0.3) +   // 30% dari jumlah member baru
-            ($activeMembersDiffPct * 0.1)  // 10% dari akun aktif
+            ($revDiffPct * 0.6) +
+            ($newMembersDiffPct * 0.3) +
+            ($activeMembersDiffPct * 0.1)
         );
-
-        // Batasi biar realistis (-100% s/d 100%)
         $growthRate = max(min($growthRate, 100), -100);
-
 
         // ==============================
         // 5️⃣ DATA UNTUK CHART
         // ==============================
-        $chartDays = range(0, $days);
+        // ==============================
+        // 5️⃣ DATA UNTUK CHART
+        // ==============================
         $chartData = [];
 
-        foreach ($chartDays as $i) {
-            $date = $start->copy()->addDays($i)->format('Y-m-d');
+        if ($range === 'all') {
+            // 📊 Mode ALL → tampilkan semua data harian dari awal data ada
+            $earliestPayment = Payment::min('created_at');
+            $startAll = $earliestPayment ? Carbon::parse($earliestPayment)->startOfDay() : Carbon::now()->subDays(90);
 
-            $dailyRevenue = (float) Payment::where('status', 'paid')
-                ->whereDate('created_at', $date)
-                ->sum('jumlah_bayar');
+            $period = Carbon::parse($startAll)->daysUntil(Carbon::now());
 
-            $dailyMembers = (int) User::where('role', 'member')
-                ->whereDate('created_at', $date)
-                ->count();
+            foreach ($period as $date) {
+                $chartData[] = [
+                    'date'             => $date->format('Y-m-d'),
+                    'revenue'          => (float) Payment::where('status', 'paid')
+                        ->whereDate('created_at', $date)
+                        ->sum('jumlah_bayar'),
+                    'new_members'      => (int) User::where('role', 'member')
+                        ->whereDate('created_at', $date)
+                        ->count(),
+                    'new_institutions' => (int) User::where('role', 'institution')
+                        ->whereDate('created_at', $date)
+                        ->count(),
+                    'active_accounts'  => (int) DB::table('members')
+                        ->where('status', 'diterima')
+                        ->whereDate('updated_at', '<=', $date)
+                        ->count(),
+                ];
+            }
+        } else {
+            // 📆 Mode selain ALL → tampilkan range tertentu (7d, 30d, 90d)
+            $chartDays = range(0, $days);
+            foreach ($chartDays as $i) {
+                $date = $start->copy()->addDays($i)->format('Y-m-d');
 
-            $dailyInstitutions = (int) User::where('role', 'institution')
-                ->whereDate('created_at', $date)
-                ->count();
-
-            $dailyActive = (int) DB::table('members')
-                ->where('status', 'diterima')
-                ->whereDate('updated_at', '<=', $date)
-                ->count();
-
-            $chartData[] = [
-                'date'             => $date,
-                'revenue'          => $dailyRevenue,
-                'new_members'      => $dailyMembers,
-                'new_institutions' => $dailyInstitutions,
-                'active_accounts'  => $dailyActive,
-            ];
+                $chartData[] = [
+                    'date'             => $date,
+                    'revenue'          => (float) Payment::where('status', 'paid')
+                        ->whereDate('created_at', $date)
+                        ->sum('jumlah_bayar'),
+                    'new_members'      => (int) User::where('role', 'member')
+                        ->whereDate('created_at', $date)
+                        ->count(),
+                    'new_institutions' => (int) User::where('role', 'institution')
+                        ->whereDate('created_at', $date)
+                        ->count(),
+                    'active_accounts'  => (int) DB::table('members')
+                        ->where('status', 'diterima')
+                        ->whereDate('updated_at', '<=', $date)
+                        ->count(),
+                ];
+            }
         }
+
 
         // ==============================
         // 6️⃣ FORMAT UNTUK FRONTEND

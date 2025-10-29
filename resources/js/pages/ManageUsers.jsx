@@ -35,8 +35,8 @@ export default function ManageUsers() {
   const initialUsers = Array.isArray(props.users?.data)
     ? props.users.data
     : Array.isArray(props.users)
-    ? props.users
-    : []
+      ? props.users
+      : []
   const initialMeta = props.users?.meta ?? {}
 
   const [users, setUsers] = useState(initialUsers)
@@ -44,7 +44,7 @@ export default function ManageUsers() {
   const [pageSize, setPageSize] = useState(initialMeta.per_page || 10)
   const [q, setQ] = useState(props.filters?.q || "")
   const [status, setStatus] = useState(props.filters?.status || "all")
-  const [timeRange, setTimeRange] = useState(props.filters?.timeRange || "90d")
+  const [timeRange, setTimeRange] = useState(props.filters?.timeRange || "all")
   const [loading, setLoading] = useState(false)
 
   const columns = getUserColumns()
@@ -119,6 +119,7 @@ export default function ManageUsers() {
               </div>
 
               {/* 🧭 Filter waktu */}
+              {/* 🧭 Filter waktu */}
               <div className="absolute right-6 top-4">
                 <ToggleGroup
                   type="single"
@@ -132,6 +133,9 @@ export default function ManageUsers() {
                   variant="outline"
                   className="hidden md:flex"
                 >
+                  {/* <ToggleGroupItem value="all" className="h-8 px-2.5 font-normal">
+                    Semua
+                  </ToggleGroupItem> */}
                   <ToggleGroupItem value="90d" className="h-8 px-2.5 font-normal">
                     3 Bulan Terakhir
                   </ToggleGroupItem>
@@ -157,6 +161,7 @@ export default function ManageUsers() {
                     <SelectValue placeholder="Pilih rentang waktu" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
+                    {/* <SelectItem value="all">Semua</SelectItem> */}
                     <SelectItem value="90d">3 Bulan Terakhir</SelectItem>
                     <SelectItem value="30d">30 Hari Terakhir</SelectItem>
                     <SelectItem value="7d">7 Hari Terakhir</SelectItem>

@@ -13,7 +13,7 @@ class ManageUsersController extends Controller
     {
         $q         = trim((string) $request->query('q', ''));
         $status    = trim((string) $request->query('status', ''));
-        $timeRange = trim((string) $request->query('timeRange', '90d'));
+        $timeRange = trim((string) $request->query('timeRange', 'all'));
         $page      = (int) $request->query('page', 1);
 
         $query = User::query()

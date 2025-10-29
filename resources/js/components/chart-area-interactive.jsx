@@ -34,9 +34,11 @@ export function ChartAreaInteractive({ data, timeRange }) {
 
   // ✅ Filter data sesuai time range
   const filteredData = React.useMemo(() => {
+    if (timeRange === "all") return chartData; // tampil semua data bulanan
     const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90
     return chartData.slice(-days)
   }, [chartData, timeRange])
+
 
   // ✅ Config warna chart (pakai warna bawaan dari theme CSS)
   const chartConfig = {
@@ -80,10 +82,11 @@ export function ChartAreaInteractive({ data, timeRange }) {
             <XAxis
               dataKey="date"
               tickLine={false}
-              axisLine={false}
+              a xisLine={false}
               tickMargin={8}
               minTickGap={32}
               tickFormatter={(value) => {
+                if (timeRange === "all") return value; // biarkan label bulan tampil langsung
                 const date = new Date(value)
                 return date.toLocaleDateString("id-ID", {
                   month: "short",

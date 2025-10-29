@@ -1,37 +1,54 @@
 "use client"
-import { useState } from "react"
-import { usePage } from "@inertiajs/react"
 
+import { useState } from "react"
+import { usePage, router } from "@inertiajs/react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
-  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList,
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset, SidebarProvider, SidebarTrigger,
-} from "@/components/ui/sidebar"
 import { CardHeader } from "@/components/ui/card"
 import {
-  ToggleGroup, ToggleGroupItem,
+  ToggleGroup,
+  ToggleGroupItem,
 } from "@/components/ui/toggle-group"
 import {
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
 } from "@/components/ui/select"
 
 import { SectionCards } from "@/components/section-cards"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { router } from "@inertiajs/react"
-
-
 
 export default function Dashboard() {
-  // Ambil data dari server
   const { props } = usePage()
   const metrics = props.metrics ?? {}
   const chart = props.chart ?? { labels: [], series: {} }
-  const initialRange = props.range ?? "90d"
 
+  // 🟢 Default = "all" (semua data)
+  const initialRange = props.range ?? "all"
   const [timeRange, setTimeRange] = useState(initialRange)
+
+  const handleRangeChange = (v) => {
+    if (!v || v === timeRange) return
+    setTimeRange(v)
+    router.visit(`/admin/dashboard?range=${v}`, {
+      preserveState: true,
+      preserveScroll: true,
+      replace: true,
+    })
+  }
 
   return (
     <SidebarProvider>
@@ -45,7 +62,9 @@ export default function Dashboard() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/admin/dashboard">Dashboard</BreadcrumbLink>
+                  <BreadcrumbLink href="/admin/dashboard">
+                    Dashboard
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -55,43 +74,29 @@ export default function Dashboard() {
         {/* Main content */}
         <div className="flex flex-1 flex-col">
           <CardHeader className="relative">
-            {/* Toggle Rentang Waktu */}
             <div className="absolute right-6 top-4">
+              {/* 🧭 Toggle waktu (Desktop) */}
               <ToggleGroup
                 type="single"
                 value={timeRange}
-                onValueChange={(v) => {
-                  if (v && v !== timeRange) {
-                    setTimeRange(v)
-                    router.visit(`/admin/dashboard?range=${v}`, {
-                      preserveState: true,   // agar sidebar dll tidak reload
-                      preserveScroll: true,
-                      replace: true,         // update URL tanpa reload penuh
-                    })
-                  }
-                }}
+                onValueChange={handleRangeChange}
                 variant="outline"
                 className="hidden md:flex"
               >
-                <ToggleGroupItem value="90d" className="h-8 px-2.5">3 Bulan Terakhir</ToggleGroupItem>
-                <ToggleGroupItem value="30d" className="h-8 px-2.5">30 Hari Terakhir</ToggleGroupItem>
-                <ToggleGroupItem value="7d" className="h-8 px-2.5">7 Hari Terakhir</ToggleGroupItem>
+                {/* Tidak ada tombol “Semua” — default-nya sudah “all” */}
+                <ToggleGroupItem value="90d" className="h-8 px-2.5 font-normal">
+                  3 Bulan Terakhir
+                </ToggleGroupItem>
+                <ToggleGroupItem value="30d" className="h-8 px-2.5 font-normal">
+                  30 Hari Terakhir
+                </ToggleGroupItem>
+                <ToggleGroupItem value="7d" className="h-8 px-2.5 font-normal">
+                  7 Hari Terakhir
+                </ToggleGroupItem>
               </ToggleGroup>
 
-              {/* Pilihan (Mobile) */}
-              <Select
-                value={timeRange}
-                onValueChange={(v) => {
-                  if (v && v !== timeRange) {
-                    setTimeRange(v)
-                    router.visit(`/admin/dashboard?range=${v}`, {
-                      preserveState: true,
-                      preserveScroll: true,
-                      replace: true,
-                    })
-                  }
-                }}
-              >
+              {/* 🧭 Dropdown (Mobile) */}
+              <Select value={timeRange} onValueChange={handleRangeChange}>
                 <SelectTrigger className="md:hidden flex w-40">
                   <SelectValue placeholder="Pilih rentang waktu" />
                 </SelectTrigger>
@@ -105,7 +110,7 @@ export default function Dashboard() {
           </CardHeader>
 
           <div className="flex flex-col gap-4 py-4 md:py-6">
-            {/* Kartu Statistik */}
+            {/* Statistik */}
             <SectionCards metrics={metrics} />
 
             {/* Grafik */}

@@ -15,7 +15,7 @@ class PaymentValidationController extends Controller
     {
         $uiStatus   = $request->query('status', 'all'); // default 'all' biar semua data muncul
         $q          = trim((string) $request->query('q', ''));
-        $timeRange  = $request->query('timeRange', '90d');
+        $timeRange  = $request->query('timeRange', 'all'); // default 'all'
         $page       = (int) $request->query('page', 1);
         $perPage    = (int) $request->query('per_page', 10);
 
@@ -32,8 +32,9 @@ class PaymentValidationController extends Controller
             '90d' => 90,
             '30d' => 30,
             '7d'  => 7,
-            'all' => 9999,
-        ][$timeRange] ?? 90;
+        ][$timeRange] ?? null;
+
+        $fromDate = $days ? now()->subDays($days) : null;
 
         $fromDate = now()->subDays($days);
 
