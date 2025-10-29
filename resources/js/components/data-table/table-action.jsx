@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical } from "lucide-react"
 
+
 // Dialogs
 import { EditUserDialog } from "@/components/dialogs/EditUserDialog"
 import { DeleteUserDialog } from "@/components/dialogs/DeleteUserDialog"
 import { RejectReasonDialog } from "@/components/dialogs/RejectReasonDialog"
 import { PaymentActionDialog } from "@/components/dialogs/PaymentActionDialog"
-import {FeeEditDialog}from "@/components/dialogs/FeeSettingDialog"
+import { FeeEditDialog } from "@/components/dialogs/FeeSettingDialog"
+
 
 
 //
@@ -204,24 +206,22 @@ export function PaymentValidationActionsCell({ payment }) {
 
 }
 
+// -------------------------
+//  Fee Setting Actions
+// -------------------------  
 
 export function FeeSettingActionsCell({ payment }) {
   const [openEdit, setOpenEdit] = useState(false)
+  // console.log("Hapus:", pay  ment.id);
 
   const handleDelete = () => {
     if (!confirm(`Yakin hapus data iuran: ${payment.tahun} — ${payment.member_type}?`)) return
 
     Inertia.delete(`/admin/fee-settings/${payment.id}`, {}, {
       preserveScroll: true,
-      onSuccess: () => {
-        // optionally show toast (if you use sonner/toast)
-        toast.success("Data iuran dihapus")
-        // reload atau biarkan Inertia props update otomatis dari server
-      },
-      onError: (err) => {
-        console.error("Hapus gagal:", err)
-        toast.error("Gagal menghapus data")
-      },
+      preserveState: true,
+      onSuccess: () => toast.success("Data iuran dihapus"),
+      onError: (err) => toast.error("Gagal menghapus data"),
     })
   }
 

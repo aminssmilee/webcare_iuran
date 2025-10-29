@@ -540,6 +540,7 @@ export  function getFeeSettingTables(){
       header: "Aksi",
       cell: ({ row }) => (
         <FeeSettingActionsCell payment={row.original} />
+        // <FeeSettingActionsCell payment={row.original} onRefresh={fetchFees} />
       ),
     },
   ]

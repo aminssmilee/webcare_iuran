@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -22,38 +22,73 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
 } from "@tabler/icons-react";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
-export function DataTable({ data, columns }) {
+// ⚙️ Sekarang DataTable bisa dipakai untuk client-side & server-side tanpa ubah tampilan
+export function DataTable({
+  data,
+  columns,
+  server = false,            // aktifkan mode server-side pagination
+  pageCount = 1,             // total halaman dari backend
+  pagination,                // { pageIndex, pageSize } dari parent
+  onPaginationChange,        // callback saat user klik Next/Prev
+  onPageSizeChange, 
+}) {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const [internalPagination, setInternalPagination] = useState(
+    pagination || { pageIndex: 0, pageSize: 15 }
+  );
+
+  // sinkronkan pagination dari luar
+  useEffect(() => {
+    if (server && pagination) {
+      setInternalPagination(pagination);
+    }
+  }, [pagination]);
 
   const table = useReactTable({
     data: data ?? [],
     columns,
-    state: { sorting, columnFilters, columnVisibility, rowSelection },
-    initialState: {
-      pagination: {
-        pageSize: 15,
-      },
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+      pagination: internalPagination,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-  })
 
+    // ✅ tambahan fungsi server-side tanpa ubah UI
+    manualPagination: server,
+    pageCount: server ? pageCount : undefined,
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(internalPagination) : updater;
+      setInternalPagination(next);
+      onPaginationChange?.(next);
+    },
+  });
 
   return (
     <div className="w-full overflow-x-auto">
-      {/* ✅ dynamic min-width biar table gak rusak */}
       <Table
         className={`min-w-[${Math.max(
           table.getAllColumns().length * 150,
@@ -103,7 +138,7 @@ export function DataTable({ data, columns }) {
         </TableBody>
       </Table>
 
-      {/* Pagination + Info */}
+      {/* Pagination + Info (tetap sama) */}
       <div className="flex items-center justify-end px-4 py-3">
         <div className="flex w-full items-center gap-8 lg:w-fit">
           <div className="hidden items-center  gap-2 lg:flex">
@@ -113,7 +148,12 @@ export function DataTable({ data, columns }) {
             <Select
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={(value) => {
-                table.setPageSize(Number(value))
+                const size = Number(value)
+                table.setPageSize(size)
+                // ⚡ jika server-side aktif, beri tahu parent
+                if (server && onPageSizeChange) {
+                  onPageSizeChange(size)
+                }
               }}
             >
               <SelectTrigger size="sm" className="w-20" id="rows-per-page">
@@ -130,10 +170,12 @@ export function DataTable({ data, columns }) {
               </SelectContent>
             </Select>
           </div>
+
           <div className="flex w-fit items-center justify-center text-sm font-normal">
             Page {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount()}
           </div>
+
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
             <Button
               variant="outline"

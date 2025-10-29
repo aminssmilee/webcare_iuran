@@ -121,17 +121,34 @@ export default function ManageUsers() {
 
               {/* 🧭 Filter status dan waktu */}
               <div className="absolute right-6 top-4">
-                <ToggleGroup
+                {/* <ToggleGroup
                   type="single"
                   value={timeRange}
                   onValueChange={(v) => {
                     if (v && v !== timeRange) {
                       setTimeRange(v)
                       router.visit(`/admin/dashboard?range=${v}`, {
-                        preserveState: true,   // agar sidebar dll tidak reload
+                        // preserveState: true,   // agar sidebar dll tidak reload
                         preserveScroll: true,
-                        replace: true,         // update URL tanpa reload penuh
+                        // replace: true,         // update URL tanpa reload penuh
                       })
+                    }
+                  }}
+                  variant="outline"
+                  className="hidden md:flex"
+                >
+                  <ToggleGroupItem value="90d" className="h-8 px-2.5 font-normal">3 Bulan Terakhir</ToggleGroupItem>
+                  <ToggleGroupItem value="30d" className="h-8 px-2.5 font-normal">30 Hari Terakhir</ToggleGroupItem>
+                  <ToggleGroupItem value="7d" className="h-8 px-2.5 font-normal">7 Hari Terakhir</ToggleGroupItem>
+                </ToggleGroup> */}
+
+                <ToggleGroup
+                  type="single"
+                  value={timeRange}
+                  onValueChange={(v) => {
+                    if (v && v !== timeRange) {
+                      setTimeRange(v)
+                      fetchUsers({ page: 1 })
                     }
                   }}
                   variant="outline"
@@ -142,8 +159,9 @@ export default function ManageUsers() {
                   <ToggleGroupItem value="7d" className="h-8 px-2.5 font-normal">7 Hari Terakhir</ToggleGroupItem>
                 </ToggleGroup>
 
+
                 {/* Pilihan (Mobile) */}
-                <Select
+                {/* <Select
                   value={timeRange}
                   onValueChange={(v) => {
                     if (v && v !== timeRange) {
@@ -155,7 +173,17 @@ export default function ManageUsers() {
                       })
                     }
                   }}
+                > */}
+                <Select
+                  value={timeRange}
+                  onValueChange={(v) => {
+                    if (v && v !== timeRange) {
+                      setTimeRange(v)
+                      fetchUsers({ page: 1 })
+                    }
+                  }}
                 >
+
                   <SelectTrigger className="md:hidden flex w-40">
                     <SelectValue placeholder="Pilih rentang waktu" />
                   </SelectTrigger>
