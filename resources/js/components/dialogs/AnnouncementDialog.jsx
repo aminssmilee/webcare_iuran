@@ -12,38 +12,42 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Send, Plus } from "lucide-react"
+import axios from "axios"
 import { toast } from "sonner"
-import { router } from "@inertiajs/react"
 
 export default function AnnouncementDialog({ onSuccess }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ title: "", content: "" })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
 
-    router.post("/admin/announcements", form, {
-      preserveScroll: true,
-      onSuccess: () => {
-        toast.success("Pengumuman berhasil dikirim!")
-        setForm({ title: "", content: "" })
-        setOpen(false)
-        onSuccess?.()
-      },
-      onError: () => toast.error("Gagal mengirim pengumuman"),
-      onFinish: () => setLoading(false),
-    })
+    try {
+      const res = await axios.post("/admin/announcements", form, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+
+      toast.success("Pengumuman berhasil ditambahkan!")
+
+      // ✅ kirim data baru ke parent tanpa reload
+      onSuccess?.(res.data.announcement)
+
+      setForm({ title: "", content: "" })
+      setOpen(false)
+    } catch (error) {
+      console.error(error)
+      toast.error("Gagal mengirim pengumuman.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          Tambah Pengumuman
-        </Button>
+        <Button className="gap-2">Tambah Pengumuman</Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
@@ -77,9 +81,8 @@ export default function AnnouncementDialog({ onSuccess }) {
           </div>
 
           <div className="flex justify-end pt-2">
-            <Button type="submit" disabled={loading} className="gap-2">
+            <Button type="submit" disabled={loading}>
               {loading ? "Mengirim..." : "Kirim Pengumuman"}
-              {!loading }
             </Button>
           </div>
         </form>

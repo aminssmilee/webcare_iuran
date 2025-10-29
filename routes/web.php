@@ -159,7 +159,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // 📢 Pengumuman
     Route::get('/announcements', [AnnouncementController::class, 'index'])->name('admin.announcements');
     Route::post('/announcements', [AnnouncementController::class, 'store']);
+    Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update']);
     Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy']);
+
 
     // 🧾 Laporan
     Route::get('/reports', fn() => Inertia::render('Reports'))->name('admin.reports');

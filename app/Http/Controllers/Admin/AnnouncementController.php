@@ -27,21 +27,40 @@ class AnnouncementController extends Controller
             'target'  => 'nullable|in:all,member,institution',
         ]);
 
-        Announcement::create([
-            'title'   => $request->title,
-            'content' => $request->content,
-            'target'  => $request->target ?? 'all',
+        $announcement = Announcement::create([
+            'title'        => $request->title,
+            'content'      => $request->content,
+            'target'       => $request->target ?? 'all',
             'publish_date' => now(),
         ]);
+
+        // ✅ kembalikan data lengkap JSON agar frontend bisa langsung append
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'message' => 'Pengumuman berhasil dibuat!',
+                'announcement' => $announcement,
+            ]);
+        }
 
         return back()->with('success', 'Pengumuman berhasil dibuat!');
     }
 
+
     // 🔹 Hapus pengumuman
-    public function destroy(Announcement $announcement)
+    public function destroy(Request $request, Announcement $announcement)
     {
         $announcement->delete();
-        return back()->with('success', 'Pengumuman berhasil dihapus.');
+
+        // Jika request dari axios (AJAX)
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => 'Pengumuman berhasil dihapus!',
+                'status'  => 'success',
+            ], 200);
+        }
+
+        // ✅ Jika dari browser biasa (Inertia)
+        // return back()->with('success', 'Pengumuman berhasil dihapus.');
     }
 }
 
