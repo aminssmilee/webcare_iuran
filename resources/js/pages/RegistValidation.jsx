@@ -34,8 +34,8 @@ export default function RegistValidation() {
   const initialRegs = Array.isArray(props.registrations?.data)
     ? props.registrations.data
     : Array.isArray(props.registrations)
-    ? props.registrations
-    : []
+      ? props.registrations
+      : []
   const initialMeta = props.registrations?.meta ?? {}
 
   // state utama
@@ -46,7 +46,7 @@ export default function RegistValidation() {
   const [status, setStatus] = useState(props.filters?.status || "all")
   const [timeRange, setTimeRange] = useState(props.filters?.timeRange || "90d")
   const [loading, setLoading] = useState(false)
-
+  const [hasFetched, setHasFetched] = useState(false)
   const columns = getRegistrationColumns()
 
   // 🧩 Fetch data paginated
@@ -74,7 +74,18 @@ export default function RegistValidation() {
 
   // ⏳ debounce pencarian
   useEffect(() => {
-    const delay = setTimeout(() => fetchRegistrations({ page: 1 }), 400)
+    // 🧩 Hanya fetch pertama kali (saat halaman pertama dibuka)
+    if (!hasFetched) {
+      setHasFetched(true)
+      fetchRegistrations({ page: 1 })
+      return
+    }
+
+    // ⏳ Kalau ada perubahan filter, baru jalankan debounce fetch
+    const delay = setTimeout(() => {
+      fetchRegistrations({ page: 1 })
+    }, 400)
+
     return () => clearTimeout(delay)
   }, [q, status, timeRange])
 

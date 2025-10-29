@@ -13,7 +13,7 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { DataTable } from "@/components/data-table/DataTable"
-import { getPaymentColumns } from "@/components/data-table/table-colums"
+// import { getPaymentColumns } from "@/components/data-table/table-colums"
 import { Search, LogOut } from "lucide-react"
 import { CardHeader } from "@/components/ui/card"
 import { MemberCard } from "@/components/cards/MemberCard"
@@ -21,31 +21,67 @@ import ProfileInfo from "@/components/cards/ProfileInfo"
 import { EditProfileDialog } from "@/components/dialogs/EditProfileDialog"
 import { PaymentWrapper } from "@/components/paymentWrapper"
 import { MemberAnnouncement } from "@/components/MemberAnnouncement"
+import { getPaymentColumns } from "@/components/data-table/table-colums"
+
 
 export default function MemberPayment() {
   const { props } = usePage()
   const { user, member, payments, profileComplete, announcements } = props
+  const columns = getPaymentColumns()
 
   const [query, setQuery] = useState("")
   const [timeRange, setTimeRange] = useState("90d")
   const [filteredPayments, setFilteredPayments] = useState(payments || [])
   const [loggingOut, setLoggingOut] = useState(false)
   const [openEdit, setOpenEdit] = useState(false)
+  const initialPayments = props.payments?.data ?? []
+  const initialMeta = props.payments?.meta ?? {}
+  const [pageMeta, setPageMeta] = useState(initialMeta)
+  const [pageSize, setPageSize] = useState(initialMeta.per_page || 10)
+  const [loading, setLoading] = useState(false)
+  const paymentData = payments?.data ?? []
+  // const pageMeta = payments?.meta ?? {}
+
+
+  const fetchPayments = async (extra = {}) => {
+    setLoading(true)
+    try {
+      const res = await axios.get("/member/payments", {
+        params: {
+          q: query,
+          page: extra.page || 1,
+          per_page: extra.per_page || pageSize,
+        },
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+      setFilteredPayments(res.data.data)
+      setPageMeta(res.data.meta)
+    } catch (err) {
+      console.error("Error fetching payments:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
 
   useEffect(() => {
-    if (!payments) return
+    const data = payments?.data ?? [] // ambil array data
     const q = query.trim().toLowerCase()
-    let filtered = payments
+
+    let filtered = data
     if (q !== "") {
-      filtered = filtered.filter(
+      filtered = data.filter(
         (p) =>
           (p.mount && p.mount.toLowerCase().includes(q)) ||
           (p.amount && p.amount.toLowerCase().includes(q)) ||
           (p.dueDate && p.dueDate.toLowerCase().includes(q))
       )
     }
+
     setFilteredPayments(filtered)
   }, [query, payments])
+
 
   function handleLogout() {
     setLoggingOut(true)
@@ -129,7 +165,19 @@ export default function MemberPayment() {
 
             {/* 📱 Table Scrollable di Mobile */}
             <div className="overflow-x-auto rounded-lg border border-border/10 bg-background/30">
-              <DataTable data={filteredPayments} columns={getPaymentColumns()} />
+              {/* <DataTable data={filteredPayments} columns={getPaymentColumns()} />
+               */}
+
+              <DataTable
+                data={filteredPayments}
+                columns={columns}
+                server
+                pageCount={payments?.meta?.last_page ?? 1}
+                pagination={{
+                  pageIndex: (payments?.meta?.current_page ?? 1) - 1,
+                  pageSize: payments?.meta?.per_page ?? 10,
+                }}
+              />
             </div>
           </div>
         </div>

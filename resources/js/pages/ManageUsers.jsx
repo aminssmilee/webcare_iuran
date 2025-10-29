@@ -46,7 +46,7 @@ export default function ManageUsers() {
   const [status, setStatus] = useState(props.filters?.status || "all")
   const [timeRange, setTimeRange] = useState(props.filters?.timeRange || "all")
   const [loading, setLoading] = useState(false)
-
+  const [hasFetched, setHasFetched] = useState(false)
   const columns = getUserColumns()
 
   // 🧭 Fetch data dari server (pagination + filter)
@@ -73,12 +73,48 @@ export default function ManageUsers() {
   }
 
   // ⏳ Realtime search debounce
+  // 📡 Listener update dengan 2 mode: instant & full refetch
   useEffect(() => {
-    const delay = setTimeout(() => {
-      fetchUsers({ page: 1 })
-    }, 400)
-    return () => clearTimeout(delay)
-  }, [q, status, timeRange])
+    const handleUserUpdated = () => {
+      fetchUsers({ page: pageMeta?.current_page || 1 })
+    }
+
+    const handleInstantUpdate = (e) => {
+      const { id, data } = e.detail
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === id
+            ? {
+              ...u,
+              name: data.name,
+              email: data.email,
+              nik: data.nik,
+              address: data.alamat,
+              whatsapp: data.no_wa,
+              education: data.pendidikan,
+              occupation: data.jabatan,
+            }
+            : u
+        )
+      )
+    }
+
+    const handleUserDeleted = (e) => {
+      const { id } = e.detail
+      setUsers((prev) => prev.filter((u) => u.id !== id))
+    }
+
+    window.addEventListener("user-updated", handleUserUpdated)
+    window.addEventListener("user-updated-instant", handleInstantUpdate)
+    window.addEventListener("user-deleted", handleUserDeleted)
+
+    return () => {
+      window.removeEventListener("user-updated", handleUserUpdated)
+      window.removeEventListener("user-updated-instant", handleInstantUpdate)
+      window.removeEventListener("user-deleted", handleUserDeleted)
+    }
+  }, [pageMeta])
+
 
   return (
     <SidebarProvider>

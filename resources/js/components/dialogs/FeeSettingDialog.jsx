@@ -54,12 +54,30 @@ export function FeeEditDialog({ open, onOpenChange }) {
             { member_type: memberType, tahun, nominal },
             {
                 onSuccess: () => {
-                    toast.success(" Data iuran berhasil disimpan")
+                    // ✅ Kirim event global agar FeeSettings.jsx tahu ada perubahan
+                    window.dispatchEvent(new CustomEvent("fee-updated"))
+
+                    // ✅ Atau kalau kamu mau instant update (tanpa fetch ulang)
+                    window.dispatchEvent(
+                        new CustomEvent("fee-updated-instant", {
+                            detail: {
+                                id: Date.now(), // dummy ID (karena ini insert baru)
+                                data: {
+                                    year: tahun,
+                                    type_member: memberType,
+                                    nominal_tahunan: `Rp ${Number(nominal).toLocaleString("id-ID")}`,
+                                    nominal_bulanan: `Rp ${Math.floor(Number(nominal) / 12).toLocaleString("id-ID")}`,
+                                },
+                            },
+                        })
+                    )
+
+                    toast.success("Data iuran berhasil disimpan!")
                     setNominal("")
                     setSubmitting(false)
-                    onOpenChange(false) //  Tutup modal setelah sukses
-                    router.reload({ only: ["fees"] })
+                    onOpenChange(false)
                 },
+
                 onError: () => {
                     toast.error("Gagal menyimpan data, periksa input Anda.")
                     setSubmitting(false)

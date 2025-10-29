@@ -48,7 +48,8 @@ export function getUserColumns() {
         )
       },
     },
-    { id: "roles", accessorKey: "roles", header: "Type Anggota" },
+    // { id: "roles", accessorKey: "roles", header: "Type Anggota" },    
+    { id: "member_type", accessorKey: "member_type", header: "Type Anggota" },
     {
       id: "nik",
       accessorKey: "nik",
@@ -120,7 +121,7 @@ export function getUserColumns() {
     {
       id: "occupation",
       accessorKey: "occupation",
-      header: "Jabatan",
+      header: "Pekerjaan",
       cell: ({ row }) => (
         <span className="text-sm">{row.getValue("occupation") || "-"}</span>
       ),
@@ -251,7 +252,7 @@ export function getPaymentValidationColumns() {
     { id: "id_member", accessorKey: "id_member", header: "ID Member" },
     { id: "name", accessorKey: "name", header: "Nama" },
     { id: "email", accessorKey: "email", header: "Email" },
-    { id: "mount", accessorKey: "mount", header: "Periode Bulan" },
+    { id: "periode", accessorKey: "periode", header: "Periode Bulan" },
     { id: "amount", accessorKey: "amount", header: "Jumlah Pembayaran" },
     {
       id: "paidAt",
@@ -529,11 +530,11 @@ export function getPaymentColumns() {
 // ========================================================
 // FEE SETTING TABLE COLUMNS
 // ========================================================
-export  function getFeeSettingTables(){
+export function getFeeSettingTables() {
   return [
     { id: "tahun", accessorKey: "tahun", header: "Tahun" },
     { id: "member_type", accessorKey: "member_type", header: "Tipe Member" },
-    { id:"nominal_tahunan", accessorKey: "nominal_tahunan", header: "Nominal Tahunan (Rp)" },
+    { id: "nominal_tahunan", accessorKey: "nominal_tahunan", header: "Nominal Tahunan (Rp)" },
     { id: "nominal_bulanan", accessorKey: "nominal_bulanan", header: "Nominal Bulanan (Rp)" },
     {
       id: "actions",

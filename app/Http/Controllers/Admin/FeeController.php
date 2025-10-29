@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Fee;
 use Inertia\Inertia;
 
+
 class FeeController extends Controller
 {
     public function index(Request $request)
@@ -17,6 +18,10 @@ class FeeController extends Controller
         $perPage    = (int) $request->query('per_page', 10);
 
         $query = Fee::query()->orderByDesc('tahun')->orderBy('member_type');
+
+        // if ($request->member_type && $request->member_type !== 'all') {
+        //     $query->where('member_type', $request->member_type);
+        // }
 
         if ($memberType !== 'all' && in_array($memberType, ['perorangan', 'institusi'])) {
             $query->where('member_type', $memberType);
@@ -67,6 +72,12 @@ class FeeController extends Controller
                 'year'        => $year,
                 'years_list'  => $yearsList,
             ],
+            'meta' => [
+                'current_page' => $fees->currentPage(),
+                'last_page'    => $fees->lastPage(),
+                'total'        => $fees->total(),
+                'per_page'     => $fees->perPage(),
+            ],
         ]);
     }
 
@@ -91,11 +102,12 @@ class FeeController extends Controller
         return back()->with('success', 'Data iuran berhasil disimpan.');
     }
 
-    public function destroy(Fee $fee)
+    public function destroy($id)
     {
+        $fee = Fee::findOrFail($id);
         $fee->delete();
 
-        return back()->with('success', 'Data iuran berhasil dihapus.');
+        return redirect()->back()->with('success', 'Data iuran berhasil dihapus!');
     }
 }
 

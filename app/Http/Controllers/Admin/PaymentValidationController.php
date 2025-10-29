@@ -13,9 +13,9 @@ class PaymentValidationController extends Controller
 {
     public function index(Request $request)
     {
-        $uiStatus   = $request->query('status', 'all'); // default 'all' biar semua data muncul
+        $uiStatus   = $request->query('status', 'all');
         $q          = trim((string) $request->query('q', ''));
-        $timeRange  = $request->query('timeRange', 'all'); // default 'all'
+        $timeRange  = $request->query('timeRange', 'all');
         $page       = (int) $request->query('page', 1);
         $perPage    = (int) $request->query('per_page', 10);
 
@@ -26,7 +26,7 @@ class PaymentValidationController extends Controller
             'Rejected'  => 'rejected',
             'Failed'    => 'rejected',
         ];
-        $dbStatus = $mapStatus[$uiStatus] ?? null; // null = all
+        $dbStatus = $mapStatus[$uiStatus] ?? null;
 
         $days = [
             '90d' => 90,
@@ -36,12 +36,10 @@ class PaymentValidationController extends Controller
 
         $fromDate = $days ? now()->subDays($days) : null;
 
-        $fromDate = now()->subDays($days);
-
-        $query = \App\Models\Payment::query()
+        $query = Payment::query()
             ->with(['member.user'])
-            ->when($dbStatus, fn($q) => $q->where('status', $dbStatus)) // hanya jika ada filter
-            ->when($timeRange !== 'all', fn($q) => $q->where('created_at', '>=', $fromDate))
+            ->when($dbStatus, fn($q) => $q->where('status', $dbStatus))
+            ->when($timeRange !== 'all', fn($q) => $q->where('created_at', '>=', $fromDate)) // ✅ ini kunci
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($sq) use ($q) {
                     $sq->where('periode', 'like', "%{$q}%")
@@ -55,17 +53,32 @@ class PaymentValidationController extends Controller
             })
             ->latest();
 
+
         $total = $query->count();
         $payments = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
 
+        // ==========================================================
+        // 🔧 FIX: Tambahkan formatter untuk periode gabungan (awal-akhir)
+        // ==========================================================
         $items = $payments->map(function ($p) {
             $user = optional($p->member)->user;
+
+            // 🔹 Format teks periode
+            $periodeTeks = '-';
+            if (!empty($p->periode_awal) && !empty($p->periode_akhir)) {
+                $awal = Carbon::createFromFormat('Y-m', $p->periode_awal)->isoFormat('MMMM YYYY');
+                $akhir = Carbon::createFromFormat('Y-m', $p->periode_akhir)->isoFormat('MMMM YYYY');
+                $periodeTeks = $awal === $akhir ? $awal : "{$awal} – {$akhir}";
+            } elseif (!empty($p->periode)) {
+                $periodeTeks = Carbon::createFromFormat('Y-m', $p->periode)->isoFormat('MMMM YYYY');
+            }
+
             return [
                 'id'            => $p->id,
                 'id_member'     => $p->member?->id ?? null,
                 'name'          => $user?->name ?? '-',
                 'email'         => $user?->email ?? '-',
-                'periode'       => $p->periode,
+                'periode'       => $periodeTeks, // ✅ hasil format gabungan
                 'amount'        => 'Rp ' . number_format((int) $p->jumlah_bayar, 0, ',', '.'),
                 'paidAt'        => optional($p->created_at)->format('Y-m-d H:i'),
                 'paymentProof'  => $p->bukti ? asset('storage/' . $p->bukti) : null,
@@ -73,7 +86,9 @@ class PaymentValidationController extends Controller
             ];
         });
 
-        // Jika request dari axios (AJAX), kirim JSON
+        // ==========================================================
+        // AJAX vs Inertia response
+        // ==========================================================
         if ($request->ajax()) {
             return response()->json([
                 'data' => $items,
@@ -86,7 +101,6 @@ class PaymentValidationController extends Controller
             ]);
         }
 
-        // Kalau bukan AJAX, render halaman Inertia
         return inertia('PaymentValidation', [
             'payments' => [
                 'data' => $items,
@@ -110,11 +124,9 @@ class PaymentValidationController extends Controller
     public function approve($id)
     {
         $payment = Payment::findOrFail($id);
-
         if ($payment->status !== 'pending') {
             return back()->with('error', 'Pembayaran sudah divalidasi sebelumnya.');
         }
-
         $payment->status = 'paid';
         $payment->save();
 
@@ -125,11 +137,9 @@ class PaymentValidationController extends Controller
     public function reject($id)
     {
         $payment = Payment::findOrFail($id);
-
         if ($payment->status !== 'pending') {
             return back()->with('error', 'Pembayaran sudah divalidasi sebelumnya.');
         }
-
         $payment->status = 'rejected';
         $payment->save();
 

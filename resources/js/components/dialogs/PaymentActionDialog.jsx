@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Inertia } from "@inertiajs/inertia"
 import {
   Dialog,
   DialogContent,
@@ -12,33 +11,27 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
-export function PaymentActionDialog({ payment, action, open, onOpenChange }) {
+export function PaymentActionDialog({ payment, action, open, onOpenChange, onSubmit }) {
   const [reason, setReason] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!reason.trim()) {
       alert("Mohon isi alasan terlebih dahulu.")
       return
     }
 
-    const routeMap = {
-      Reject: "reject",
-      Overpaid: "overpaid",
-      Expired: "expired",
+    setLoading(true)
+    try {
+      // panggil fungsi yang dikirim dari parent (handleReject)
+      await onSubmit(reason)
+      setReason("")
+      onOpenChange(false)
+    } catch (error) {
+      console.error(`${action} gagal:`, error)
+    } finally {
+      setLoading(false)
     }
-
-    const endpoint = `/admin/payment-validation/${payment.id}/${routeMap[action]}`
-
-    Inertia.post(endpoint, { reason }, {
-      preserveScroll: true,
-      onSuccess: () => {
-        console.log(`${action} success`)
-        onOpenChange(false)
-      },
-      onError: (err) => {
-        console.error(`${action} gagal:`, err)
-      },
-    })
   }
 
   return (
@@ -50,17 +43,20 @@ export function PaymentActionDialog({ payment, action, open, onOpenChange }) {
 
         <div className="py-2">
           <Input
-            placeholder={`Masukkan alasan ${action.toLowerCase()}...`}
+            placeholder={`Masukkan alasan ${action?.toLowerCase()}...`}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
+            disabled={loading}
           />
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Batal
           </Button>
-          <Button onClick={handleSubmit}>Kirim</Button>
+          <Button onClick={handleSubmit} disabled={loading}>
+            {loading ? "Mengirim..." : "Kirim"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

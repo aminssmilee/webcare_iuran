@@ -11,6 +11,8 @@ import { DataTable } from "@/components/data-table/DataTable"
 import { getFeeSettingTables } from "@/components/data-table/table-colums"
 import { FeeEditDialog } from "@/components/dialogs/FeeSettingDialog"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { toast } from "sonner"
+
 
 // import { toast } from "sonner"
 
@@ -23,11 +25,19 @@ export default function FeeSettings() {
   // state
   const [open, setOpen] = useState(false)
   const [fees, setFees] = useState(initialFees) // ✅ aktifkan kembali ini!
-  const [pageMeta, setPageMeta] = useState(initialMeta)
+  // const [pageMeta, setPageMeta] = useState(initialMeta)
   const [memberType, setMemberType] = useState(initialFilters.member_type || "all")
   const [year, setYear] = useState(initialFilters.year || "all")
   const [loading, setLoading] = useState(false)
   const [pageSize, setPageSize] = useState(10)
+  const [pageMeta, setPageMeta] = useState({
+    current_page: initialMeta?.current_page ?? 1,
+    last_page: initialMeta?.last_page ?? 1,
+    total: initialMeta?.total ?? (initialFees?.length || 0),
+    per_page: initialMeta?.per_page ?? pageSize,
+  })
+
+  const [hasFetched, setHasFetched] = useState(false)
 
   // hapus baris ini karena duplikat
   // const { fees = [], filters = {} } = usePage().props
@@ -59,10 +69,10 @@ export default function FeeSettings() {
     try {
       const res = await axios.get("/admin/fee-settings", {
         params: {
-          member_type: memberType,
-          year: year,
+          member_type: extra.member_type ?? memberType, // ✅ ambil dari filter terbaru
+          year: extra.year ?? year,
           page: extra.page || 1,
-          per_page: extra.per_page || pageSize,  // ✅ kirim ke server
+          per_page: extra.per_page || pageSize,
         },
         headers: { "X-Requested-With": "XMLHttpRequest" },
       })
@@ -73,11 +83,69 @@ export default function FeeSettings() {
     }
   }
 
-  // auto refetch saat filter berubah
+
   useEffect(() => {
-    const t = setTimeout(() => fetchFees({ page: 1 }), 200) // debounce ringan
-    return () => clearTimeout(t)
+    const handleFeeUpdated = () => {
+      fetchFees({ page: pageMeta?.current_page || 1 })
+    }
+
+    const handleInstantFeeUpdate = (e) => {
+      const { id, data } = e.detail
+      setFees((prev) =>
+        prev.map((f) =>
+          f.id === id
+            ? {
+              ...f,
+              year: data.year,
+              type_member: data.type_member,
+              nominal_tahunan: data.nominal_tahunan,
+              nominal_bulanan: data.nominal_bulanan,
+            }
+            : f
+        )
+      )
+    }
+
+    window.addEventListener("fee-updated", handleFeeUpdated)
+    window.addEventListener("fee-updated-instant", handleInstantFeeUpdate)
+
+    return () => {
+      window.removeEventListener("fee-updated", handleFeeUpdated)
+      window.removeEventListener("fee-updated-instant", handleInstantFeeUpdate)
+    }
   }, [memberType, year])
+
+  // 🔁 Update tabel otomatis ketika ada event fee-updated (dari hapus / edit)
+  // useEffect(() => {
+  //   const handleFeeUpdated = () => {
+  //     console.log("📥 [DEBUG] Event fee-updated diterima!")
+  //     fetchFees({ page: pageMeta?.current_page || 1 })
+  //   }
+
+  //   window.addEventListener("fee-updated", handleFeeUpdated)
+  //   console.log("👂 [DEBUG] Listener fee-updated aktif")
+
+  //   return () => {
+  //     console.log("❌ [DEBUG] Listener fee-updated dilepas")
+  //     window.removeEventListener("fee-updated", handleFeeUpdated)
+  //   }
+  // }, [pageMeta])
+
+  useEffect(() => {
+    if (props.flash?.success) {
+      toast.success(props.flash.success)
+    }
+  }, [props.flash])
+
+  // 🟢 Jalankan fetch pertama kali jika meta kosong (biar pagination aktif)
+  useEffect(() => {
+    if (!pageMeta?.last_page || pageMeta?.last_page < 1) {
+      console.log("📦 [INIT] Auto fetch data awal karena meta kosong...")
+      fetchFees({ page: 1 })
+    }
+  }, [])
+
+
 
   return (
     <SidebarProvider>
@@ -107,7 +175,10 @@ export default function FeeSettings() {
             {/* Filter: Tipe anggota */}
             <Select
               value={memberType}
-              onValueChange={(v) => setMemberType(v)}
+              onValueChange={(v) => {
+                setMemberType(v)
+                fetchFees({ page: 1, member_type: v }) // ✅ kirim parameter baru ke backend
+              }}
             >
               <SelectTrigger className="w-44">
                 <SelectValue placeholder="Tipe anggota" />

@@ -19,14 +19,21 @@ class MemberController extends Controller
         $user = $request->user()->loadMissing('member');
         $member = $user->member;
         
-
         if (!$member) {
             return Inertia::render('MemberPayment', [
                 'user' => $user,
                 'member' => null,
-                'payments' => [],
+                'payments' => [
+                    'data' => [],
+                    'meta' => [
+                        'current_page' => 1,
+                        'last_page' => 1,
+                        'per_page' => 10,
+                        'total' => 0,
+                    ],
+                ],
                 'fee' => null,
-                'announcements' => [], // ✅ tambahkan agar tidak error di React
+                'announcements' => [],
             ]);
         }
 
@@ -67,62 +74,77 @@ class MemberController extends Controller
             ->values()
             ->toArray();
 
-        // ✅ Daftar pembayaran
-        $rows = Payment::where('member_id', $member->id)
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(function (Payment $p) {
-                $periodeTeks = $this->formatPeriodeGabungan($p);
+        // ✅ Pagination Manual
+        $page = max((int) $request->query('page', 1), 1);
+        $perPage = max((int) $request->query('per_page', 10), 1);
+        $skip = ($page - 1) * $perPage;
 
-                $statusMap = [
-                    'pending'  => 'Pending',
-                    'paid'     => 'Completed',
-                    'rejected' => 'Failed',
-                ];
-                $status = $statusMap[$p->status] ?? ucfirst($p->status);
+        $query = Payment::where('member_id', $member->id)->orderByDesc('created_at');
+        $total = $query->count();
 
-                $amount = 'Rp ' . number_format((float) $p->jumlah_bayar, 0, ',', '.');
+        $payments = $query->skip($skip)->take($perPage)->get();
 
-                $dueDate = null;
-                if (!empty($p->periode_akhir)) {
-                    $dueDate = Carbon::createFromFormat('Y-m', $p->periode_akhir)
-                        ->endOfMonth()->format('d M Y');
-                } elseif (!empty($p->periode)) {
-                    $dueDate = Carbon::createFromFormat('Y-m', $p->periode)
-                        ->endOfMonth()->format('d M Y');
-                }
+        // ✅ Mapping data
+        $rows = $payments->map(function (Payment $p) {
+            $periodeTeks = $this->formatPeriodeGabungan($p);
 
-                $proof = $p->bukti
-                    ? (str_starts_with($p->bukti, 'http')
-                        ? $p->bukti
-                        : Storage::url($p->bukti))
-                    : null;
+            $statusMap = [
+                'pending'  => 'Pending',
+                'paid'     => 'Completed',
+                'rejected' => 'Failed',
+            ];
+            $status = $statusMap[$p->status] ?? ucfirst($p->status);
 
-                return [
-                    'mount'           => $periodeTeks,
-                    'amount'          => $amount,
-                    'dueDate'         => $dueDate,
-                    'paidAt'          => optional($p->created_at)->format('d M Y H:i'),
-                    'paymentProof'    => $proof,
-                    'note'            => $p->note ?? '-',
-                    'status'          => $status,
-                    'payment_status'  => $p->payment_status ?? '-',
-                ];
-            });
+            $amount = 'Rp ' . number_format((float) $p->jumlah_bayar, 0, ',', '.');
+
+            $dueDate = null;
+            if (!empty($p->periode_akhir)) {
+                $dueDate = Carbon::createFromFormat('Y-m', $p->periode_akhir)
+                    ->endOfMonth()->format('d M Y');
+            } elseif (!empty($p->periode)) {
+                $dueDate = Carbon::createFromFormat('Y-m', $p->periode)
+                    ->endOfMonth()->format('d M Y');
+            }
+
+            $proof = $p->bukti
+                ? (str_starts_with($p->bukti, 'http')
+                    ? $p->bukti
+                    : Storage::url($p->bukti))
+                : null;
+
+            return [
+                'mount'           => $periodeTeks,
+                'amount'          => $amount,
+                'dueDate'         => $dueDate,
+                'paidAt'          => optional($p->created_at)->format('d M Y H:i'),
+                'paymentProof'    => $proof,
+                'note'            => $p->note ?? '-',
+                'status'          => $status,
+                'payment_status'  => $p->payment_status ?? '-',
+            ];
+        });
 
         // ✅ Ambil pengumuman terbaru (misal 5 terakhir)
         $announcements = Announcement::orderByDesc('publish_date')
             ->take(5)
             ->get(['id', 'title', 'content', 'publish_date']);
 
-        // ✅ Render ke React
+        // ✅ Kirim ke React — format sama tapi dengan meta pagination
         return Inertia::render('MemberPayment', [
             'user'          => $user,
             'member'        => $member,
-            'payments'      => $rows,
+            'payments'      => [
+                'data' => $rows,
+                'meta' => [
+                    'current_page' => $page,
+                    'last_page'    => ceil($total / $perPage),
+                    'per_page'     => $perPage,
+                    'total'        => $total,
+                ],
+            ],
             'fee'           => $feeData,
             'paidMonths'    => $paidMonths,
-            'announcements' => $announcements, // ✅ kirim ke frontend
+            'announcements' => $announcements,
         ]);
     }
 

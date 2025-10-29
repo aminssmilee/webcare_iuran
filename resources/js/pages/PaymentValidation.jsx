@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { usePage } from "@inertiajs/react"
+import { toast } from "sonner"
 
 export default function PaymentValidation() {
   const { props } = usePage()
@@ -49,8 +50,16 @@ export default function PaymentValidation() {
   const [status, setStatus] = useState(props.filters?.status || "Pending")
   const [timeRange, setTimeRange] = useState(props.filters?.timeRange || "all")
   const [loading, setLoading] = useState(false)
+  const [hasFetched, setHasFetched] = useState(false)
 
-  const columns = getPaymentValidationColumns()
+  // =======================
+  // 🧩 Table Columns
+  // =======================
+  // const columns = getPaymentValidationColumns()
+  const columns = getPaymentValidationColumns({
+    onActionDone: () => fetchPayments({ page: pageMeta?.current_page ?? 1 })
+  })
+
 
   // =======================
   // ⚙️ Fetch via AJAX
@@ -79,12 +88,56 @@ export default function PaymentValidation() {
   }
 
   // 🔁 Re-fetch saat filter berubah (dengan debounce)
+  // 🔁 Re-fetch saat filter berubah (dengan debounce)
   useEffect(() => {
+    if (!hasFetched) {
+      setHasFetched(true)
+      fetchPayments({ page: 1 })
+      return
+    }
+
     const delay = setTimeout(() => {
       fetchPayments({ page: 1 })
     }, 400)
+
     return () => clearTimeout(delay)
   }, [q, status, timeRange])
+
+  // 🧩 Re-fetch otomatis kalau ada perubahan (approve/reject)
+  useEffect(() => {
+    const handleUpdate = () => {
+      fetchPayments({ page: pageMeta?.current_page ?? 1 })
+    }
+
+    window.addEventListener("payment-updated", handleUpdate)
+    return () => window.removeEventListener("payment-updated", handleUpdate)
+  }, [pageMeta?.current_page])
+
+
+  // ✅ Tampilkan notifikasi setelah action berhasil
+  useEffect(() => {
+    if (props.flash?.success) {
+      toast.success(props.flash.success, {
+        style: {
+          background: "#dcfce7",
+          color: "#166534",
+          fontWeight: 600,
+        },
+        duration: 2500,
+      })
+    }
+
+    if (props.flash?.error) {
+      toast.error(props.flash.error, {
+        style: {
+          background: "#fee2e2",
+          color: "#991b1b",
+          fontWeight: 600,
+        },
+        duration: 2500,
+      })
+    }
+  }, [props.flash])
 
   return (
     <SidebarProvider>
@@ -135,7 +188,7 @@ export default function PaymentValidation() {
                   onValueChange={(v) => {
                     if (v && v !== timeRange) {
                       setTimeRange(v)
-                      fetchPayments({ page: 1 })
+                      // fetchPayments({ page: 1 })
                     }
                   }}
                   variant="outline"
@@ -153,7 +206,7 @@ export default function PaymentValidation() {
                   onValueChange={(v) => {
                     if (v && v !== timeRange) {
                       setTimeRange(v)
-                      fetchPayments({ page: 1 })
+                      // fetchPayments({ page: 1 })
                     }
                   }}
                 >
@@ -173,7 +226,7 @@ export default function PaymentValidation() {
                   value={status}
                   onValueChange={(v) => {
                     setStatus(v)
-                    fetchPayments({ page: 1 })
+                    // fetchPayments({ page: 1 })
                   }}
                 >
                   <SelectTrigger className="flex w-36">

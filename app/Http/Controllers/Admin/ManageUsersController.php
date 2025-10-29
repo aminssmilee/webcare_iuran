@@ -58,11 +58,22 @@ class ManageUsersController extends Controller
                     'name'           => $u->name ?? '-',
                     'email'          => $u->email ?? '-',
                     'roles'          => ucfirst($u->role),
+                    'member_type'    => match (strtolower($u->role ?? '')) {
+                        'institution' => 'Institusi',
+                        'member', 'perorangan' => 'Perorangan',
+                        default => 'Belum ditentukan',
+                    },
+
                     'nik'            => $m?->nik ?? '-',
                     'birthPlaceDate' => $m?->tgl_lahir
                         ? (is_string($m->tgl_lahir) ? $m->tgl_lahir : $m->tgl_lahir->format('Y-m-d'))
                         : '-',
-                    'gender'         => $m?->jenis_kelamin === 'L' ? 'Male' : ($m?->jenis_kelamin === 'P' ? 'Female' : '-'),
+                    // 'gender'         => $m?->jenis_kelamin === 'L' ? 'Male' : ($m?->jenis_kelamin === 'P' ? 'Female' : '-'),
+                    'gender' => match ($m?->jenis_kelamin) {
+                        'L' => 'Laki-laki',
+                        'P' => 'Perempuan',
+                        default => 'Tidak Diketahui',
+                    },
                     'address'        => $m?->alamat ?? '-',
                     'whatsapp'       => $m?->no_wa ?? '',
                     'education'      => $m?->pendidikan ?? '-',
@@ -101,25 +112,48 @@ class ManageUsersController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user)
+    public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'name'   => 'required|string|max:255',
-            'email'  => 'required|email|max:255|unique:users,email,' . $user->id,
-            'role'   => 'required|in:member,institution,admin',
+            'name'           => 'required|string|max:255',
+            'email'          => 'required|email|max:255',
+            'member_type'    => 'nullable|string',
+            'nik'            => 'nullable|string|max:30',
+            'ttl'            => 'nullable|string|max:100',
+            'jenis_kelamin'  => 'nullable|string|in:L,P',
+            'alamat'         => 'nullable|string|max:255',
+            'no_wa'          => 'nullable|string|max:20',
+            'pendidikan'     => 'nullable|string|max:100',
+            'jabatan'        => 'nullable|string|max:100',
+            'status'         => 'required|string|in:active,inactive,pending',
         ]);
 
-        $user->update($validated);
+        $user = User::findOrFail($id);
 
+        // ✅ Update tabel users
+        $user->update([
+            'name'   => $validated['name'],
+            'email'  => $validated['email'],
+            'status' => $validated['status'],
+        ]);
+
+        // ✅ Update tabel members kalau ada relasi
         if ($user->member) {
             $user->member->update([
-                'alamat' => $request->alamat ?? $user->member->alamat,
-                'no_wa'  => $request->no_wa ?? $user->member->no_wa,
+                'member_type'   => $validated['member_type'] ?? $user->member->member_type ?? 'perorangan',
+                'nik'           => $validated['nik'] ?? $user->member->nik ?? '',
+                'ttl'           => $validated['ttl'] ?? $user->member->ttl ?? '',
+                'jenis_kelamin' => $validated['jenis_kelamin'] ?? $user->member->jenis_kelamin ?? '',
+                'alamat'        => $validated['alamat'] ?? $user->member->alamat ?? '',
+                'no_wa'         => $validated['no_wa'] ?? $user->member->no_wa ?? '',
+                'pendidikan'    => $validated['pendidikan'] ?? $user->member->pendidikan ?? '',
+                'jabatan'       => $validated['jabatan'] ?? $user->member->jabatan ?? '',
             ]);
         }
 
-        return redirect()->back()->with('success', 'User berhasil diperbarui!');
+        return back()->with('success', '✅ Data user berhasil diperbarui.');
     }
+
 
     public function destroy(User $user)
     {
