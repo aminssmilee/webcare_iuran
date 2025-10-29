@@ -1,5 +1,6 @@
 "use client"
 import { useState, useMemo, useEffect } from "react"
+import axios from "axios"
 import { usePage } from "@inertiajs/react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -30,69 +31,53 @@ import { Search } from "lucide-react"
 
 export default function RegistValidation() {
   const { props } = usePage()
-  const registrations = props.registrations || []
+  const initialRegs = Array.isArray(props.registrations?.data)
+    ? props.registrations.data
+    : Array.isArray(props.registrations)
+    ? props.registrations
+    : []
+  const initialMeta = props.registrations?.meta ?? {}
 
-  // ✅ Tambahan: ambil flash message dari Laravel
-  const flash = props.flash || {}
-  const [hasShownFlash, setHasShownFlash] = useState(false)
+  // state utama
+  const [registrations, setRegistrations] = useState(initialRegs)
+  const [pageMeta, setPageMeta] = useState(initialMeta)
+  const [pageSize, setPageSize] = useState(initialMeta.per_page || 10)
+  const [q, setQ] = useState(props.filters?.q || "")
+  const [status, setStatus] = useState(props.filters?.status || "all")
+  const [timeRange, setTimeRange] = useState(props.filters?.timeRange || "90d")
+  const [loading, setLoading] = useState(false)
 
-  // ✅ Tampilkan alert ketika ada flash message (success/error)
+  const columns = getRegistrationColumns()
+
+  // 🧩 Fetch data paginated
+  const fetchRegistrations = async (extra = {}) => {
+    setLoading(true)
+    try {
+      const res = await axios.get("/admin/pending-registrations", {
+        params: {
+          q,
+          status,
+          timeRange,
+          page: extra.page || 1,
+          per_page: extra.per_page || pageSize,
+        },
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+      setRegistrations(res.data.data)
+      setPageMeta(res.data.meta)
+    } catch (err) {
+      console.error("❌ Gagal ambil data:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ⏳ debounce pencarian
   useEffect(() => {
-    if (!hasShownFlash) {
-      if (flash.success) {
-        alert(flash.success)
-        console.log("✅ Success:", flash.success)
-        setHasShownFlash(true)
-      } else if (flash.error) {
-        alert(flash.error)
-        console.warn("⚠️ Error:", flash.error)
-        setHasShownFlash(true)
-      }
-    }
-  }, [flash, hasShownFlash])
+    const delay = setTimeout(() => fetchRegistrations({ page: 1 }), 400)
+    return () => clearTimeout(delay)
+  }, [q, status, timeRange])
 
-  // -----------------------------
-  // Filter state dan logika lama
-  // -----------------------------
-  const [q, setQ] = useState("")
-  const [status, setStatus] = useState("all")
-  const [timeRange, setTimeRange] = useState("90d")
-
-  const filteredData = useMemo(() => {
-    const now = new Date()
-    const getDateLimit = (days) => {
-      const d = new Date()
-      d.setDate(d.getDate() - days)
-      return d
-    }
-
-    return registrations.filter((item) => {
-      const matchStatus =
-        status === "all"
-          ? true
-          : item.validationStatus.toLowerCase() === status.toLowerCase()
-
-      const matchSearch =
-        q === "" ||
-        item.name?.toLowerCase().includes(q.toLowerCase()) ||
-        item.email?.toLowerCase().includes(q.toLowerCase()) ||
-        item.submittedAt?.toLowerCase().includes(q.toLowerCase())
-
-      let matchTime = true
-      if (timeRange === "7d")
-        matchTime = new Date(item.submittedAt) >= getDateLimit(7)
-      else if (timeRange === "30d")
-        matchTime = new Date(item.submittedAt) >= getDateLimit(30)
-      else if (timeRange === "90d")
-        matchTime = new Date(item.submittedAt) >= getDateLimit(90)
-
-      return matchStatus && matchSearch && matchTime
-    })
-  }, [registrations, q, status, timeRange])
-
-  // -----------------------------
-  // Tampilan utama (tidak diubah)
-  // -----------------------------
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -116,10 +101,10 @@ export default function RegistValidation() {
 
         {/* Main */}
         <div className="flex flex-1 flex-col">
-          {/* Bagian Filter */}
+          {/* Filter Section */}
           <CardHeader className="relative lg:px-6 w-full">
             <div className="flex flex-wrap items-center gap-2 justify-between w-full">
-              {/* Pencarian */}
+              {/* 🔍 Pencarian */}
               <div className="flex items-start justify-start gap-2 w-full md:w-1/3">
                 <div className="relative w-full">
                   <Input
@@ -143,7 +128,6 @@ export default function RegistValidation() {
                     <SelectItem value="all">Semua</SelectItem>
                     <SelectItem value="pending">Menunggu</SelectItem>
                     <SelectItem value="active">Disetujui</SelectItem>
-                    {/* <SelectItem value="inactive">Tidak Aktif</SelectItem> */}
                   </SelectContent>
                 </Select>
 
@@ -163,12 +147,42 @@ export default function RegistValidation() {
             </div>
           </CardHeader>
 
-          {/* Bagian Tabel */}
+          {/* Tabel */}
           <div className="flex flex-col gap-4 p-4 border border-foreground/10 rounded-lg mx-4 overflow-x-auto">
-            <h1 className="text-xl font-semibold mb-2">Daftar Pendaftaran Pengguna</h1>
-            <div className="w-full min-w-full">
-              <DataTable data={filteredData} columns={getRegistrationColumns()} />
-            </div>
+            <h1 className="text-xl font-semibold mb-2">
+              Daftar Pendaftaran Pengguna
+            </h1>
+
+            {loading && (
+              <p className="text-sm text-muted-foreground text-center">
+                Loading data...
+              </p>
+            )}
+
+            {!loading && (
+              <div className="w-full min-w-full">
+                <DataTable
+                  data={registrations}
+                  columns={columns}
+                  server
+                  pageCount={pageMeta?.last_page ?? 1}
+                  pagination={{
+                    pageIndex: (pageMeta?.current_page ?? 1) - 1,
+                    pageSize: pageSize,
+                  }}
+                  onPaginationChange={(next) => {
+                    const nextPage = next.pageIndex + 1
+                    if (nextPage !== pageMeta?.current_page) {
+                      fetchRegistrations({ page: nextPage, per_page: pageSize })
+                    }
+                  }}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size)
+                    fetchRegistrations({ page: 1, per_page: size })
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </SidebarInset>

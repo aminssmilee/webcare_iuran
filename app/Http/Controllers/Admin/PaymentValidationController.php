@@ -13,22 +13,21 @@ class PaymentValidationController extends Controller
 {
     public function index(Request $request)
     {
-        // ✅ Ambil filter dari query
-        $uiStatus   = $request->query('status', 'Pending'); // Pending | Completed | Failed
-        $q          = trim((string) $request->query('q', '')); // search by month label / periode
-        $timeRange  = $request->query('timeRange', '90d');   // 90d|30d|7d|all
+        $uiStatus   = $request->query('status', 'all'); // default 'all' biar semua data muncul
+        $q          = trim((string) $request->query('q', ''));
+        $timeRange  = $request->query('timeRange', '90d');
         $page       = (int) $request->query('page', 1);
-        $perPage    = 10;
+        $perPage    = (int) $request->query('per_page', 10);
 
-        // ✅ Map UI → DB status
         $mapStatus = [
             'Pending'   => 'pending',
+            'Approved'  => 'paid',
             'Completed' => 'paid',
+            'Rejected'  => 'rejected',
             'Failed'    => 'rejected',
         ];
-        $dbStatus = $mapStatus[$uiStatus] ?? 'pending';
+        $dbStatus = $mapStatus[$uiStatus] ?? null; // null = all
 
-        // ✅ Rentang waktu (opsional)
         $days = [
             '90d' => 90,
             '30d' => 30,
@@ -36,86 +35,65 @@ class PaymentValidationController extends Controller
             'all' => 9999,
         ][$timeRange] ?? 90;
 
-        $fromDate = Carbon::now()->subDays($days);
+        $fromDate = now()->subDays($days);
 
-        // ✅ Query
-        $query = Payment::query()
+        $query = \App\Models\Payment::query()
             ->with(['member.user'])
-            ->where('status', $dbStatus)
+            ->when($dbStatus, fn($q) => $q->where('status', $dbStatus)) // hanya jika ada filter
             ->when($timeRange !== 'all', fn($q) => $q->where('created_at', '>=', $fromDate))
             ->when($q !== '', function ($query) use ($q) {
-                $qLower = strtolower($q);
-                $monthMap = [
-                    'january' => '01',
-                    'february' => '02',
-                    'march' => '03',
-                    'april' => '04',
-                    'may' => '05',
-                    'june' => '06',
-                    'july' => '07',
-                    'august' => '08',
-                    'september' => '09',
-                    'october' => '10',
-                    'november' => '11',
-                    'december' => '12',
-                ];
-                $monthNum = $monthMap[$qLower] ?? null;
-
-                $query->where(function ($sq) use ($q, $monthNum) {
-                    $sq->where('periode', 'like', "%{$q}%");
-                    if ($monthNum) {
-                        $sq->orWhere('periode', 'like', "%-{$monthNum}%");
-                    }
+                $query->where(function ($sq) use ($q) {
+                    $sq->where('periode', 'like', "%{$q}%")
+                        ->orWhereHas(
+                            'member.user',
+                            fn($u) =>
+                            $u->where('name', 'like', "%{$q}%")
+                                ->orWhere('email', 'like', "%{$q}%")
+                        );
                 });
             })
             ->latest();
 
-        // ✅ Pagination manual
         $total = $query->count();
         $payments = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
 
-        // ✅ Transform ke shape front-end
         $items = $payments->map(function ($p) {
-            $user    = optional($p->member)->user;
-            $periode = $p->periode;
-            $paidAt  = $p->created_at ? Carbon::parse($p->created_at)->format('Y-m-d H:i') : null;
-
-            try {
-                $monthLabel = Carbon::parse($periode . '-01')->translatedFormat('F');
-            } catch (\Throwable $th) {
-                $monthLabel = $periode;
-            }
-
-            $statusUi = match ($p->status) {
-                'pending'  => 'Pending',
-                'paid'     => 'Completed',
-                'rejected' => 'Failed',
-                default    => ucfirst($p->status),
-            };
-
+            $user = optional($p->member)->user;
             return [
                 'id'            => $p->id,
+                'id_member'     => $p->member?->id ?? null,
                 'name'          => $user?->name ?? '-',
                 'email'         => $user?->email ?? '-',
-                'id_member'     => $p->member?->id ?? null,
-                'mount'         => $monthLabel,
+                'periode'       => $p->periode,
                 'amount'        => 'Rp ' . number_format((int) $p->jumlah_bayar, 0, ',', '.'),
-                'dueDate'       => null,
-                'paidAt'        => $paidAt,
-                'paymentProof'  => $p->bukti ? Storage::url($p->bukti) : null,
-                'note'          => $p->note ?? null,
-                'status'        => $statusUi,
+                'paidAt'        => optional($p->created_at)->format('Y-m-d H:i'),
+                'paymentProof'  => $p->bukti ? asset('storage/' . $p->bukti) : null,
+                'status'        => ucfirst($p->status),
             ];
-        })->values();
+        });
 
-        // ✅ Kirim ke Inertia
-        return Inertia::render('PaymentValidation', [
+        // Jika request dari axios (AJAX), kirim JSON
+        if ($request->ajax()) {
+            return response()->json([
+                'data' => $items,
+                'meta' => [
+                    'total'         => $total,
+                    'current_page'  => $page,
+                    'last_page'     => ceil($total / $perPage),
+                    'per_page'      => $perPage,
+                ],
+            ]);
+        }
+
+        // Kalau bukan AJAX, render halaman Inertia
+        return inertia('PaymentValidation', [
             'payments' => [
                 'data' => $items,
                 'meta' => [
-                    'total' => $total,
-                    'current_page' => $page,
-                    'last_page' => ceil($total / $perPage),
+                    'total'         => $total,
+                    'current_page'  => $page,
+                    'last_page'     => ceil($total / $perPage),
+                    'per_page'      => $perPage,
                 ],
             ],
             'filters' => [

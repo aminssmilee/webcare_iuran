@@ -16,26 +16,75 @@ class RegistrationController extends Controller
     // ======================
     // ✅ Halaman daftar pendaftaran
     // ======================
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::whereIn('role', ['member', 'institution'])->get();
+        $search    = $request->query('q', '');
+        $status    = $request->query('status', 'all');
+        $timeRange = $request->query('timeRange', '90d');
+        $page      = (int) $request->query('page', 1);
+        $perPage   = (int) $request->query('per_page', 10);
 
-        $registrations = $users->map(function ($user) {
-            $dokumenUrl = $user->dokumen ? asset('storage/' . $user->dokumen) : null;
+        $query = \App\Models\User::whereIn('role', ['member', 'institution']);
 
+        // 🔍 Filter pencarian
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // ⚙️ Filter status
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        // 🕒 Filter rentang waktu (7d / 30d / 90d)
+        if (in_array($timeRange, ['7d', '30d', '90d'])) {
+            $days = (int) str_replace('d', '', $timeRange);
+            $query->where('created_at', '>=', now()->subDays($days));
+        }
+
+        // 📄 Pagination (otomatis dengan meta)
+        $users = $query
+            ->orderByDesc('created_at')
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->appends($request->only(['q', 'status', 'timeRange', 'per_page']));
+
+        // 🔁 Map data hasil query
+        $registrations = $users->through(function ($user) {
             return [
                 'id'               => $user->id,
                 'name'             => $user->name,
                 'email'            => $user->email,
                 'roles'            => ucfirst($user->role),
                 'submittedAt'      => $user->created_at->format('Y-m-d H:i'),
-                'validationStatus' => ucfirst($user->status),
-                'dokumen'          => $dokumenUrl,
+                'validationStatus' => ucfirst($user->status ?? 'Pending'),
+                'dokumen'          => $user->dokumen ? asset('storage/' . $user->dokumen) : null,
             ];
         });
 
+        // ⚡ Mode AJAX → JSON (untuk React pagination)
+        if ($request->ajax() && !$request->header('X-Inertia')) {
+            return response()->json([
+                'data' => $registrations->items(),
+                'meta' => [
+                    'current_page' => $registrations->currentPage(),
+                    'last_page'    => $registrations->lastPage(),
+                    'total'        => $registrations->total(),
+                    'per_page'     => $registrations->perPage(),
+                ],
+            ]);
+        }
+
+        // 🧩 Render via Inertia (first load)
         return Inertia::render('RegistValidation', [
             'registrations' => $registrations,
+            'filters' => [
+                'q'          => $search,
+                'status'     => $status,
+                'timeRange'  => $timeRange,
+            ],
         ]);
     }
 
