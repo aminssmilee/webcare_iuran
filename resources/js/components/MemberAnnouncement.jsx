@@ -46,7 +46,7 @@ export function MemberAnnouncement({ announcements = [] }) {
       {/* Header */}
       <div className="flex items-center gap-2 mb-4 self-start">
         <Megaphone className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-semibold text-foreground">Pengumuman</h2>
+        <h2 className="text-lg font-semibold text-foreground">Pengumuman !</h2>
       </div>
 
       {/* Carousel Horizontal */}

@@ -18,7 +18,7 @@ class MemberController extends Controller
     {
         $user = $request->user()->loadMissing('member');
         $member = $user->member;
-        
+
         if (!$member) {
             return Inertia::render('MemberPayment', [
                 'user' => $user,
@@ -49,16 +49,21 @@ class MemberController extends Controller
             ->where('tahun', $currentYear)
             ->first();
 
+        $nominalTahunan = (float) $fee->nominal;
+        $nominalPerBulan = round($nominalTahunan / 12);
+
         $feeData = $fee ? [
             'tahun' => $fee->tahun,
             'member_type' => $fee->member_type,
-            'nominal_tahunan' => (float) $fee->nominal,
-            'nominal_per_bulan' => intval(round($fee->nominal / 12)),
+            'nominal_tahunan' => $nominalTahunan,
+            'nominal_per_bulan' => $nominalPerBulan,
+            'nominal_otomatis' => $nominalTahunan, // tambahan untuk tampil Rp 500.000 fix
         ] : [
             'tahun' => $currentYear,
             'member_type' => $memberType,
             'nominal_tahunan' => 0,
             'nominal_per_bulan' => 0,
+            'nominal_otomatis' => 0,
         ];
 
         // ✅ Ambil bulan yang sudah dibayar
