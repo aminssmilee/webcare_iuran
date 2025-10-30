@@ -170,19 +170,19 @@ export function RegisterForm({ className, ...props }) {
               <Label htmlFor="username">Nama Lengkap *</Label>
               <Input
                 id="username"
-                name="nama_lengkap"
+                name="nama_instansi"
                 type="text"
-                placeholder="Nama lengkap Anda"
-                className={errClass("nama_lengkap")}
-                onChange={clearErrOnChange("nama_lengkap")}
+                placeholder="Nama Lengkap Anda"
+                className={errClass("nama_instansi")}
+                onChange={clearErrOnChange("nama_instansi")}
               />
-              {errors.nama_lengkap && (
-                <p className="text-sm text-red-500">{errors.nama_lengkap}</p>
+              {errors.nama_instansi && (
+                <p className="text-sm text-red-500">{errors.nama_instansi}</p>
               )}
             </>
           ) : (
             <>
-              {/* <Label htmlFor="username">Nama Lengkap *</Label>
+              <Label htmlFor="username">Nama Lengkap *</Label>
               <Input
                 id="username"
                 name="nama_lengkap"
@@ -193,7 +193,7 @@ export function RegisterForm({ className, ...props }) {
               />
               {errors.nama_lengkap && (
                 <p className="text-sm text-red-500">{errors.nama_lengkap}</p>
-              )} */}
+              )}
             </>
           )}
         </div>
