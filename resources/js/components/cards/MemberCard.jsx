@@ -40,7 +40,7 @@ export function MemberCard({ id, name, job, role }) {
   return (
     <div
       ref={cardRef}
-      className="relative w-full h-56 lg:h-64 rounded-2xl overflow-hidden shadow-md text-white flex flex-col justify-between"
+      className="relative w-full h-56 lg:h-auto rounded-2xl overflow-hidden shadow-md text-white flex flex-col justify-between"
       style={{
         backgroundImage:
           "linear-gradient(to right, rgba(22,163,74,0.95), rgba(234,179,8,0.9)), url('/img/1-asosiasi-teknik-sistem-energi-indonesia.png')",
@@ -61,11 +61,11 @@ export function MemberCard({ id, name, job, role }) {
       {/* Isi Kartu */}
       <Card className="bg-transparent border-none shadow-none text-white w-full h-full flex flex-col justify-between">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-white drop-shadow-md">
+          <CardTitle className="text-md lg:text-lg font-bold text-white">
             Member Card
           </CardTitle>
           <div className="flex justify-between">
-            <span className="font-semibold capitalize">
+            <span className="font-semibold capitalize text-sm lg:text-base">
               {role === "institution"
                 ? "Institusi"
                 : role === "member"

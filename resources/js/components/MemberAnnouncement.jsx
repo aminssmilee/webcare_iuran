@@ -10,6 +10,16 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { RefreshCcwIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 
 export function MemberAnnouncement({ announcements = [] }) {
   const [current, setCurrent] = useState(0)
@@ -17,10 +27,17 @@ export function MemberAnnouncement({ announcements = [] }) {
 
   if (!announcements.length) {
     return (
-      <div className="mt-6 text-center text-sm text-muted-foreground">
-        <Megaphone className="inline-block w-4 h-4 mr-1 text-muted-foreground" />
-        Belum ada pengumuman terbaru.
-      </div>
+       <Empty className="from-muted/50 to-background h-full bg-gradient-to-b from-30%">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Megaphone />
+        </EmptyMedia>
+        <EmptyTitle>Tidak ada pengumuman terbaru</EmptyTitle>
+        <EmptyDescription>
+          Seluruh pengumuman terbaru akan ditampilkan di sini.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
     )
   }
 
@@ -72,7 +89,7 @@ export function MemberAnnouncement({ announcements = [] }) {
         <CarouselNext className="right-0 sm:-right-6 bg-background/80 backdrop-blur-sm rounded-full" />
       </Carousel>
 
-      {/* 🔘 Indikator Dots */}
+      {/* Indikator Dots */}
       <div className="flex justify-center mt-3 space-x-2">
         {announcements.map((_, index) => (
           <button

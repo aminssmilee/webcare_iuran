@@ -142,7 +142,7 @@ export function RegisterForm({ className, ...props }) {
     >
       {/* Header */}
       <div className="flex flex-col items-center gap-1 text-center">
-        <h1 className="text-2xl font-bold">Buat Akun Baru</h1>
+        <h1 className="text-xl lg:text-2xl font-bold">Buat Akun Baru</h1>
         <p className="text-sm text-muted-foreground">
           Isi data Anda untuk mendaftar akun baru
         </p>
@@ -152,23 +152,42 @@ export function RegisterForm({ className, ...props }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Nama */}
         <div className="grid gap-2">
-          <Label htmlFor="username">Nama Lengkap</Label>
-          <Input
-            id="username"
-            name="nama_lengkap"
-            type="text"
-            placeholder="Nama lengkap Anda"
-            className={errClass("nama_lengkap")}
-            onChange={clearErrOnChange("nama_lengkap")}
-          />
-          {errors.nama_lengkap && (
-            <p className="text-sm text-red-500">{errors.nama_lengkap}</p>
+          {roleParam === "institution" ? (
+            <>
+              <Label htmlFor="username">Asal Instansi *</Label>
+              <Input
+                id="username"
+                name="nama_instansi"
+                type="text"
+                placeholder="Nama instansi Anda"
+                className={errClass("nama_instansi")}
+                onChange={clearErrOnChange("nama_instansi")}
+              />
+              {errors.nama_instansi && (
+                <p className="text-sm text-red-500">{errors.nama_instansi}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <Label htmlFor="username">Nama Lengkap *</Label>
+              <Input
+                id="username"
+                name="nama_lengkap"
+                type="text"
+                placeholder="Nama lengkap Anda"
+                className={errClass("nama_lengkap")}
+                onChange={clearErrOnChange("nama_lengkap")}
+              />
+              {errors.nama_lengkap && (
+                <p className="text-sm text-red-500">{errors.nama_lengkap}</p>
+              )}
+            </>
           )}
         </div>
 
         {/* Email */}
         <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Email *</Label>
           <Input
             id="email"
             name="email"
@@ -184,7 +203,7 @@ export function RegisterForm({ className, ...props }) {
 
         {/* Password */}
         <div className="grid gap-2 relative">
-          <Label htmlFor="password">Kata Sandi</Label>
+          <Label htmlFor="password">Kata Sandi *</Label>
           <div className="relative">
             <Input
               id="password"
@@ -209,7 +228,7 @@ export function RegisterForm({ className, ...props }) {
 
         {/* Konfirmasi Password */}
         <div className="grid gap-2 relative">
-          <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi</Label>
+          <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi*</Label>
           <div className="relative">
             <Input
               id="password_confirmation"
@@ -264,8 +283,8 @@ export function RegisterForm({ className, ...props }) {
       <div className="grid gap-2">
         <Label htmlFor="document">
           {roleParam === "client"
-            ? "Unggah Dokumen Institusi"
-            : "Unggah Dokumen Identitas"}
+            ? "Unggah Dokumen Institusi *"
+            : "Unggah Dokumen Identitas *"}
         </Label>
         {!fileName ? (
           <label

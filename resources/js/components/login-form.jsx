@@ -54,7 +54,7 @@ export function LoginForm({ className, ...props }) {
     <>
       <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Masuk ke akun Anda</h1>
+          <h1 className="text-xl lg:text-2xl font-bold">Masuk ke akun Anda</h1>
           <p className="text-balance text-sm text-muted-foreground">
             Masukkan email Anda di bawah ini
           </p>
@@ -89,6 +89,7 @@ export function LoginForm({ className, ...props }) {
                 <Input
                   id="password"
                   name="password"
+                  placeholder="Masukkan kata sandi Anda"
                   type={showPassword ? "text" : "password"}
                   value={data.password}
                   onChange={(e) => setData("password", e.target.value)}

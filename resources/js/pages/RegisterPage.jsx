@@ -9,13 +9,12 @@ export default function RegisterPage() {
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
-          <a href="/" className="flex items-center gap-2 font-medium">
+          <a href="https://forsinergi.com/" className="flex items-center gap-2 font-medium">
             <img
               src="/img/1-asosiasi-teknik-sistem-energi-indonesia.png"
               // alt={activeTeam.name}
-              className="size-8 object-contain"
+              className="size-12 lg:size-20 object-contain"
             />
-            FORSINERGI
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
