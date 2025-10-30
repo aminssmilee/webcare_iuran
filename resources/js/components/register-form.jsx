@@ -23,9 +23,9 @@ export function RegisterForm({ className, ...props }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Ambil role dari URL (client = instansi, creator = perorangan)
+  // Ambil role dari URL (institution / member)
   const urlParams = new URLSearchParams(window.location.search);
-  const roleParam = urlParams.get("role"); // client / creator
+  const roleParam = urlParams.get("role");
 
   // 🔔 Tampilkan alert jika register sukses
   useEffect(() => {
@@ -35,17 +35,32 @@ export function RegisterForm({ className, ...props }) {
   // 🔍 Validasi sebelum submit
   function validateBeforeSubmit(form) {
     const e = {};
-    const nama = (form.get("nama_lengkap") || "").trim();
+    const role = form.get("role");
+
+    // Cek nama sesuai role
+    const nama =
+      role === "institution"
+        ? (form.get("nama_instansi") || "").trim()
+        : (form.get("nama_lengkap") || "").trim();
+
     const email = (form.get("email") || "").trim();
     const password = form.get("password") || "";
     const password_confirmation = form.get("password_confirmation") || "";
     const file = form.get("dokumen");
 
-    if (!nama) e.nama_lengkap = "Nama lengkap wajib diisi.";
+    // Validasi nama
+    if (!nama)
+      e[role === "institution" ? "nama_instansi" : "nama_lengkap"] =
+        role === "institution"
+          ? "Nama instansi wajib diisi."
+          : "Nama lengkap wajib diisi.";
+
+    // Validasi email
     if (!email) e.email = "Email wajib diisi.";
     else if (!/^[A-Za-z0-9._%+-]+@gmail\.com$/.test(email))
       e.email = "Email harus menggunakan domain @gmail.com.";
 
+    // Validasi password
     if (!password) e.password = "Password wajib diisi.";
     else if (password.length < 6) e.password = "Password minimal 6 karakter.";
 
@@ -54,10 +69,12 @@ export function RegisterForm({ className, ...props }) {
     else if (password !== password_confirmation)
       e.password_confirmation = "Konfirmasi password tidak cocok.";
 
+    // Validasi dokumen
     if (!file || !file.size)
       e.dokumen = "Dokumen wajib diupload (PDF maksimal 2MB).";
     else {
-      if (file.type !== "application/pdf") e.dokumen = "Dokumen harus berupa PDF.";
+      if (file.type !== "application/pdf")
+        e.dokumen = "Dokumen harus berupa PDF.";
       if (file.size > 2 * 1024 * 1024) e.dokumen = "Maksimal 2MB.";
     }
 
@@ -70,11 +87,8 @@ export function RegisterForm({ className, ...props }) {
     setErrors({});
 
     const form = new FormData(ev.target);
-
-    // tambahkan role dari URL
     form.append("role", roleParam || "");
 
-    // tambahkan file manual
     if (file) form.set("dokumen", file);
 
     const localErr = validateBeforeSubmit(form);
@@ -140,7 +154,6 @@ export function RegisterForm({ className, ...props }) {
       className={cn("flex flex-col gap-8", className)}
       {...props}
     >
-      {/* Header */}
       <div className="flex flex-col items-center gap-1 text-center">
         <h1 className="text-xl lg:text-2xl font-bold">Buat Akun Baru</h1>
         <p className="text-sm text-muted-foreground">
@@ -154,21 +167,6 @@ export function RegisterForm({ className, ...props }) {
         <div className="grid gap-2">
           {roleParam === "institution" ? (
             <>
-              <Label htmlFor="username">Asal Instansi *</Label>
-              <Input
-                id="username"
-                name="nama_instansi"
-                type="text"
-                placeholder="Nama instansi Anda"
-                className={errClass("nama_instansi")}
-                onChange={clearErrOnChange("nama_instansi")}
-              />
-              {errors.nama_instansi && (
-                <p className="text-sm text-red-500">{errors.nama_instansi}</p>
-              )}
-            </>
-          ) : (
-            <>
               <Label htmlFor="username">Nama Lengkap *</Label>
               <Input
                 id="username"
@@ -181,6 +179,21 @@ export function RegisterForm({ className, ...props }) {
               {errors.nama_lengkap && (
                 <p className="text-sm text-red-500">{errors.nama_lengkap}</p>
               )}
+            </>
+          ) : (
+            <>
+              {/* <Label htmlFor="username">Nama Lengkap *</Label>
+              <Input
+                id="username"
+                name="nama_lengkap"
+                type="text"
+                placeholder="Nama lengkap Anda"
+                className={errClass("nama_lengkap")}
+                onChange={clearErrOnChange("nama_lengkap")}
+              />
+              {errors.nama_lengkap && (
+                <p className="text-sm text-red-500">{errors.nama_lengkap}</p>
+              )} */}
             </>
           )}
         </div>
@@ -254,7 +267,7 @@ export function RegisterForm({ className, ...props }) {
         </div>
       </div>
 
-      {/* ================== CATATAN ROLE ================== */}
+      {/* Catatan Role */}
       {roleParam === "institution" && (
         <div className="rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm text-blue-800">
           <strong>Catatan:</strong> Anggota <b>Institusi</b> wajib mengunggah salah satu
@@ -279,10 +292,10 @@ export function RegisterForm({ className, ...props }) {
         </div>
       )}
 
-      {/* ================== UPLOAD FILE ================== */}
+      {/* Upload File */}
       <div className="grid gap-2">
         <Label htmlFor="document">
-          {roleParam === "client"
+          {roleParam === "institution"
             ? "Unggah Dokumen Institusi *"
             : "Unggah Dokumen Identitas *"}
         </Label>
@@ -331,7 +344,7 @@ export function RegisterForm({ className, ...props }) {
         {errors.dokumen && <p className="text-sm text-red-500">{errors.dokumen}</p>}
       </div>
 
-      {/* ================== SUBMIT ================== */}
+      {/* Submit */}
       <Button type="submit" className="w-full h-11 font-semibold" disabled={submitting}>
         {submitting ? (
           <>

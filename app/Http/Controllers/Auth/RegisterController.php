@@ -21,9 +21,10 @@ class RegisterController extends Controller
         }
 
         try {
-            // ✅ Validasi input
+            // ✅ Validasi input dinamis sesuai role
             $validated = $request->validate([
-                'nama_lengkap' => 'required|string|max:255',
+                'nama_lengkap'  => $request->role === 'member' ? 'required|string|max:255' : 'nullable',
+                'nama_instansi' => $request->role === 'institution' ? 'required|string|max:255' : 'nullable',
                 'email' => [
                     'required',
                     'email',
@@ -31,17 +32,22 @@ class RegisterController extends Controller
                     'unique:users,email',
                 ],
                 'password' => 'required|string|min:6|confirmed',
-                'role' => 'required|in:institution,member',
+                'role'     => 'required|in:institution,member',
                 'dokumen'  => 'required|file|mimes:pdf|max:2048',
             ]);
 
-            // ✅ Simpan dokumen
+            // ✅ Simpan dokumen ke storage publik
             $path = $request->file('dokumen')->store('dokumen', 'public');
 
-            // ✅ Buat user baru (belum aktif & belum verifikasi)
+            // ✅ Tentukan nama sesuai role
+            $namaUser = $request->role === 'institution'
+                ? $validated['nama_instansi']
+                : $validated['nama_lengkap'];
+
+            // ✅ Buat user baru
             $user = User::create([
                 'id'       => (string) Str::uuid(),
-                'name'     => $validated['nama_lengkap'],
+                'name'     => $namaUser,
                 'email'    => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'role'     => $validated['role'],
@@ -50,15 +56,15 @@ class RegisterController extends Controller
             ]);
 
             // ==============================
-            // 🔐 OTP VERIFICATION SYSTEM
+            // 🔐 SISTEM OTP VERIFIKASI EMAIL
             // ==============================
 
-            // 1️⃣ Hapus OTP lama yang belum kadaluarsa (hindari spam)
+            // Hapus OTP lama (jika ada)
             EmailOtp::where('user_id', $user->id)
                 ->where('is_used', false)
                 ->delete();
 
-            // 2️⃣ Cek cooldown (boleh kirim OTP lagi setelah 30 detik)
+            // Cegah spam OTP (cooldown 30 detik)
             $lastOtp = EmailOtp::where('user_id', $user->id)
                 ->where('created_at', '>', now()->subSeconds(30))
                 ->first();
@@ -69,10 +75,10 @@ class RegisterController extends Controller
                 ]);
             }
 
-            // 3️⃣ Generate kode OTP 6 digit
+            // Generate OTP baru
             $otpCode = random_int(100000, 999999);
 
-            // 4️⃣ Simpan ke database (hash, bukan plaintext)
+            // Simpan OTP (hash)
             EmailOtp::create([
                 'user_id'    => $user->id,
                 'otp_hash'   => Hash::make($otpCode),
@@ -82,10 +88,10 @@ class RegisterController extends Controller
                 'is_used'    => false,
             ]);
 
-            // 5️⃣ Kirim email OTP (kode asli dikirim via Mail)
+            // Kirim email OTP
             Mail::to($user->email)->send(new OtpMail($otpCode));
 
-            // 6️⃣ Arahkan ke halaman verifikasi OTP
+            // Redirect ke halaman verifikasi
             return redirect()
                 ->route('otp.verify.page', ['email' => $user->email])
                 ->with('success', 'Registrasi berhasil! Silakan cek email kamu untuk kode OTP verifikasi.');
