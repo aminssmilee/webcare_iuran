@@ -1,6 +1,6 @@
 {
   "node_modules/canvg/lib/index.es.js": {
-    "file": "assets/index.es-Ccjwd8VE.js",
+    "file": "assets/index.es-BXJxBYG5.js",
     "name": "index.es",
     "src": "node_modules/canvg/lib/index.es.js",
     "isDynamicEntry": true,
@@ -23,7 +23,7 @@
     "src": "public/img/collaborative-process-multicultural-businesspeople-using-laptop-presentation-communication-meeting-brainstorming-ideas-about-project-colleagues-working-plan-success-strategy-modern-office.jpg"
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-BYCZHnAs.js",
+    "file": "assets/app-xAPjftY9.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
