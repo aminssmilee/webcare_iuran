@@ -8,6 +8,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Member;
 
+/**
+ * @property-read \App\Models\Member $member
+ */
+
 class User extends Authenticatable implements MustVerifyEmail   // ✅ ubah baris ini
 {
     use HasFactory, Notifiable;
@@ -53,6 +57,7 @@ class User extends Authenticatable implements MustVerifyEmail   // ✅ ubah bari
     public function member()
     {
         return $this->hasOne(Member::class, 'user_id', 'id');
+        return $this->hasOne(Member::class);
     }
 
     // ==============================
